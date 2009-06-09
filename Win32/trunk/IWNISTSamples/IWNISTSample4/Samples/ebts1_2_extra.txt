@@ -1,0 +1,3128 @@
+############################################################
+# EBTS Verification file for EBTS Spec version 1.2 Draft
+#
+# Based on the original ebts1_2.txt, with the transaction
+# IWTST added and Type-8, Type-15, Type-17 and Type-99
+# loosely defined.
+#
+#############################################################
+
+
+TRANSACTIONS "Extra Imageware tests"
+
+ IWTST "ImageWare test"
+    1:1 2:1 3:0-14 4:0-14 5:0-14 7:0-14 8:0-2 10:0-5 13:0-99 14:0-14 15:0-14 16:0-6 17:0-2 99:0-10;
+
+TRANSACTIONS "Electronic Ten Print Submissions"
+
+  CAR "Criminal\Detainee Ten-Print Submission (Answer Required)"
+  DEK  "Known Deceased"
+  DEU  "Unknown Deceased"
+  FANC "Federal Applicant (No Charge)"
+  MAP  "Miscellaneous Applicant Civil"
+	1:1 2:1 4:0-14 10:0-5 14:0-14 16:0-6;
+	MAPA "Miscellaneous Applicant - Enrollment"
+	1:1 2:1 10:1-5; 
+	#MAPA is used for BISA to collect demographic data on those using PIN enabled cards
+
+TRANSACTIONS "Verification Submissions"
+
+  VER  "Verification Submission - Electronic"
+	1:1 2:1 4:1-14;
+
+TRANSACTIONS "Verification Responses"
+
+  VRSP  "Verification Response - Electronic"
+	1:1 2:1 10:0-1;
+
+TRANSACTIONS "Verification Response Errors"
+
+  EVER  "Verification Error Response"
+	1:1 2:1;
+
+TRANSACTIONS "Electronic Ten Print Responses"
+  ERRT "Ten-Print Transaction Error"
+  SRE  "Submission Results - Electronic"
+	1:1 2:1;  
+
+TRANSACTIONS "Remote Ten-Print Searches"
+
+  TPRS "Ten-Print Rap Sheet Search"
+      1:1 2:1 4:2-10 9:0-10;
+  DPRS "DOD Flat-Print Rap Sheet Search"
+      #1:1 2:1 4:0-14 9:0-14 10:0-5 14:0-14 16:0-6;
+# changed 4:0-14 to 4:2-14 to require min 2 fps
+      1:1 2:1 4:0-99 9:0-14 10:0-5 14:0-14 16:0-6;
+
+TRANSACTIONS "Remote Ten-Print Responses"
+  SRT "Search Result - Ten-Print"
+  ERRT "Ten-Print Transaction Error"
+        1:1 2:1 4:0-14;
+
+TRANSACTIONS "Remote Latent Fingerprint Searches"
+
+  LFIS "Latent Fingerprint Image(s) Searches"
+        1:1 2:1-2 4:0-10 7:0-10;  
+  LFFS "Latent Fingerprint Features Searches"
+        1:1 2:1-2 4:0-10 7:0-10 9:1-10;
+
+TRANSACTIONS "Remote Latent Fingerprint Responses"
+
+  LRE "Latent Result Electronic"
+        1:1 2:1;
+  ERRL "Latent Transaction Error"
+        1:1 2:1 4:1-x;
+
+TRANSACTIONS "Remote Requests For Fingerprint Images"
+
+  IRQ "Fingerprint Image Request"
+       1:1 2:1;
+
+TRANSACTIONS "Remote Fingerprint Image Responses"
+  IRR "Fingerprint Image Request Response"
+       1:1 2:1 4:1-4 10:1;
+  ISR "Fingerprint Image Response Summary"
+  ERRI "Image Transaction Error"
+       1:1 2:1;
+
+FIELDS
+#type 1 data
+
+[M, CAR, DEK, DEU, FANC, MAP, MAPA, VER, VRSP, EVER, ERRT, SRT,
+TPRS, DPRS, SRT, LFIS, LFFS, LRE, ERRL, IRQ, IRR, ISR, ERRI, IWTST]
+  1.001  T1_LEN   N   2-3 1 len="true" desc="Type 1 Record Length" 
+	 long_desc="This mandatory field shall contain the total count \
+			of the number of bytes in this Type 1 logical \
+			record. The number of characters added to the \
+			record by the LEN field itself shall be included in \
+			calculating the value of LEN. This field is \
+			automatically generated and should not be altered \
+			by the user.";
+
+[M]
+  1.002  T1_VER   N   4   1  desc="Version Number" 
+		mmap="0300:Type 10 through 16 records supported (ITL 1-2000) |\
+		        0201:Type 10 records supported" 
+	 long_desc="This Mandatory field shall be used to specify the \
+			version number of the standard implemented by the \
+			software or the system creating the file. This \
+			field should be set to 0201 when the transaction \
+			is based on the EFTS 7.0 specification which is \
+			in turn based on the 1993 NIST standard and the \
+			1997 NIST Addendum supporting type 10 records. \
+			The entry in this field for EBTS transactions \
+			defined in this document will be 0300 indicating \
+			ITL 1-2000. This version number signifies the \
+			inclusion of tagged-field logical records \
+			between Type-10 and Type-16.  Under most circumstances \
+			this value should be set to 0300.";
+
+# The location index for CNT has a colon so that every subfield 
+# & field will be checked from numeric data
+
+  1.003: T1_CNT   N   1-x   1-x cnt desc="File Content"
+	  long_desc="This mandatory field shall list each of the \
+			logical records in the logical file by record \
+			type. It also specifies the order in which the \
+			remaining logical records shall appear in the \
+			logical file. It shall consist of one or more \
+			subfields. Each subfield shall contain two \
+			information items describing a single logical \
+			record found in the current logical file. The \
+			subfields shall be entered in the same order in \
+			which the logical records shall be transmitted. \
+			With the addition of the Type-10 record, the \
+			first information item of each subfield may now \
+			be a one or two digit integer. The remaining edit \
+			specifications pertaining to CNT are unchanged.";              
+
+[M]
+  1.004  T1_TOT   A 3-5 1 desc="Type of Transaction"
+	mmap="CAR:Criminal Ten-Print Submission|\
+				VER: Verification Submission|\
+				VRSP: Verification Response|\
+				EVER: Verification Error Response|\
+  			DEK:Known Deceased |\
+	  		DEU:Unknown Deceased|\
+  			FANC:Federal Applicant (No Charge)|\
+  			MAP:Miscellaneous Applicant Civil|\
+  			ERRT:Ten-Print Transaction Error|\
+  			SRE:Submission Results - Electronic|\
+        DPRS:DOD Flat-Print Rap Sheet Search|\
+        TPRS:Ten-Print Rap Sheet Search|\
+				SRT:Search Result - Ten-Print|\
+  			ERRT:Ten-Print Transaction Error|\
+  			ERRL:Latent Transaction Error|\
+				LFIS:Latent Fingerprint Image(s) Searches|\
+  			LFFS:Latent Fingerprint Features Searches|\
+      	LRE:Latent Result Electronic|\
+  			ERRL:Latent Transaction Error|\
+      	IRQ:Fingerprint Image Request|\
+  			IRR:Fingerprint Image Request Response|\
+  			ERRI:Image Transaction Error|\
+  			ISR:Fingerprint Image Response Summary|\
+		IWTST:ImageWare Test"
+	 long_desc="This mandatory field shall contain an identifier, \
+			designating the type of transaction and subsequent \
+			processing that this logical file should be given. \
+			Test and operational environments will be supported \
+			by IAFIS. A suffix of T added to the three or four \
+			character TOT in the Type-1  record will \
+			immediately identify the environment as being a \
+			test.";  
+			
+[M]
+  1.005  T1_DAT   N   8   1 desc="Date" 
+		date = "CCYYMMDD"
+       long_desc="This mandatory field shall contain the date that \
+			 the transaction was initiated. The complete date \
+			 shall not exceed the current date.";  
+
+[O]
+  1.006  T1_PRY   N   1   1   desc="Priority"
+		default="4" 
+      mmap="1:Highest|\
+            2:Medium|\
+            3:Low|\
+            4:None"
+       long_desc="This field shall contain a single character to \
+			 designate the urgency with which a response is \
+			 desired. The values should range from '1' to \
+			 '4', with '1' denoting the highest priority and \
+			 the default value will be '4' if this field is not \
+			 sent.";
+
+[M]
+  1.007  T1_DAI   AN  9   1 desc="Destination Agency Identifier" 
+	 long_desc="This mandatory field shall contain the identifier \
+			of the administration or organization designated \
+			to receive the transmission.";
+
+[M]
+  1.008  T1_ORI   AN   9   1 desc="Originating Agency Identifier"
+        long_desc="This mandatory field shall contain the identifier \
+			 of the administration or organization originating \
+			 the transaction.";
+
+[M]
+  1.009  T1_TCN   ANS  10-40  1 desc="Transaction Control Number"
+		sca="PRINT" 
+        long_desc="This mandatory field shall contain  the \
+			 Transaction Control Number as assigned by the \
+			 originating agency. A unique control number should \
+			 be assigned to each transaction. For any \
+			transaction that requires a response, the \
+			respondent shall refer to this number in \
+			communicating with the originating agency.";  
+
+[O]
+  1.010  T1_TCR   ANS   10-40  1  desc="Transaction Control Reference"
+		sca="PRINT"  
+       long_desc="This field shall be used to refer to the \
+			Transaction Control Number of a previous \
+			transaction involving an inquiry or other \
+			action that requires a response.";
+			  
+
+[M]
+  1.011  T1_NSR   NS  5   1 desc="Native Scanning Resolution"
+		regex="[0-9][0-9]\.[0-9][0-9]" 
+		sca="." 
+       long_desc="This Mandatory field shall specify the nominal \
+			scanning resolution of the AFIS or other image \
+			capture device supported by the originator of the \
+			transmission. This field permits the recipient of \
+			this transaction to send response data at a \
+			transmitting resolution tailored to the NSR or 0 \
+			the minimum scanning resolution.";
+
+[M]
+  1.012  T1_NTR   NS  5   1 desc="Nominal Transmitting Resolution"
+		regex="[0-9][0-9]\.[0-9][0-9]" 
+		sca="." 
+        long_desc="This mandatory field shall specify the nominal \
+			 transmitting resolution for the image or images \
+			 being transmitted.";
+
+
+[M, CAR, FANC, DEK, DEU, MAP, DPRS, TPRS, IRQ,
+LFIS O, LFFS O, SRE O, VRSP O, EVER O, 
+SRT O, ERRT O, ERRL O]
+  1.013:  T1_DOM   ANS   2-20  1 desc="Domain Name"
+		sca="PRINT"  
+       long_desc="This mandatory field identifies the domain name for \
+       the user-defined Type-2 logical record implementation. The \
+       domain name may only appear once within a transaction. The \
+       domain MUST BE REGISTERED with the DOD Biometrics Fusion Center. \
+       It shall consist of two information items. The first information \
+       item will uniquely identify the agency, entity, or implementation \
+       used for formatting the tagged fields in the Type-2 record.  A second \
+       information item will contain the unique version of the particular \
+       implementation. The default value for the field shall be the DOD EBTS \
+       implementation and shall appear as 1.013:EBTS{US}1.0{GS}. The DoD BFC \
+       is the Domain Registrar for Domain Names used in EBTS transactions.";
+
+
+ 1.013..1  T1_DOM_IMP   ANS   1-15  1 desc="Domain Name Implementation"
+		sca="PRINT"  
+       	    desc="The information item will uniquely identify the agency, entity, or implementation \
+	    used for formatting the tagged fields in the Type-2 record.  The default value for the \
+	    field shall be EBTS";
+
+ 1.013..2  T1_DOM_VER   ANS   1-5  1 desc="Domain Name Implementaion Version"
+		sca="PRINT"  
+            desc="A second information item will contain the unique version of the particular \
+	    implementation.  When the default value for T1_DOM_IMP is used (EBTS), the \
+	    default value for the field shall be 1.0.";
+
+# Type Two Fields
+  
+[M, VER, VRSP, EVER, CAR, FANC, MAP, MAPA, DEK, DEU, ERRT, SRE, 
+   DPRS, TPRS, SRT, LFIS, LFFS, LRE, ERRL, IRQ, IRR, ISR, ERRI, IWTST]						
+  2.001 T2_LEN   N  2-7   1   len="true"  desc="Logical Record Length"
+       long_desc="This field contains the length of the logical \
+			record specifying the total number of bytes, \
+			including every character of every field contained \
+			in the record. The number of characters added to \
+			the record by the LEN field itself shall be \
+			included in calculating the value of LEN.";  
+
+[M, VER, VRSP, EVER, CAR, FANC, MAP, MAPA, DEK, DEU, ERRT, SRE, 
+   DPRS, TPRS, SRT, LFIS, LFFS, LRE, ERRL, IRQ, IRR, ISR, ERRI, IWTST]						
+  2.002 T2_IDC   N    2    1   desc="Image Designation Character"
+       long_desc="This field should contain a positive integer \
+			greater than or equal to zero. Its value should \
+			be based on sequentially assigned values starting \
+			at zero and increasing by one for each type 2, \
+			type 4 or type 10 record present. The type 1 \
+			record does not have any IDC value assigned to \
+			it. The type 1 record does  contain a CNT field, \
+			which records all IDC assignments for all other \
+			records in the transaction. This field must always \
+			be used for type 2 records. Typically the type 2 \
+			record might be the second record in the file \
+			(following the type 1 record) and would be \
+			assigned an IDC value of zero.";
+
+[O, ERRL
+]
+  2.003 T2_FFN   N    10   1 desc="FBI File Number"
+       long_desc="This is a numeric field representing the FBI \
+			Investigative File Number. Since it is used for FBI \
+			LFPS record keeping purposes, it is imperative that \
+			the remote user transmit this number if it is known.";
+
+#2.004 NOT NEEDED FOR THE TOTs IN THIS VER File
+
+[M, VER, CAR, FANC, MAP, MAPA, DPRS, DEK, DEU]
+  2.005 T2_RET   A    1    1 desc="Retention Code"  
+		mmap="Y:Yes|\
+			N:No" 
+       long_desc="This field indicates whether the arrest information \
+			submitted as a part of a transaction is to be \
+			retained as a permanent part of the FBI's Criminal \
+			Master File. A 'Y' is used to indicate yes; 'N' is \
+			used to indicate no. For Civil Submissions, RET is \
+			used to indicate whether the civil submission is to be \
+			retained in the civil files. In the case where a \
+			Criminal Ident was made against the Criminal File in a \
+			Civil Submission, under some conditions the record is \
+			retained as a Civil Cycle in that Criminal record.";
+
+[O, VER, VRSP, EVER, CAR, FANC, MAP, MAPA, DPRS, DEK, DEU, ERRT, SRE, LRE,
+    TPRS M, SRT, ERRL M, LFIS M, LFFS M, IRQ M, IRR M, ERRI M]						
+  2.006	T2_ATN	ANS	3-30	1  desc="Attention Indicator"
+		sca="PRINT" 
+		nregex=".*\..*" #periods are not allowed
+       long_desc="This field shall contain a designation of the \
+			individual to whose attention a response is to \
+			be directed. When including the recipient's rank \
+			and/or using initials for first and/or middle \
+			name, periods shall not be used (e.g., Det. \
+			J.Q.Public shall be entered as DET J Q PUBLIC). \
+			The name parameter should contain a string of up \
+			to 30 characters. Blanks, commas, dollar signs, \
+			ampersands, hyphens, slashes, left or right \
+			parentheses, asterisks, and semicolons as well \
+			as all letters and digits are allowed.";
+
+[O, VER, VRSP, EVER, CAR, FANC, MAP, MAPA, DEK, DEU, ERRT, SRE,
+    DPRS, TPRS, SRT, ERRL, LFIS, LFFS, LRE, IRQ, IRR, ERRI]
+  2.007	T2_SCO  ANS  9-19	 1-9  desc="Send Copy To"
+		sca="PRINT"
+       long_desc="The purpose of this field is to indicate \
+			requirements for production of additional \
+			response(s) for a receiving agency other than the \
+			contributor. It shall contain the NCIC-assigned \
+			Originating Agency Identifiers (ORIs) for agencies \
+			who are to receive a copy of the response. Each ORI \
+			consists of 9 alphanumeric characters. At the option\
+			of the transmitting agency, the ORI may be expanded \
+			to a size of 19 characters, with 10 characters \
+			appended to the end to assist in proper routing of \
+			the responses. Upon receiving an electronic \
+			response, the state identification bureau will \
+			forward a copy of the electronic response to each \
+			agency listed in the 'SEND COPY TO' block";
+
+[O, VER, VRSP, EVER, CAR, FANC, MAP, MAPA, DEK, DEU, ERRT, LRE, SRE,
+    DPRS, TPRS, SRT]						
+  2.009	T2_OCA  ANS  1-20  1  desc="Originating Agency Case Number"
+		sca="PRINT" 
+		nregex=".*\..*" #periods are not allowed
+       long_desc="This field shall contain the Originating Agency \
+			Case Number that has been assigned by this \
+			agency. This field should contain a 25-character \
+			alphanumeric string. The length of OCA should be 10 \
+			characters for CRIMINAL transactions, and 15 for \
+			CIVIL. Comma, hyphen, slash, and blanks are allowed \
+			as special characters.";
+
+[M, ERRL]
+  2.010:     T2_CIN     ANS     2-48    1-5      desc="Contributor Case Identifier Number"
+  		 sca="PRINT"
+      long_desc="This field contains a prefix and an identifier \
+			which are assigned by the contributor to \
+			uniquely identify a latent case. The prefix \
+			and identifier should each contain of no more \
+			than 24 alphanumeric characters.";
+
+  2.010..1  T2_CIN_PRE ANS     1-24    1     desc="Contributor Case Prefix"
+       sca="PRINT" 
+       long_desc="This field is a literal subfield prefix of up to 24 \
+			alphanumeric characters. It will be one of 3 number \
+			types : Incident Number, Laboratory Number, or \
+			Investigation Number";
+
+  2.010..2  T2_CIN_ID  ANS     1-24    1      desc="Contributor Case ID"
+       sca="PRINT"
+       long_desc="This field is the Identifier subfield of up to 24 \
+			alphanumeric characters";
+			
+[M, LFIS, LFFS, LRE O]
+  2.010:     T2_CIN     ANS     2-48    1     desc="Contributor Case Identifier Number"
+       sca="PRINT" 
+       long_desc="This field contains a prefix and an identifier \
+			which are assigned by the contributor to \
+			uniquely identify a latent case. The prefix \
+			and identifier should each contain of no more \
+			than 24 alphanumeric characters.";
+
+  2.010..1  T2_CIN_PRE ANS     1-24    1    desc="Contributor Case Prefix" 
+  		sca="PRINT" 
+      long_desc="This field is a literal subfield prefix of up to 24 \
+			alphanumeric characters. It will be one of 3 number \
+			types : Incident Number, Laboratory Number, or \
+			Investigation Number";
+
+  2.010..2  T2_CIN_ID  ANS     1-24    1   desc="Contributor Case ID"  
+  	  sca="PRINT" 
+       long_desc="This field is the Identifier subfield of up to 24 \
+			alphanumeric characters";			
+
+[M, ERRL]
+  2.011     T2_CIX     N       2-4     1-5     desc="Contributor Case Identifier Extension"
+       long_desc="This field is a numeric supplement to the Case \
+			Identifier Number and allows multiple searches to \
+			be associated with the same case. This field \
+			should contain no more than 2 numeric characters.";
+
+[M, LFIS, LFFS, LRE O]
+  2.011     T2_CIX     N       2-4     1     desc="Contributor Case Identifier Extension"
+       long_desc="This field is a numeric supplement to the Case \
+			Identifier Number and allows multiple searches \
+			to be associated with the same case. This field \
+			should contain no more than 2 numeric characters.";
+
+[O, ERRL, LFIS, LFFS, LRE]
+  2.012     T2_LCN     ANS  11  1  desc="FBI Latent Case Number"
+		sca="-"
+       long_desc="This field is assigned by the FBI LFPS and used \
+			for record keeping purposes. Although the field \
+			is optional, it is imperative that the remote \
+			user transmits this number if it is known. This \
+			field should contain an alphanumeric \
+			string of 11 characters.";
+
+[O, ERRL, LFIS, LFFS, LRE]
+  2.013     T2_LCX  N  4  1  desc="FBI Latent Case Extension"
+       long_desc="Defines extensions to the FBI Latent Case Number. \
+			The LCX shall be a four-digit extension starting \
+			with '0001' for the first submission and incrementing \
+			by one for each subsequent submission.";
+
+[O, VRSP, EVER, CAR, DPRS, FANC, MAP, MAPA, DEK, ERRT, LRE, SRE]						
+  2.014	T2_FBI	AN  1-9  1-5  desc="FBI Number"
+       long_desc="This field contains the subject's FBI number. \
+			(If known). A valid FBI number shall be no more \
+			than nine alphanumeric characters. No special \
+			characters allowed.";
+ 
+[O, IRR M, ERRI]
+  2.014	T2_FBI	AN	1-9	1      desc="FBI Number"
+       long_desc="This field contains the subject's FBI number. \
+			(If known). A valid FBI number shall be no more \
+			than nine alphanumeric characters. No special \
+			characters allowed.";
+
+[M, IRQ]
+  2.014	T2_FBI	AN	1-9	1-1000 desc="FBI Number"
+       long_desc="This field contains the subject's FBI number. \
+			(If known). A valid FBI number shall be no more \
+			than nine alphanumeric characters. No special \
+			characters allowed.";
+
+[O, VRSP, EVER, CAR, MAP, MAPA, DEK, ERRT, LRE, SRE, IRR, ERRI]						
+  2.015	T2_SID	ANS	3-10	1 desc="State Identification Number"
+		sca="-"
+       long_desc="This field contains any known state identification \
+			number. The format is the standard two-character \
+			abbreviation of the state name, followed by the \
+			number. NY, OR, and PA may use a hyphen in the \
+			last position.";
+
+[O, CAR, DPRS, FANC, MAP, MAPA, DEK]						
+  2.016	T2_SOC	N	9	1-4 desc="Social Security Number"
+       long_desc="This field contains the subject's social security \
+			number. This number shall be entered as nine or \
+			ten consecutive digits with no embedded \
+			punctuation characters. Up to four social \
+			security numbers may be entered. No foreign \
+			social security numbers shall be used. This \
+			field should contain a string of no more than \
+			9 numeric characters.";
+
+[O, VRSP, EVER, CAR, DPRS, FANC, MAP, MAPA, DEK, DEU, ERRT, ERRL]						
+  2.017  T2_MNU  ANS   4-15   1-4 	desc="Miscellaneous Identification Number" 
+		sca="-" 
+       long_desc="If there are any miscellaneous identification \
+			numbers, they shall be entered in this field. The \
+			format of the data shall be a two-letter \
+			identifying code, followed by a hyphen (-), \
+			followed by a 1-12 character identification \
+			number. The following table lists the acceptable \ 
+			two-letter identifying agency codes. For 'AF' or \
+			'AS' all characters in the identification number \
+			must be numeric. Interspersed blanks are invalid. \
+			Types of numbers not listed in the following \
+			table (such as driver's license) shall not be \
+			entered. Only U.S. passport numbers shall be \
+			entered; foreign numbers shall be ignored. As many \
+			as four miscellaneous identification numbers may \
+			be included in this field.";
+
+[M, DPRS, CAR, FANC, MAP, MAPA, DEK, DEU, SRE, LRE, DRPS,
+    VER O, VRSP O, EVER O, IRR] 							
+  2.018	T2_NAM	AS	3-30	1  desc="Name"
+		nam="true" 
+		sca=",- " 
+       long_desc="This field contains the name of the subject. The \
+			surname should be entered first separated by a \
+			comma, followed by the given name(s), which are \
+			separated by a space. This field should contain an \
+			alpha string of no more than 30 characters. Comma, \
+			hyphen, and blanks are allowed as special \
+			characters. Special values of NAM, to be entered in \
+			cases where the subject's name is not known, are : \
+			'Amnesia Victim' - 'UNKNOWN AMNESIA,XX'; \
+			'Unknown Deceased' - 'UNKNOWN DECEASED, XX'; \
+			'Name Not Available(Other)'-'DOE, JOHN' or 'DOE, JANE'";
+
+[O, CAR, DPRS, FANC, MAP, MAPA, DEK, LRE]							
+  2.019	T2_AKA	ANS	3-30	1-10  desc="Aliases"
+		sca="-, " 
+       long_desc="This field contains alias names of the subject. \
+			This field indicates the number of aliases \
+			present. Up to ten aliases may be provided. \
+			This field should contain a string of up to 30 \
+			alpha numeric characters. The surname should be \
+			entered first, separated by a comma, followed by \
+			the given name(s), which are separated by a space. \
+			Hyphens, ampersands, commas and blanks as well as \
+			all letters are allowed.";
+  
+[M, CAR, FANC, MAP, MAPA, DEK O, DPRS,
+    VER O, VRSP O,  LFIS O, LFFS O]							
+  2.020	T2_POB	A	2	1 desc="Place of Birth"
+ 			mmap="file://t2_pob.txt"
+       long_desc="This field shall contain the subject's place of \
+			birth. This entry should include the territorial \
+			possession, province or country of birth. See the \
+			table for the appropriate two-letter code. \
+			Currently we only list valid codes for the \
+			United States and all it's territories, Canada \
+			and Mexico";
+
+[O, VER, VRSP, CAR, DPRS, FANC, MAP, MAPA, DEK, DEU]							
+  2.021	T2_CTZ	A	2	1 desc="Country of Citizenship" 
+			mmap="file://t2_ctz.txt"
+       long_desc="This field contains the name of the country of which \
+			the subject is a citizen. Entry must be a valid \
+			country code from the Code Table POB in Part IV of \
+			the NCIC Code Manual. This field will contain an \
+			alpha string no more than 2 characters long. No \
+			special characters are allowed.";
+
+
+[M, CAR, FANC, MAP, MAPA, DPRS, DEK, DEU, VER O, VRSP O]
+2.022	T2_DOB	N	8	1-5   desc="Date of Birth" 
+		date="ZCCYYMMDD"
+       long_desc="This field contains the date of birth. It is \
+			entered as an eight digit number in the CCYYMMDD \
+			format. DOB is completely unknown, enter as \
+			00000000. Partial DOBs are not allowed. DOB shall \
+			not exceed date of submission after Time-Zone \
+			adjustment.";
+
+[O, LFIS, LFFS]
+  2.023 T2_AGR     N       4       1   desc="Age Range"
+       long_desc="An estimated age range may be entered using a pair \
+			of two-digit numbers. The first two digits shall \
+			represent the minimum age, and the second two the \
+			maximum.";
+
+[M, CAR, FANC, MAP, MAPA, DEK, DPRS, DEU, 
+    VER O, VRSP O, TPRS M, LFIS O, LFFS O]							
+  2.024	T2_SEX	A	1	1          desc="Gender" 
+					mmap="F:Female|\
+                G:Male Impersonator|\
+                M:Male|\
+                N:Female Impersonator|\
+                Y:Male name, no gender given|\
+                Z:Female name, no gender given|\
+                X:Uknown gender"
+       long_desc="This field is used to report the gender of the \
+			subject. The entry is a single character \
+			selected from the table.";
+
+[M, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU O, 
+    VER O, VRSP O, LFIS O, LFFS O]
+  2.025	T2_RAC	A	1	1 desc="Race" 
+			      mmap="A:Asian|\
+                  B:Black|\
+                  I:Native American|\
+                  U:Unknown|\
+                  W:Caucasian/Latino"
+       long_desc="This field shall contain the correct code to \
+			indicate the subject's race. Use the Predominant \
+			race code from the table.";
+  
+[O, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, LFIS, LFFS]							
+  2.026	T2_SMT  AS 3-10  1-10 desc="Scars, Marks and Tattoos"
+		sca=" "
+  			mmap="file://t2_smt.txt"
+       long_desc="For each scar, mark, or tattoo present on the \
+			subject, the appropriate NCIC code shall be used in \
+			this information item. This field should contain an \
+			alpha string of no more than 10 characters. Blanks \
+			are allowed as special characters.";
+
+[M, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, VER O, VRSP O] 
+  2.027	T2_HGT	AN	3	1      desc="Height" 
+       long_desc="This field contains the subject's height as a three \
+			character value. If reported in feet and inches, the \
+			first (leftmost) digit is used to show feet while \
+			the two rightmost digits are used to show the inches \
+			between 00 and 11. If reported in inches, the \
+			leftmost character is 'N' followed by two digits. If \
+			height is unknown, 000 is entered. The allowable range \
+			is 400 to 711. Heights outside this range will be \
+			clamped at these limits.";
+			
+[M, LFIS, LFFS]
+  2.028 T2_HTR     AN      6       1      desc="Height Range"  
+       long_desc="If a range of height is given, it shall be expressed \
+			as two three-character values formatted as described \
+			for mnemonic HGT, indicating the shortest and \
+			tallest heights of the subject. The allowable range \
+			is 400 to 711. Heights outside of this range will be \
+			clamped at these limits.";
+
+[M, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, VER O, VRSP O]
+  2.029	T2_WGT	N	  3	1      desc="Weight" 
+       long_desc="This field shall contain the subject's weight in \
+			pounds. If weight is unknown, 000 is entered. All \
+			weights in excess of 499 pounds will be set to 499lbs.";
+
+[O, LFIS, LFFS]
+  2.030 T2_WTR     N         6     1      desc="Weight Range"
+       long_desc="If a range of weight is given, it shall be expressed \
+			as two three digit numbers indicating the minimum \
+			and maximum weights (in pounds) of the subject. \
+			WTR must be in the range of 050 to 499lbs (however, \
+			there is no minimum range limit for missing persons \
+			or unknown persons).";
+
+[M, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, 
+    VER O, VRSP O, LFIS O, LFFS O]							
+  2.031  T2_EYE	A	3	1 desc="Color Eyes" 
+		mmap="BLK:Black|\
+					BLU:Blue|\
+					BRO:Brown|\
+					GRY:Gray|\
+					GRN:Green|\
+					HAZ:Hazel|\
+					MAR:Maroon|\
+					MUL:Multicolored|\
+					PNK:Pink|\
+					XXX:Unknown"
+       long_desc="This field contains a 3 letter code used to \
+			indicate the subject's eye color.";
+
+[M, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, 
+    VER O, VRSP O, LFIS O, LFFS O]	
+  2.032	T2_HAI	A	3	1 desc="Hair Color" 			
+			mmap="BAL:Bald|\
+            BLK:Black|\
+            BLN:Blonde or Strawberry|\
+            BRO:Brown|\
+            GRY:Gray or Partially Gray|\
+						RED:Red or Auburn|\
+						SDY:Sandy|\
+						WHI:White|\
+						XXX:Unknown|\
+						BLU:Blue|\
+						GRN:Green|\
+						ONG:Orange|\
+						PNK:Pink|\
+						PLE:Purple"
+       long_desc="This field contains a 3 letter code used to \
+			indicate the subject's hair color.";
+
+[O, DPRS, TPRS, LFIS, LFFS]
+  2.034:   T2_PAT  AN  4-8  1  desc="Pattern Level Classifications"
+       long_desc="This grouped field contains information about the \ 
+			finger(s) pattern types. It is comprised of two \
+			sub fields, Finger number (FGN), and Pattern \
+			Classification Code (PATCL). The two character \
+			finger position code and the primary pattern type \
+			code as chosen from the table. Up to two reference \
+			pattern classifications per finger are also allowed, \
+			 thereby making the total number of pattern classes \
+			allowable per finger equal to three.";
+  2.034..1 T2_PAT_FGP       N  2  1  desc="Finger Number" 
+					mmap="00:Unknown|\
+						01:Right Thumb|\
+						02:Right Index|\
+						03:Right Middle|\
+						04:Right Ring|\
+						05:Right Little|\
+						06:Left Thumb|\
+						07:Left Index|\
+						08:Left Middle|\
+						09:Left Ring|\
+						10:Left Little";
+
+  2.034..2 T2_PAT_CL1     A  2  1  desc="Pattern Classification Code" 
+					mmap="AU:Arch, Type Not Designated|\
+						WU:Whorl, Type Not Designated|\
+						RS:Right Slant Loop|\
+						LS:Left Slant Loop
+						SR:Complete Scar|\
+						XX:Amputation|\
+						UP:Unable to Print(e.g. bandaged)|\
+						UC:Unable to Classify"; 
+  2.034..3 T2_PAT_CL2     A  0-2  1  desc="Pattern Classification Code" 
+					omap="AU:Arch, Type Not Designated|\
+						WU:Whorl, Type Not Designated|\
+						RS:Right Slant Loop|\
+						LS:Left Slant Loop
+						SR:Complete Scar|\
+						XX:Amputation|\
+						UP:Unable to Print(e.g. bandaged)|\
+						UC:Unalbe to Classify";
+  2.034..4 T2_PAT_CL3     A  0-2  1  desc="Pattern Classification Code" 
+					omap="AU:Arch, Type Not Designated|\
+						WU:Whorl, Type Not Designated|\
+						RS:Right Slant Loop|\
+						LS:Left Slant Loop
+						SR:Complete Scar|\
+						XX:Amputation|\
+						UP:Unable to Print(e.g. bandaged)|\
+						UC:Unalbe to Classify";
+
+[O, CAR, IRR]							
+  2.035	T2_PPA  A  1  1  desc="Palm Prints Available Indicator" 
+		mmap="Y:Yes"
+       long_desc="This field indicates if there are palm prints \
+			available, with a 'Y', otherwise this field \
+			shall be omitted.";
+
+[O, CAR,IRR]			  
+  2.036	T2_PHT	A	1  1  desc="Photo Available Indicator" 
+		mmap="Y:Yes"
+       long_desc="This field indicates if a photo of the subject is \
+			available with a 'Y', otherwise the field shall be \
+			omitted.";
+
+[M, FANC, DPRS, MAP, MAPA]
+  2.037 T2_RFP     ANS    1-75 1 desc="Reason Fingerprinted"
+		sca=", -/" 
+       long_desc="This field is used to indicate the purpose of a \
+			civil or applicant fingerprint submission. This \
+			field will indicate if the card is submitted for \
+			licensing, gun permit, or criminal justice \
+			employment, non-criminal justice employment, \
+			adoption, naturalization, volunteer background \
+			checks, gaming certification, and others under \
+			state control.";
+
+[O, FANC, DPRS, MAP, MAPA, DEK, DEU]							
+  2.038   T2_DPR	N	8	1 desc="Date Printed" 
+		date="CCYYMMDD"
+       long_desc="This field contains the date the subject was \
+			fingerprinted. The format for this field is \
+			CCYYMMDD."; 
+
+[O, CAR, FANC, MAP, MAPA, DEK, LRE, SRE, 
+    DPRS, TPRS, SRT]							
+  2.039	T2_EAD	ANS  1-120  1   desc="Employer and Address"
+		sca="PRINT" 
+       long_desc="The name and address of the subject's primary \
+			employer. This field should contain \
+			an alpha-numeric string of no more than 120 \
+			characters. Commas, blanks, periods, ampersand, \
+			slash, hyphen, parenthesis and number signs are \
+			allowed as special characters.";
+
+[O, CAR, FANC, MAP, MAPA, LRE, SRE, 
+    DPRS, TPRS, SRT]  
+  2.040	T2_OCP	ANS	1-50	1 desc="Occupation"
+		sca="PRINT" 
+       long_desc="This text field contains the subject's occupation. \
+			This field should contain an alphanumeric string \
+			of no more than 50 characters. Commas, blanks, \
+			periods, ampersand, slash, hyphen, parenthesis, \
+			and number signs are allowed as special characters.";
+
+[O, VER, VRSP, CAR, FANC, MAP, MAPA, DEK, DEU, LRE, SRE, 
+    DPRS, TPRS, SRT]  
+  2.041  T2_RES  ANS  1-120  1  desc="Residence of Person Fingerprinted"
+		sca="PRINT" 
+       long_desc="The subject's residential address may be entered in \
+			this field as free text, including printable special \
+			characters and formatting characters (CR, LF, TAB). \
+			The RES returned in a response is the same as the \
+			one submitted.";
+
+[O, FANC, VER, VRSP]
+  2.042 T2_MIL     A       1       1 desc="Military Code" 
+					mmap="A:Army|\
+								F:Air Force|\
+								N:Navy|\
+								M:Marines|\
+								G:Coast Guard"
+       long_desc="A one-letter code from the following table shall \
+			be entered in this field to indicate which branch \
+			of the United States Military submitted the \
+			transaction.";
+
+[M, LFIS, LFFS]
+  2.044 T2_GEO     A       2       1-5 desc="Geographical Area of Search"
+			mmap="file://t2_geo.txt"
+       long_desc="This field indicates a restriction of the \
+			geographic area(ie. the state or states) to be \
+			searched. The entries are a list of the states to \
+			search.  Entries must be valid state codes from the \
+			Code Table POB in Part VI of the NCIC Code Manual. \
+			If all 50 states are desired, this field should not \
+			be used.";
+
+[M, CAR]						
+  2.045	T2_DOA	N	8	1  desc="Date of Arrest" 
+		date="CCYYMMDD"
+       long_desc="This field shall contain the date of arrest. The \
+			date shall appear as an eight-digit number in \
+			the CCYYMMDD format. DOA shall not exceed date of \
+			submission after Time-Zone Adjustment."; 
+
+[M, CAR]							
+  2.047:    T2_ASL	ANS	1-308	 1-40 desc="Arrest Segment Literal"
+		sca="PRINT" 
+       long_desc="This field is made up of the Date of Offense (DOO) \
+			and the Arrest Offense Literal (AOL). The AOL is \
+			free text description of an offense charged on an \
+			arrest. Each AOL should have a corresponding date \
+			(DOO), if available. The DOO shall appear as an \
+			eight digit number in the format of CCYYMMDD. CCYY \
+			characters shall represent the year; the MM \
+			characters shall be the tens and units values of the \
+			month; the DD characters shall be the day in the \
+			month. The complete shall not exceed the current \
+			date. Up to 40 occurrences of the ASL are allowed. \
+			A DOO is prohibited without a corresponding AOL \
+			offense.";
+
+[O, CAR]							
+  2.047..1  T2_ASL_DOO	N  8  1  desc="Date of Offense" 
+		date="CCYYMMDD"
+       long_desc="The Date of Arrest (DOO) field shall appear as an \
+			eight digit number in the format of CCYYMMDD. The \
+			complete date should not exceed the current date. \
+			A DOO is prohibited without a corresponding AOL \
+			offense.";
+
+[M, CAR]							
+  2.047..2	T2_ASL_AOL	ANS	1-300	1 desc="Arrest Offense Literal"
+		sca="PRINT" 
+       long_desc="The Arrest Offense Literal (AOL) is a free text \
+			description of an offense charged on an arrest";
+
+[O, DEU]
+  2.048     T2_CSR A  1  1 desc="Civil Search Requested Indicator"
+		mmap="Y:Yes"
+       long_desc="This field shall contain a 'Y' if a search of the \
+			Civil File is desired at the completion of Criminal \
+			File search. The field should contain a single \
+			alpha character. No special characters allowed.";
+
+[O, CAR]							
+  2.051:  	T2_CSL	ANS	2-608	1-40 desc="Court Segment Literal"
+		sca="PRINT" 
+       long_desc="The CSL field is made up of Court Disposition Date \
+			(CDD), the Court Offense Literal (COL), and the \
+			Other Court Sentence (CPL). Up to 40 Occurrences of \
+			the CSL are allowed.";
+
+[O]
+  2.051..1	T2_CSL_CDD	 N  8  1  desc="Court Disposition Date" 
+		date="CCYYMMDD"
+       long_desc="The Court Disposition Date (CDD) shall appear as an \
+			eight digit number in the format of CCYYMMDD. A CDD \
+			(if available), followed by a COL, followed by a CPL \
+			must be present for each occurrence of the CSL \
+			field.";
+[M]
+  2.051..2	T2_CSL_COL	ANS  1-300  1  desc="Court Offense Literal"
+		sca="PRINT" 
+		regex="[^ ].*" #this cant start with a blank space
+       long_desc="The Court Offense Literal (COL) contains free text \
+			description of an offense charged in a court count. \
+			The COL is always mandatory.";
+[M]
+  2.051..3  T2_CSL_CPL ANS 1-300 1 desc="Other Court Sentence Provision Literal"
+		sca="PRINT"
+	 long_desc="The CPL contains free-text information on sentence \
+			provisions."; 
+
+[O, CAR]  
+  2.054  T2_SSD N 8 1 desc="Custody or Supervisory Status - Start Date" 
+		date="CCYYMMDD"
+		greatereq("T2_DOA")
+       long_desc="This field contains the start date for the subject's \
+			indicated custody or supervisory status. The date \
+			shall appear as an eight digit number formatted as \
+			CCYYMMDD. SSD may not be less than DOA. Complete \
+			date may not exceed the current date. If custody \
+			data are submitted, all custody fields (SSD, OCA \
+			and SLE) must be present."; 
+
+[O, CAR]  
+  2.055 T2_SLE ANS 1-300 1 desc="Custody or Supervisory Status Literal"
+		sca="PRINT" 
+		regex="[^ ].*" #this cant start with a blank space
+       long_desc="This field contains the text description of the \
+			subject's custody or supervision status. The first \
+			character must not be blank. Entry of SLE requires \
+			that SSD also be entered. The description should \
+			contain an alphanumeric string of no more than 300 \
+			characters. Comma, hyphen, ampersand, slash, number \
+			sign, and blanks are allowed as special characters.";
+
+[O, CAR, DPRS, DEK, DEU]  
+  2.056  T2_ICO  ANS  1-50 1 desc="Identification Comments"
+		sca="PRINT" 
+       long_desc="This field shall contain any additional \
+			miscellaneous identification remarks providing the \
+			reason for caution. The first character may not be \
+			a blank. The comments should be an alphanumeric \
+			string of no more than 50 characters.";
+
+[O, DPRS, TPRS, IRQ M, IRR]
+  2.057    T2_FNR   N  2  1-13  desc="Finger number(s) Requested" 
+					omap="0:Unknown Finger|\
+						01:Right Thumb|\
+						02:Right Index Finger|\
+						03:Right Middle Finger|\
+						04:Right Ring Finger|\
+						05:Right Little finger|\
+						06:Left Thumb|\
+						07:Left Index Finger|\
+						08:Left Middle Finger|\
+						09:Left Ring Finger|\
+						10:Left Little Finger|\
+						11:Plain Right Thumb|\
+						12:Plain Left Thumb|\
+						13:Plain Right Four Fingers|\
+						14:Plain Left Four Fingers|\
+						00:All 14 Fingers"
+       long_desc="This field is used in transactions involving a \
+			request for fingerprint image information. The \
+			finger number for which image information is \
+			requested are selected from a table. Up to 13 \
+			individual finger image numbers may be listed. \
+			If all 14 ten-print images are desired, 00 is \
+			shown instead of individual finger numbers. For \
+			transactions, which allow only ten, rolled \
+			fingerprint images, when all ten images are \
+			desired, list each one separately.";
+
+[M, LRE, SRE, VRSP]
+  2.059	T2_SRF A   1   1  desc="Search Results Finding" 
+			mmap="I:Identification|\
+						N:No Identification"
+      long_desc="This field is used in responses to inquiries and \
+			contains a single character. An 'I' shall be used to \
+			indicate that an identification has been made, and \
+			an 'N' shall be used to indicate that no \
+			identification has been made.";
+
+[M, ERRT, EVER, ERRL, ERRL, ERRI]
+  2.060  T2_MSG  ANS 1-300  1-11 desc="Status/Error Message"
+		sca="PRINT" 
+       long_desc="This field will contain reason, status or error \
+			messages that are generated as a result of the \
+			processing of transactions and will be sent back to \
+			the submitter.";
+
+[O, ERRL]
+  2.061     T2_CST     ANS    1-50    1    desc="Case Title"
+		sca="PRINT" 
+       long_desc="This field identifies the Latent Case. It will \
+			include information concerning the case and it must \
+			include the offense type. The case title should \
+			contain an alphanumeric string no more than 50 \
+			characters long.";
+
+[O, SRT]
+  2.064:    T2_CAN     ANS     4-39    1-25   desc="Candidate List"
+		sca=",- "
+       long_desc="This grouped field shall contain a candidate list. \
+			It is comprised of two subfields, the FBI Number \
+			(FNU) and Name (NAM), which will be provided for \
+			each candidate in the list. ";
+  2.064..1  T2_CAN_FNU     AN    1-9     1   desc="FBI Number";
+  2.064..2  T2_CAN_NAM     AS    3-30    1   desc="Name"  
+		sca=",- " ;
+
+[O, VER, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, LFIS M]								
+  2.067:  T2_IMA  ANS  1-100  1  desc="Image Record Type Desired"
+		sca="PRINT" 
+       long_desc="This free text field is used to log the make, \
+			model, and serial number of the equipment used to \
+			acquire images. it is a grouped field, comprised of \
+			three subfields : the Make (MAK), Model (MODL), and \
+			Serial Number(SERNO) of the acquisition device.";
+
+  2.067..1  T2_IMA_MAK     ANS     1-25     1   sca="PRINT" 
+		desc="Equipment Originating Fingerprint Reading System Make";
+
+  2.067..2  T2_IMA_MODL    ANS     1-25     1   sca="PRINT" 
+		desc="Originating Fingerprint Reading System Model";
+
+  2.067..3  T2_IMA_SERNO   ANS     1-50     1   sca="PRINT" 
+		desc="Originating Fingerprint Reading System Serial Number";
+
+[O, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU]	
+  2.070  T2_RAP   A   1   1   desc="Request for Electronic Rap Sheet" 
+				mmap="Y:Yes|\
+							N:No"
+       long_desc="The purpose of this field is to allow the \
+			contributors, in case of an Ident, to optionally \
+			request an electronic RAP sheet of the suspect. A \
+			'Y' indicates that a RAP sheet is desired an 'N' or \
+			blank field indicates that no electronic rap sheet \
+			should be returned with the Ident response. This \
+			field should contain a single alpha character. No \
+			special characters are allowed.";
+
+[O, SRE, LRE]
+  2.071     T2_ACN   ANS    0-300   1 desc="Action to be Taken"
+		sca=",-&/# " 
+       long_desc="This field is used in free text answers to \
+			submission requests to indicate that a latent case \
+			will be established or to indicate recommendations \
+			for further actions in either latent or ten-print \
+		 	responses. Commas, hyphens, ampersands, slashes, \
+			number signs, and blanks are allowed as special \
+			characters.";
+
+[M, VER, VRSP, EVER, CAR, SRE, DEK, DEU, FANC, MAP, MAPA, DPRS, ERRT O, 
+    TPRS O, SRT O, ERRL O, LFIS O, LFFS O, LRE O, IRQ O, IRR O, ERRI O]
+  2.073     T2_CRI  ANS  1-9  1-3  desc="Controlling Agency Identifier"
+		sca=" "
+       long_desc="In Criminal transactions, the first instance of \
+			this one to nine byte field is mandatory and shall \
+			contain the originating agency Identifier (ORI) of \
+			the organization controlling the transaction when \
+			that organization is different than the one \
+			submitting the transaction (e.g. state CTA). When \
+			the controlling agency has the same ORI as the CTA, \
+			both the ORI and CRI fields shall be submitted with \
+			the same identifier. In criminal transactions, the \
+			CRI will usually refer to the booking station that \
+			has submitted the subject's fingerprint card or \
+			photo to be transmitted through the CTA to the FBI. \
+			For Civil submissions, this free-text field is user \
+			defined. The FBI uses the first instance of CRI in \
+			any transaction that would modify criminal records \
+			as the authority to do so. If in a Civil \
+			transaction there is a criminal IDENT against the \
+			subject and the first instance of the submitted CRI \
+			is not an authorized ORI, the ORI of the State Ident \
+			Bureau that submitted the transaction will be used \
+			in its stead. The second and third instances of CRI, \
+			when sent, are treated as user defined fields.";
+
+[O, LFIS, LFFS, LRE]
+  2.074     T2_FGP   N       2       1-10 desc="Finger Position" 
+				mmap="00:Unknown or ALL|\
+					01:Right Thumb|\
+					02:Right Index|\
+					03:Right Middle|\
+					04:Right Ring|\
+					05:Right Little|\
+					06:Left Thumb|\
+					07:Left Index|\
+					08:Left Middle|\
+					09:Left Ring|\
+					10:Left Little"
+       long_desc="This field is used for latent submissions and \
+			remote searches and contains the fingerprint \
+			position code of the latent print(s) submitted. For \ 
+			remote latent searches, if multiple fingerprint \
+			images are included in one search, finger position \
+			is mandatory for all images. If finger position is \
+			unknown, the search may contain only a single \
+			image, and the field FGP will be omitted.";
+
+[O, LRE, SRE]
+  2.075     T2_ERS   ANS     4-200000 1 desc="Electronic Rap Sheet"
+		sca="PRINT" 
+            maxlinelen = "74"
+       long_desc="This field shall contain the electronic rap sheet. \
+			The electronic rap sheet is an electronic copy of \
+			the Identification Record Report (IDRR) or the \
+			Non-Identification Response (NIDR) as are done \
+			today. The electronic rap sheet shall consist of \
+			lines with a maximum of 74 characters per line. The \
+			formatting of the response shall conform to the \
+			IAFIS ICD.";
+
+[M, LFIS, LFFS]
+  2.076     T2_PRI   N       1        1 desc="Priority"  
+		mmap="1:High|\
+					2:Medium|\
+					3:Low"
+       long_desc="This field shall indicate the priority of a Latent \
+			search. The highest priority levels will generally \
+			correspond to the following crime types in \
+			descending order of priority : Homicide, rape, and \
+			special circumstances; Kidnap, assault, and robbery; \
+			Arson, drugs, personal crimes, and property crimes. \
+			Federal agencies will determine their own priority \
+			schemes. No additional validation of priorities \
+			will be provided. IAFIS will not interrupt searches \
+			in progress upon receipt of higher priority \
+			searches.";
+
+[O, LFIS, LFFS, LRE M]
+  2.079     T2_NCR   N  1-2  1  desc="Number of Candidates Images Returned"
+       long_desc="This field contains the maximum number of \
+			candidates (images) the submitter desires to receive \
+			in response to a latent image or features search. \
+			If the field is left blank, only images for the \
+			highest scoring candidate will be returned. The \
+			maximum value of NCR is currently 20.";
+
+[O, LFIS, LFFS, LRE]
+  2.083     T2_ULF   A       1        1 desc="Unsolved Latent File"  
+		mmap="Y:Yes"
+       long_desc="This one character alpha field is used to designate \
+			whether a latent image or features record in search \
+			should be added to the Unsolved Latent File. Submit \
+			a 'Y' for yes, for a 'No', omit the field.";
+
+[O, CAR, FANC, DPRS, MAP, MAPA, DEK, DEU, SRT, IRR]
+  2.084:    T2_AMP  AN  4  1-10   desc="Amputated or Bandaged"
+       long_desc="This grouped field contains information about \
+			amputated or bandaged fingerprints in an EFTS \
+			submission. It is comprised of two subfields, Finger \
+			Number (FGN), and Amputated or Bandaged Code \
+			(AMPCD). This field is to be used anytime there \
+			are fewer than ten printable fingers in a ten \
+			print submission. A partially scarred finger should \
+			be printed. If the forwarding agency is not sure of \
+			the reason a finger's image is missing, the 'UP' \
+			code should be used.";
+
+[M]
+  2.084..1  T2_AMP_FGP   N       2    1   desc="Bandaged Finger Number"  
+						mmap="01:Right Thumb|\
+							02:Right Index|\
+							03:Right Middle|\
+							04:Right Ring|\
+							05:Right Little|\
+							06:Left Thumb|\
+							07:Left Index|\
+							08:Left Middle|\
+							09:Left Ring|\
+							10:Left Little";
+
+[M]
+  2.084..2  T2_AMP_AMPCD A    2    1   desc="Amputated or Bandaged Code"  
+						mmap="XX:Amputation|\
+							UP:Unable to Print";
+
+[O, LRE, SRE, VRSP]
+  2.085     T2_CRN   AN     9     1 desc="Civil Record Number"
+       long_desc="A unique identifier assigned to each Civil Subject \
+			Record.";
+
+[O, LRE]
+  2.086   T2_SCNA  N  1-10  1 desc="AFIS Segment Control Number"
+        long_desc="This field contains a number used by AFIS/FBI to \
+			allow tracking of or reference to specific \
+			transactions. It is used, for example, to indicate \
+			the index number for individual records in the \
+			IAFIS Unsolved Latent File in the response to a \
+			Remote Latent Search. It is also used to refer to \
+			transactions that contains searches for the purpose \
+			of status queries, modifications, or cancellations.";
+
+[O, CAR, LRE, SRE]
+  2.087     T2_TAA   A         1    1  desc="Treat As Adult" 
+		mmap="Y:Yes"
+       long_desc="A one byte optional field to indicate whether a \
+			juvenile is to be processed as an adult. A 'Y' \
+			indicates yes, an omitted field indicates no.";
+
+#Note for 2.088 - This field is NOT listed as an field that is used for
+#MAP, FANC, MAPA, CAR, DPRS, SRE, SRT, OR LRE
+#However, because it is just a field for notes, it is listed as an option
+#for this verification file.
+
+[O, MAP, FANC, CAR, DPRS, SRE, SRT, LRE]
+  2.088     T2_NOT  ANS     1-1000 1  desc="Note Field"
+		sca="PRINT" 
+       long_desc="This free text  field is used to provide additional \
+			information regarding electronic submissions.";
+			
+[O, LRE]
+  2.089     T2_MSC   N       1-6    1-99  desc="Math Score"
+       long_desc="Defines the match score of a fingerprint from AFIS \
+			for a candidate list.";
+
+[O, DPRS, TPRS, LFIS, LFFS]
+  2.091:  T2_RCD1  N  3-4  1  desc="Ridge Core Delta One For Subpattern Classification"
+	 long_desc="This grouped field contains information about the \
+			finger(s) ridge counts and is used for Remote Native \
+			Mode Searches in conjunction  with the Pattern level \
+			Classification (PAT - 2.034). It is comprised of two \
+			subfields, Finger Number(FGP) and Ridge Count \
+			Number 1(RCN1).";
+
+  2.091..1  T2_RCD1_FGP  N  2  1  desc="Finger Number"
+					mmap="00:Unknown|\
+                01:Right Thumb|\
+								02:Right Index|\
+								03:Right Middle|\
+								04:Right Ring|\
+								05:Right Little|\
+								06:Left Thumb|\
+								07:Left Index|\
+								08:Left Middle|\
+								09:Left Ring|\
+								10:Left Little"
+	 long_desc="This subfield should contain the two character finger \
+			position code as specified for the related Pattern \
+			Level Classification (PAT).";
+
+  2.091..2  T2_RCD1_RCN1  N  1-2  1  desc="Ridge Count Number 1"
+	 long_desc="This subfield should contain the Ridge Count Number.";
+
+[O, DPRS, TPRS, LFIS M, LFFS M]
+  2.092:  T2_RCD2  N  3-4  1 	desc="Ridge Core Delta Two For Subpattern Classification"
+	 long_desc="This grouped field contains information about the \
+			finger(s) ridge counts and is used for Remote Native \
+			Mode Searches in conjunction  with the Pattern level \
+			Classification (PAT - 2.034). It is comprised of two \
+			subfields, Finger Number(FGP) and Ridge Count \
+			Number 2(RCN2).";
+
+  2.092..1  T2_RCD2_FGP  N  2  1  desc="Finger Number"
+					mmap="00:Unknown|\
+                01:Right Thumb|\
+								02:Right Index|\
+								03:Right Middle|\
+								04:Right Ring|\
+								05:Right Little|\
+								06:Left Thumb|\
+								07:Left Index|\
+								08:Left Middle|\
+								09:Left Ring|\
+								10:Left Little"
+	 long_desc="This subfield should contain the two character finger \
+			position code as specified for the related Pattern \
+			Level Classification (PAT).";
+
+  2.092..2  T2_RCD2_RCN2  N  1-2  1  desc="Ridge Count Number 2"
+	 long_desc="This subfield should contain the Ridge Count Number.";
+
+[O, DPRS, MAP, MAPA, CAR, FANC, VER, VRSP, SRE, LRE, SRT]
+  2.300  T2_GUID   ANS  36-38  1-10 desc="BAT Global Unique Identifier"
+		sca="PRINT" 
+        long_desc="This optional field shall contain the \
+			 BAT Global Unique Identifier as assigned by the \
+			 BAT system.";
+
+[O, DPRS, MAP, MAPA, FANC, CAR, SRE, LRE, SRT]
+  2.301  T2_BLO   ANS  1-255  1 desc="Location"
+		sca="PRINT" 
+        long_desc="This optional field shall contain the \
+			 location of biometric collection.";  
+
+[O, CAR M, DPRS, VER, VRSP, SRE, LRE, SRT]
+  2.302  T2_ISN   ANS  13-14  1 desc="Internment Serial Number (ISN)"
+		sca="PRINT" 
+        long_desc="This optional field shall contain the \
+			 Interment Serial Number (ISN) as defined by the \
+			 AR190-8.  This field is mandatory for CAR transactions.";
+
+[O, VRSP, EVER, DPRS, CAR, MAP, MAPA, FANC, DEK, ERRT, SRT, SRE, LRE, IRQ, IRR]
+  2.303	 T2_DOD	AN  1-9  1-5  desc="DOD Number"
+       long_desc="This field contains the subject's DOD number. \
+			This number is automatically generated by DoD ABIS.  A valid DOD number shall be no \
+      more than nine alphanumeric characters. No special characters allowed.";
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, LRE, SRE]
+  2.304:  T2_PAS   ANS   20-178  1-5 desc="Passport Information"
+		sca="PRINT"  
+       long_desc="This optional his field contains the subject's passport information. \
+                   All five subfields are required if this field is present.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, LRE, SRE]
+ 2.304..1  T2_PAS_DATEISSUE   N   8  1 desc="Passport Date Issued"
+		date="CCYYMMDD"  
+       	    desc="This field contains the date the subject's passport was \
+			issued. The format for this field is \
+			CCYYMMDD.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, LRE, SRE
+]
+ 2.304..2  T2_PAS_DATEEXP   N   8  1 desc="Passport Date Expires"
+		date="CCYYMMDD"
+       long_desc="This field contains the date the subject's passport  \
+			expires. The format for this field is \
+			CCYYMMDD.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, LRE, SRE]		
+ 2.304..3  T2_PAS_NUMBER	ANS	1-80	1 desc="Passport Number" 
+		sca="PRINT"		
+       long_desc="This field contains the the subject's Passport Number";
+			
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, LRE, SRE]
+ 2.304..4  T2_PAS_COUNTRY	A	2	1 desc="Country of Passport Issuance" 
+			mmap="file://t2_pob.txt"
+      long_desc="This field contains the name of the country which issued\
+			the subject their passport. Entry must be a valid \
+			country code from the Code Table POB in Part IV of \
+			the NCIC Code Manual.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, LRE, SRE]			
+ 2.304..5  T2_PAS_LOC	ANS	1-80	1 desc="Location of Passport Issuance" 
+		sca="PRINT"			
+      long_desc="This field contains the name of the location of \
+		  passport issuance"; 
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306      T2_GEO_COOR    NS    8-51    1 desc="Geographical Coordinates Latitude/Longitude"
+                 sca=".+-"		
+		 long_desc="This optional field contains longitude and latitude \
+		 at which the submission was collected.";		 
+		 
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306..1    T2_GEO_COOR_LAT_DEG	NS	1-9	 1 desc="Longitude Degree"
+		sca=".+-" 
+       long_desc="This field is Longitude at which the submission was \
+		collected.  The data is in range of +180 to -180. \
+		e.g. +132.30643 or -89.61458.";
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306..2    T2_GEO_COOR_LAT_MIN	NS	1-8	 1 desc="Latitude Minute"
+		sca="." 
+       long_desc="This field is Latitude at which the submission was \
+		collected.  The data is in the range +90 to -90. \
+		e.g +31.30243 or -88.62458.";
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306..3    T2_GEO_COOR_LAT_SEC	NS	1-8	 1 desc="Latitude Second"
+		sca="." 
+       long_desc="This field is Latitude at which the submission was \
+		collected.  The data is in the range +90 to -90. \
+		e.g +31.30243 or -88.62458.";	
+		
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306..4    T2_GEO_COOR_LONG_DEG	NS	1-10	 1 desc="Longitude Degree"
+		sca=".+-" 
+       long_desc="This field is Latitude at which the submission was \
+		collected.  The data is in the range +90 to -90. \
+		e.g +31.30243 or -88.62458.";			
+		
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306..5    T2_GEO_COOR_LONG_MIN	NS	1-8	 1 desc="Longitude Minute"
+		sca="." 
+       long_desc="This field is Latitude at which the submission was \
+		collected.  The data is in the range +90 to -90. \
+		e.g +31.30243 or -88.62458.";				
+			
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.306..6    T2_GEO_COOR_LONG_SEC	NS	1-8	 1 desc="Longitude Second"
+		sca="." 
+       long_desc="This field is Latitude at which the submission was \
+		collected.  The data is in the range +90 to -90. \
+		e.g +31.30243 or -88.62458.";		
+
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.307      T2_DATUM_ID    AN    3-6    1 desc="Geographical Coordinate Datum ID"		
+		#default="WGS-84/NAD-83"
+		mmap="AIRY:Airy|\
+					AUST:Australian National|\
+					BES:Bessel 1841|\
+					BESN:Bessel 1841 (Nambia)|\
+					CLK66:Clarke 1866|\
+					CLK80:Clarke 1880|\
+					EVER:Everest|\
+					FIS60:Fischer 1960 (Mercury)|\
+					FIS68:Fischer 1968|\
+					GRS67:GRS 1967|\
+					GRS80:GRS 1980|\
+					HELM:Helmert 1906|\
+					HOUG:Hough|\
+					INT:International|\
+					KRAS:Krassovsky|\
+					AIRYM:Modified Airy|\
+					EVERM:Modified Everest|\
+					FIS60M:Modified Fischer 1960|\
+					SA69:South American 1969|\
+					WGS60:WGS-60|\
+					WGS66:WGS-66|\
+					WGS72:WGS-72|\
+					WGS84:WGS-84/NAD-83"
+		 long_desc="This optional field contains an identifier for the datum used \
+		 						to express the coordinates provided in field 2.306, 2.321, or 2.322.";
+		 		 
+[O, VRSP, EVER, DPRS, CAR, MAP, MAPA, FANC, DEK, ERRT, SRT, SRE, LRE]
+  2.308  T2_EDI   N  10-20  1 desc="EDIPI"
+		sca="PRINT" 
+        long_desc="This optional field shall contain the EDIPI \
+			 unique identifier for a person in the DMDC Person Data Repository.";
+
+[O, VRSP, EVER, DPRS, CAR, MAP, MAPA, FANC, DEK, ERRT, SRT, SRE, LRE]
+  2.309  T2_DPIDS   ANS  10-50  1 desc="DBIDS ID"
+		sca="PRINT" 
+        long_desc="This optional field shall contain the DBIDS ID \
+			 unique identifier for a DBIDS user.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, DEU]
+  2.310  T2_PER_TYPE   AS  3-50  1 desc="Personnel Type" 
+		mmap="ADGR:ACTIVE DUTY OR GUARD or RESERVE ON ACTIVE DUTY ASSIGNMENT|\
+					RESERVE:RESERVE|\
+					NATIONAL_GUARD:NATIONAL GUARD|\
+					DOD_CIVIL_SERVICE_OR_NAF:DOD CIVIL SERVICE OR NAF|\
+					DOD_CONTRACTOR:DOD CONTRACTOR|\
+					FEDERAL_ASSOCIATE:FEDERAL ASSOCIATE (E.G. STATE DEPT)|\
+					CIVILIAN_ASSOCIATE:CIVILIAN ASSOCIATE (E.G. RED CROSS OR USO)|\
+					VOLUNTEER_AGENCY:MEMBER OF SERVICE VOLUNTEER AGENCY|\
+					FOREIGN_MILITARY:FOREIGN MILITARY|\
+					HOST_NATION_MILITARY_OCONUS:HOST NATION MILITARY (OCONUS)|\
+					HOST_NATION_HIRE_OCONUS: HOST NATION HIRE (OCONUS) (E.G. LOCAL NATIONAL)|\
+					DOD_BENEFICIARY:DOD BENEFICIARY (RETIREE, DISABLED AMERICAN VETERAN, TRANSITIONAL COMP)|\
+					AD_OR_GUARD_OR_RESERVER_ON_ADFM:AD OR GUARD/RESERVER ON ACTIVE DUTY FAMILY MEMBER|\
+					RESERVE_FAMILY_MEMBER:RESERVE FAMILY MEMBER|\
+					NATIONAL_GUARD_FAMILY_MEMBER:NATIONAL GUARD FAMILY MEMBER|\
+					DOD_OR_USCS_OR_NAF_FAMILY_MEMBER:DOD OR UNIFORM SERVICE CIVIL SERVICE OR NAF FAMILY MEMBER|\
+					DOD_OR_USC_FAMILY_MEMBER:DOD OR UNIFORM SERVICE CONTRACTOR FAMILY MEMBER|\
+					CONVEYANCE_OPERATOR:CONVEYANCE OPERATOR|\            
+					PERSONAL_SERVICES_OR_DOMESTIC:PERSONAL SERVICES OR DOMESTIC|\
+					FACILITIES_SERVICE_PERSON:PERSON (DELIVERY, PICKUP, REPAIR)|\
+					NON_GOVERNMENT_CIVILIAN:NON-GOVERNMENT CIVILIAN|\
+					DISTIGUISHED_CIVILIAN:DISTIGUISHED CIVILIAN|\
+					OTHER:OTHER|\
+					IDENTI_KID:IDENTI-KID|\
+					EPW:Enemy Prisoner of War or Enemy Combatant|\
+					FOREIGN_NATION_HIRE_OCONUS:THIRD COUNTRY NATIONAL|\
+					FOREIGN_NATION_HIRE_CONTRACTOR_OCONUS:Contractor for Third Country National|\
+          OEN:Operational or Combat Encounter (Indentity Spot Check)|\
+          PEN:Patrol or Checkpoint Encounter (Identity Spot Check)|\
+          MIO:Maritime Interdiction  Operation Encounter (Identity Spot Check)|\
+					UNK:Unknown"
+        long_desc="This mandatory field shall contain the classification for the person or personnel.";
+
+[O, DPRS, CAR, FANC, MAP, MAPA, DEK, LRE, SRE, VER, VRSP, EVER, IRR, SRT, IRQ] 							
+  2.311	 T2_NAM1  AS	1-50	1  desc="Name-One"
+		sca="PRINT" 
+       long_desc="This optional field shall accommodate long names, generally this would be the \
+                  last name or Family name (surname)";
+
+[O, DPRS, CAR, FANC, MAP, MAPA, DEK, LRE, SRE, VER, VRSP, EVER, IRR, SRT, IRQ] 							
+  2.312	 T2_NAM2  AS	1-50	1  desc="Name-Two"
+		sca="PRINT" 
+       long_desc="This optional field shall accommodate long names, generally this would be the \
+                  first name or given name.";
+       
+[O, DPRS, CAR, FANC, MAP, MAPA, DEK, LRE, SRE, VER, VRSP, EVER, IRR, SRT, IRQ] 							
+  2.313	 T2_NAM3  AS	1-50	1  desc="Name-Three"
+		sca="PRINT" 
+       long_desc="This optional field shall accommodate long names, generally this would be the \
+                  middle name.";
+       
+[O, DPRS, CAR, FANC, MAP, MAPA, DEK, LRE, SRE, VER, VRSP, EVER, IRR, SRT, IRQ] 							
+  2.314	 T2_NAM4  AS	1-50	1  desc="Name-Four"
+		sca="PRINT" 
+       long_desc="This optional field shall accommodate long names, generally this would be the \
+                  tribe name.";
+       
+[M, VER]
+2.315  T2_VID   ANS  4-57  1 desc="Verification Identifier"
+		sca="PRINT"
+        long_desc="This mandatory field shall contain the verification identifier on file with the DOD \
+                   and may contain either DOD number, SSN, EDIPT, ISN, BATGUID, or DBIDS Number";
+		   
+2.315..1  T2_VID_TYPE   A  3-7  1 desc="Verification Identifier Type"
+		mmap="SSN:Social Security Number|\
+                      EDIPI:EDIPI|\
+		      ISN:Internment Serial NumberDOD Civilian|\
+		      DOD:DOD Number|\
+		      BATGUID:BAT Global Unique Identifier|\
+                      DBIDS:DBIDS Identifier"
+        long_desc="This mandatory field identifies the type of verification identifier.";
+		   
+2.315..2  T2_VID_VALUE   ANS  1-50  1 desc="Verification Identifier Value"
+		sca="PRINT"
+        long_desc="This mandatory field shall contain the verification identifier on file with the DOD \
+                   and may contain either DOD number, SSN, EDIPT, ISN, BATGUID, or DBIDS Number";		   
+		   
+[O, IRQ]
+  2.316  T2_RMS   A  1  1 desc="Request Mug Shot"
+		mmap="Y:Yes|\
+          N:No" 
+        long_desc="This optional field shall indicate a request to return the most recent \
+	mug shot (frontal pose) on file with DOD for the given subject.";
+	
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, DEU ]
+  2.317  T2_RIS   A  1  1 desc="Request IAFIS Search"
+		mmap="Y:Yes|\
+          N:No" 
+        long_desc="This optional field shall indicate a request to search IAFIS \
+	in addition to the DOD ABIS.";
+	
+[O, SRE, LRE]
+  2.318     T2_XML   ANS     4-400000 1 desc="XML-based Electronic Rap Sheet"
+		sca="PRINTCTRL" 
+            maxlinelen = "174"
+       long_desc="This field shall contain an electronic rap sheet in XML format. \
+			The electronic rap sheet shall consist of \
+			lines with a maximum of 174 characters per line. The \
+			formatting of the response shall conform to a future DOD standard.";
+
+[M, LFFS, LFIS] 
+2.319	T2_LATENT_TECN	AS	3-100	1  desc="Name of Latent Technician"
+		nam="true" 
+		sca=",- " 
+       long_desc="This field contains the name of the latent technicial (i.e. lifter or \
+                  latent processor. The surname should be entered first separated by a \
+			comma, followed by the given name(s), which are \
+			separated by a space. This field should contain an \
+			alpha string of no more than 100 characters. Comma, \
+			hyphen, and blanks are allowed as special \
+			characters.";
+
+[M, LFFS, LFIS] 
+2.320	T2_LATENT_SUB	AS	3-100	1  desc="Name of Latent Submitter"
+		nam="true" 
+		sca=",- " 
+       long_desc="This field contains the name of the latent submitter. \
+                  The surname should be entered first separated by a \
+		  comma, followed by the given name(s), which are \
+		  separated by a space. This field should contain an \
+		  alpha string of no more than 100 characters. Comma, \
+		  hyphen, and blanks are allowed as special characters.";
+
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.321      T2_CORD_OTHER    AN    7-23    1 desc="Geographical Coordinates - Other"
+		 long_desc="This optional field contains the Military Grid Reference System (MGRS) \
+		 grid coordinate and corresponding datum.  Both the MGRS and Datum subfields are \
+		 mandatory if this field is present.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.321..1    T2_CORD_OTHER_ID	A	4-6	 1 desc="Geographical Coordinate System ID"
+    mmap="MGRS:Military Grid Reference System|\
+    			GARS:Global Area Reference System|\
+    			GEOREF:World Geographical Reference"
+    long_desc="";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.321..2    T2_CORD_OTHER_VALUE	AN	3-17	 1 desc="Geographical Coordinate Value"
+    long_desc="This field is EBTS Geocoordinate Datum Code corresponding to \
+		the Datum of the MGRS Coordinate in subfield 2.321..1 \
+		The data is in the range 1 to 9999.";
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.322      T2_CORD_UTM    AN    4-17    1 desc="Coordinates in UTM format"		
+		 long_desc="This optional field contains the Universal Trans Mercator (UTM) \
+		 grid coordinate and corresponding datum.  Both the UTM and Datum subfields are \
+		 mandatory if this field is present.";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.322..1    T2_CORD_UTM_ZONE	AN	2-3	 1 desc="Zone"
+       long_desc="This field is UTM Coordinate at which the submission was \
+		collected in UTM format.  The data is in the form of \
+		Zone Number, space, Zone Letter, space, Easting, space, Northing \
+		e.g. 10 U 499425 5521953";
+
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.322..2    T2_CORD_UTM_NORTHING	N	8	 1 desc="Northing"
+       long_desc="This field is EBTS Geocoordinate Datum Code corresponding to \
+		the Datum of the UTM Coordinate in subfield 2.321..1 \
+		The data is in the range 1 to 9999.";
+		
+[M, CAR, MAP, MAPA, FANC, DPRS, TPRS, DEK, VER]
+2.322..2    T2_CORD_UTM_EASTING	N	1-6	 1 desc="Easting"
+       long_desc="This field is EBTS Geocoordinate Datum Code corresponding to \
+		the Datum of the UTM Coordinate in subfield 2.321..1 \
+		The data is in the range 1 to 9999.";		
+		
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.323      T2_FATHER_NAME   ANS    0-80   1 desc="Father's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Father's Name.";
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.324      T2_MOTHER_NAME   ANS    0-80   1 desc="Mother's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Mother's Name.";
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.325      T2_MAT_FATHER_NAME   ANS    0-80   1 desc="Maternal Grandfather's Name"
+      sca="PRINT"		
+		 long_desc="Subject's maternal grandfather's Name.";
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.326      T2_PAT_FATHER_NAME   ANS    0-80   1 desc="Paternal Grandfather's Name"
+      sca="PRINT"		
+		 long_desc="Subject's paternal grandfather's Name.";		
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.327      T2_SPOUSE_NAME   ANS    0-80   1-10 desc="Spouse's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Spouse(s)'s Name.";		  
+
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.328      T2_CHILD_NAME   ANS    0-80   1-10 desc="Child's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Child(ren)'s Name.";	
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.329      T2_BROTHER_NAME   ANS    0-80   1-10 desc="Brother's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Brother(s)'s Name.";	
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.330      T2_SISTER_NAME   ANS    0-80   1-10 desc="Sister's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Sister(s)'s Name.";
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS]
+2.331      T2_ASSOCIATES_NAME   ANS    0-80   1-10 desc="Associate's Name"
+      sca="PRINT"		
+		 long_desc="Subject's Associate(s)'s Name.";			
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, VER]
+2.332      T2_AGE  N    1-3   1 desc="Subject's Exact Age"	
+		 long_desc="Subject's Exact Age.";			
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, VER]
+2.333      T2_NAT  AS    1-50   1 desc="Subject's Nationality"	
+			sca="- ,"
+		 long_desc="Subject's Nationality.";			
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, VER, VRSP]
+2.334      T2_SCC  A    3   1 desc="Submission Color Code"	
+			mmap="RED:Red Force|\
+						BLU:Blue Force|\
+						GRY:Grey Force"
+		 long_desc="Submission Color Code for transaction.";
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, VER]
+2.335      T2_DOSSIER  ANS    1-50   1 desc="Dossier Number"	
+			sca="PRINT"
+		 long_desc="Enter Dossier Number.";	
+		 
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, VER]
+2.336      T2_IRS  A    1   1 desc="Iris Image Present"	
+		 mmap="Y:Yes|\
+		 			 N:No"
+		 long_desc="This indicates if iris images are present.  \
+		 						Note:  Iris images are to be stored in Type 16.";		
+		 						
+[O, CAR, MAP, MAPA, FANC, DPRS, TPRS, VER]
+2.337      T2_RELIGION  AS    1-50   1 desc="Religion"	
+			sca=" -,"
+		 long_desc="Enter Suject's Religion.  Use comma to seperate \
+		 						if more than one is listed.";			
+		 						
+#2.338 - reserved
+
+[O, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.350      T2_ALERT  ANS    5-338   1 desc="Alert"	
+			sca="PRINT"
+		 long_desc="This optional field contains alert information \
+		 						that will be used in the case where a new submission \
+		 						into the system results in an IDENTED response \
+		 						against the submission containing the alert data.";		
+		 						
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.350..1    T2_ALERT_FUN	N	1	 1 desc="Alert Function"
+		mmap="0:Off|\
+					1:On"
+       long_desc="This sets the alert function.";		
+       
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.350..2    T2_ALERT_CAT	N	1	 1 desc="Alert Category"
+		mmap="1:Detain - known or suspected terrorist - DoD watchlist|\
+					2:Detain - known or suspected terrorist - US government watchlist|\
+					3:Detain - known or suspected terrorist - other country watchlist|\
+					4:Detain - individual of interest to US or coalition forces|\
+					5:Detain - known or suspected criminal|\
+					6:No US or coalition base access|\
+					7:Interview but do not detain|\
+					8:Detain but do not interview|\
+					9:Do not detain or interview"
+       long_desc="This contains the alert category info.";	
+       
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.350..3    T2_ALERT_VAL	N	1	 1 desc="Alert Value"
+		mmap="1:None|\
+					2:Low Value|\
+					3:Medium Value|\
+					4:High Value"
+       long_desc="This lists a value of interest from 1 to 4 with higher \
+       values are of more interest.";		
+       
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.350..4    T2_ALERT_CONTACT	ANS	1-80	 1 desc="Alert Contact"
+			sca="PRINT"
+       long_desc="This field contains the agency and individual contact reference.";	    
+       
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.350..5    T2_ALERT_DETAIL	ANS	1-255	 1 desc="Alert Detail"
+			sca="PRINT"
+       long_desc="This field will contain any special handling instructions.";	                 	        						
+						
+[O, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.351      T2_EP  N    2   1 desc="Encounter Protection"	
+		 long_desc="This optional field contains information that will \
+		 						be used in the case where a new submission wants the subject's \
+		 						association(s) to be protected or unprotected.";				
+		 						
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.351..1     T2_EP_FUN  N    1   1 desc="Encounter Protection Function"	
+			mmap="0:Unprotect|\
+						1:Protect"
+		 long_desc="This field contains information that will be used to determine \
+		 						the action to be taken.";	
+		 						
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.351..2     T2_EP_LEVEL  N    1   1 desc="Encounter Protection Level"	
+			mmap="0:Single Encounter|\
+						1:All Encounter"
+		 long_desc="This field contains information that will be used to determine \
+		 						the level of protection being assigned to the subject.";	
+		 						
+[O, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.352    T2_LOOKUP  ANS    2-101   1-99 desc="Transaction Lookup"	
+		 long_desc="This optional field contains information that will be used to \
+		 						identify a transaction within the DoD ABIS system.";			 						
+		 						
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.352..1    T2_LOOKUP_TYPE  N    1   1 desc="Transaction Lookup Type"	
+			mmap="0:TCN|\
+						1:Subject ID returned previously from ABIS|\
+						2:BAT_GUID|\
+						3:Interment Serial Number (ISN)"
+		 long_desc="This field contains information that will be used to \
+		 						identify the type of identifier(s) that is being provided.";		
+		 						
+[M, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.352..2    T2_LOOKUP_VAL  ANS    1-100   1 desc="Transaction Lookup Value"	
+			sca="PRINT"
+		 long_desc="This optional field contains information that will be used to \
+		 						identify a transaction within the DoD ABIS system.";	
+		 						
+[O, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.353    T2_SN  ANS    2-251   1 desc="Subsequent Notification"	
+		 long_desc="This optional field contains information that will be used to \
+		 						identify that the current submission is requesting that all \
+		 						future associations will return notifications to the defined \
+		 						email address(es).";			
+		 						
+[O, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.353..1    T2_SN_FUN  N    1   1 desc="Subsequent Notification Function"	
+		mmap="0:No Subsequent Notification|\
+					1:Use Default|\
+					2:Multiple as listed"
+		 long_desc="This field identifies the type of Notification that should be used.";		
+		 
+[O, CAR, MAP, MAPA, DPRS, TPRS, SRE, SRT]
+2.353..2    T2_SN_ADDRS  ANS    1 - 250   1 desc="Subsequent Notification Addresses"	
+		sca="PRINT"
+		 long_desc="This field set will define the actual email address(es) where \
+		 subsequent responses will be sent.";			 	 						 								 							 						
+		 								 									 						 						
+#Type 4 Fields
+# Note: this record type is verified through is non-binary form
+# This is typically 500 dpi fingerprints
+
+[M, VER, CAR, FANC, MAP, DEK, DEU, 
+    DPRS, TPRS, SRT, ERRL, LFIS, LFFS, LRE, IRR]
+  4.01...0   T4_LEN   B4   2-8   1 desc="Logical Record Length"
+       long_desc="This mandatory field shall contain the length of \
+			the logical record specifying the total number of \
+			bytes, including every byte of all nine fields \
+			contained in the record.";  
+  
+  4.02...4   T4_IDC   B1    1-2   1 desc="Image Designation Character"
+        long_desc="This mandatory  field shall be used to identify the \
+			image data contained in this record. The IDC in this \
+			field shall be a binary representation of the IDC \
+			found in the file content field of the Type 1 \
+			record.";
+
+  4.03...5   T4_IMP   B1     1   1	desc="Impression Type"
+				mmap="0:Live-scan Plain|\
+					1:Live-Scan Rolled|\
+					2:Nonlive-scan Plain|\
+					3:Nonlive-scan Rolled|\
+					4:Latent Impression|\
+					5:Latent Tracing|\
+					6:Latent Photo|\
+					7:Latent Lift" 
+       long_desc="This mandatory field shall contain a code selected \
+			from an ANSI table, describing the manner by which \
+			the fingerprint image information was obtained."; 
+
+  4.04...6 T4_FGP B1   1-3 1-6 desc="Finger Position"
+                 mmap="0:Unknown Finger|\
+                       1:Right Thumb|\
+                       2:Right Index Finger|\
+                       3:Right Middle Finger|\
+                       4:Right Ring Finger|\
+                       5:Right Little Finger|\
+                       6:Left Thumb|\
+                       7:Left Index Finger|\
+                       8:Left Middle Finger|\
+                       9:Left Ring Finger|\
+                      10:Left Little Finger|\
+                      11:Plain Right Thumb|\
+                      12:Plain Left Thumb|\
+                      13:Plain Right Four Fingers|\
+                      14:Plain Left Four Fingers|\
+                     255"
+       empty="255"
+       long_desc="This mandatory field shall contain possible finger \
+			positions. The first element is used for the known \
+			or most probable finger. Up to five additional \
+			finger positions may be referenced by entering the \
+			alternate finger positions. The code should be taken \
+			from the ANSI table.";
+
+  4.05...12   T4_ISR   B1     1   1 desc="Image Scanning Resolution"
+				mmap="0:Minimum Scanning Resolution|\
+					1:Native Scanning Resolution" 
+       long_desc="This field shall contain a 0 if the minimum \
+			scanning resolution is used and a 1 if the native \
+			scanning resolution is used.";
+  
+  4.06...13   T4_HLL   B2   1-5   1 desc= "Horizontal Line Length"
+        long_desc="This field shall be used to specify the number of \
+			pixels contained on a single horizontal line of the \
+			transmitted image.";
+  
+  4.07...15   T4_VLL   B2   1-5   1 desc= "Vertical Line Length"
+        long_desc="This field should be used to specify the number of \
+			vertical lines contained in the transmitted image.";
+  
+  4.08...17   T4_GCA   B1   1-3   1 desc= "Grayscale Compression Algorithm"
+       long_desc="This field should be used to specify the type of \
+			gray-scale compression algorithm used. A 0 denotes \
+			no compression. Otherwise a number will be allocated \
+			to the particular compression technique used by the \
+			interchange parties. A 1 denotes \
+			CJIS WSQ compression.";
+
+  4.09...18   T4_DAT   B1   1-x   1 desc= "Image Data"
+       long_desc="This field contains the image data.";
+
+#Type 7 Verification Information
+[M, LFIS, LFFS, FANC, MAP, CAR, DPRS, DEU, DEK]
+  7.01...0   T7_LEN   B4   2-8   1 desc="Logical Record Length"
+       long_desc="This mandatory field shall contain the length of \
+			the logical record specifying the total number of \
+			bytes, including every byte of all nine fields \
+			contained in the record.";  
+  
+  7.02...4   T7_IDC   B1    1-2   1 desc="Image Designation Character"
+        long_desc="This mandatory  field shall be used to identify the \
+			image data contained in this record. The IDC in this \
+			field shall be a binary representation of the IDC \
+			found in the file content field of the Type 1 \
+			record.";
+
+  7.03...5   T7_IMP   B1     1   1	desc="Impression Type"
+				mmap="0:Live-scan Plain|\
+					1:Live-Scan Rolled|\
+					2:Nonlive-scan Plain|\
+					3:Nonlive-scan Rolled|\
+					4:Latent Impression|\
+					5:Latent Tracing|\
+					6:Latent Photo|\
+					7:Latent Lift" 
+       long_desc="This mandatory field shall contain a code selected \
+			from an ANSI table, describing the manner by which \
+			the fingerprint image information was obtained."; 
+
+  7.04...6 T7_FGP B1   1-3 1-6   desc="Finger Position" 
+                  mmap="0:Unknown Finger|\
+                        1:Right Thumb|\
+                        2:Right Index Finger|\
+                        3:Right Middle Finger|\
+                        4:Right Ring Finger|\
+                        5:Right Little Finger|\
+                        6:Left Thumb|\
+                        7:Left Index Finger|\
+                        8:Left Middle Finger|\
+                        9:Left Ring Finger|\
+                        10:Left Little Finger|\
+                        11:Plain Right Thumb|\
+                        12:Plain Left Thumb|\
+                        13:Plain Right Four Fingers|\
+                        14:Plain Left Four Fingers|\
+                       255"
+       empty="255"
+       long_desc="This mandatory field shall contain possible finger \
+			positions. The first element is used for the known \
+			or most probable finger. Up to five additional \
+			finger positions may be referenced by entering the \
+			alternate finger positions. The code should be taken \
+			from the ANSI table.";
+
+  7.05...12   T7_ISR   B1     1   1 desc="Image Scanning Resolution"
+				mmap="0:Minimum Scanning Resolution|\
+					1:Native Scanning Resolution" 
+       long_desc="This field shall contain a 0 if the minimum \
+			scanning resolution is used and a 1 if the native \
+			scanning resolution is used.";
+  
+  7.06...13   T7_HLL   B2   1-5   1 desc="Horizontal Line Length"
+        long_desc="This field shall be used to specify the number of \
+			pixels contained on a single horizontal line of the \
+			transmitted image.";
+  
+  7.07...15   T7_VLL   B2   1-5   1 desc="Vertical Line Length"
+        long_desc="This field should be used to specify the number of \
+			vertical lines contained in the transmitted image.";
+  
+  7.08...17   T7_GCA   B1   1-3   1 desc="Grayscale Compression Algorithm"
+       long_desc="This mandatory field shall be used to specify the \
+			type of grayscale compression algorithm used. A \
+			binary '0' denotes no compression. Otherwise, the \
+			contents of this byte shall be a binary \
+			representation for the number allocated to the \
+			particular compression technique used by the \
+			interchange parties. A 1 denotes CJIS WSQ \
+			compression. The FBI maintains a registry \
+			relating these numbers to the compression \
+			algorithms.";
+
+  7.09...18   T7_DAT   B1   1-x   1 desc= "Image Data"
+       long_desc="This field contains the image data.";
+
+	   
+#Type 8 Signature Fields
+
+[M, IWTST]
+  8.01...0   T8_LEN   B4   2-8   1 desc="Logical Record Length";
+  8.02...4   T8_IDC   B1   1-2   1 desc="Image Designation Character";
+  8.03...5   T8_SIG   B1     1   1 desc="Signature Type";
+  8.04...6   T8_SRT   B1     1   1 desc="Signature representation type";
+  8.05...7   T8_ISR   B1     1   1 desc="Image Scanning Resolution";
+  8.06...8   T8_HLL   B2   1-5   1 desc= "Horizontal Line Length";
+  8.07...10  T8_VLL   B2   1-5   1 desc= "Vertical Line Length";
+  8.08...12  T8_DAT   B1   1-x   1 desc= "Image Data";
+
+  
+#Type 9 Verification Information
+[M, DPRS, TPRS,
+    LFIS, LFFS
+]
+  9.001    T9_LEN       N		2-5  1  desc="Logical Record Length"
+       long_desc="This mandatory field shall contain the length of \
+			the logical record specifying the total number of \
+			bytes, including every character of all the fields \
+			contained in the record. The number of characters \
+			added to the record by the LEN field shall be \
+			included in calculating the value of LEN.";
+
+  9.002    T9_IDC	   N		2  1  desc="Image Designation Character"
+       long_desc="This mandatory field shall be used for the \
+			identification and location of the minutiae data. \
+			The IDC contained in this field shall match the IDC \
+			found in the file content field of the \
+			Type 1 record."; 
+  
+  9.003    T9_IMP	   N		1	1	desc="Impression Type"  
+						mmap="0:Live-scan Plain|\
+							1:Live-scan Rolled|\
+							2:Nonlive-Scan Plain|\
+							3:Nonlive-Scan Rolled|\
+							4:Latent Impression|\
+							5:Latent Tracing|\
+							6:Latent Photo|\
+							7:Latent Lift"
+       long_desc="This mandatory field describes the manner by which \
+			the fingerprint image information was obtained.";
+
+# The value U, User-defined is also allowed however if this is entered we have no way of verifying this
+  9.004    T9_FMT	   A		1	1	desc="Minutiae Format"   
+					mmap="S:Formatted to Standard"
+       long_desc="This mandatory field is used to indicate whether the \
+			remainder of the record adheres to the ANSII \
+			standard or is user defined. This field shall \
+			contain an 'S' to indicate the minutiae are \
+			formatted as specified by the standard or a 'U' to \
+			indicate user-defined. If the minutiae record is \
+			formatted in user defined terms, the remaining \
+			fields of the logical record may not be applicable.";
+
+  9.005:  T9_OFR  AN  x  x  desc="Originating Fingerprint Reading System"
+       long_desc="The originator's designation or name for the \
+			particular fingerprint reading system that \
+			generated the record shall be placed in the first \
+			information item of this field. The second \
+			information item of this field shall be a single \
+			character to indicate the method by which the \
+			minutiae data was read, encoded, and recorded. The \
+			third information item is an optional, two \
+			character, user generated subsystem designator that \
+			uniquely identifies the originator's equipment.";
+  9.005..1  T9_OFR_NAM  A   x  x  desc="Originator's Designation";
+  9.005..2  T9_OFR_METH A   1  1 desc="Method of Read, Encoding, and Recording"  
+mmap="A:Data Automatically read, encoded and recorded, no human editing|\
+	U:Human editing was possible but unneeded|\
+	E:Data was automatically read, but manually edited before encoding and recording|\
+	M:Data was manually read";
+  9.005..3  T9_OFR_EQUIP AN	2	2	desc="Subsystem Designator";
+
+  9.006	T9_FGP	   N		2	0-11	desc="Finger Position"  
+							mmap="00:Unknown Finger|\
+								01:Right Thumb|\
+								02:Right Index|\
+								03:Right Middle|\
+								04:Right Ring|\
+								05:Right Little|\
+								06:Left Thumb|\
+								07:Left Index|\
+								08:Left Middle|\
+								09:Left Ring|\
+								10:Left Little"
+       long_desc="This mandatory field shall contain a character \
+			designating the finger position that produced \
+			information in the Type 9 record. If the exact \
+			finger position cannot be determined, multiple \
+			finger positions may be entered. Allowable codes \
+			are taken from the ANSI standards.";
+
+  9.007:     T9_FPC  A  3  1  desc="Finger Pattern Classification"
+       long_desc="This mandatory field shall contain the fingerprint \
+			pattern classification code. It shall contain two \
+			information items. The first information item shall \
+			indicate the source of the specific pattern \
+			classification code. It may be one chosen from the \
+			ANSII standard, 'Data Format for the Interchange of \
+			Fingerprint Information', or may be a user defined \
+			classification code. This item shall contain a 'T' \
+			to indicate that the pattern classification code is \
+			from the ANSII standard table or a 'U' to indicate \
+			a user defined code. The second information item of \
+			this field shall contain the pattern classification \
+			code chosen from the ANSII standard or a specific \
+			user define code.";
+  9.007..1  T9_FPC_TYPE A 1 1 desc="Specific Pattern Classification Code" 
+			mmap="T:ANSI/NIST Standard";
+# A U:User-Defined is also allowed in this field but if this is entered we have no way to verify this
+  9.007..2	 T9_FPC_CODE A	2  1 	desc="Pattern Classification Code"  
+					mmap="PA:Plain Arch|\
+						TA:Tented Arch|\
+						RL:Radial Loop|\
+						UL:Ulnar Loop|\
+						PW:Plain Whorl|\
+						CP:Central Pocket Loop|\
+						DL:Double Loop|\
+						AW:Accidental Whorl|\
+						WN:Whorl, Type Note Designated|\
+						RS:Right Slant Loop|\
+						LS:Left Slant Loop|\
+						SR:Scar|\
+						XX:Amputation|\
+						UN:Unknown or Unclassifiable";
+
+  9.008	T9_CRP	   N		8	0-1	desc="Core Position"
+       long_desc="This field shall contain the X and Y coordinate \
+			position of the core. The X and Y values shall be \
+			coded as a single number comprised of the four digit \
+			X-coordinate followed by the four digit Y-coordinate \
+			using a format of XXXXYYYY.";
+
+  9.009	T9_DLT	   N		8	0-10	desc="Delta Position"
+       long_desc="This field shall contain the X and Y positional \
+			coordinates of each delta that is present on the \
+			fingerprint. The X and Y values shall be recorded in \
+			the same manner as was the core position, CRP.";
+
+  9.010	T9_MIN	   N		1	1	desc="Number of Minutiae"
+       long_desc="This mandatory field shall contain the count of the \
+			number of minutiae recorded for this fingerprint.";
+
+  9.011	T9_RDG	   N	1	1  desc="Minutiae Ridge Count Data" 			mmap="0:No Ridge Count Information is Available|\
+				1:Ridge Count Information is Available"
+       long_desc="This mandatory field shall be used to indicate the \
+			presence of minutiae ridge count information. A '0' \
+			in this field indicates that no ridge information is \
+			available. A '1' indicates that ridge count \
+			information is available.";
+
+  9.012:	T9_MRC	AN	x  x  desc="Minutiae and Ridge Count Date"
+        long_desc="This variable length field shall contain all of the \
+			individual minutiae and ridge count data associated \
+			with the current fingerprint impression. It shall be \
+			comprised of as many subfields as there are minutiae \
+			stated in the minutiae count in field 9.10. Each \
+			subfield shall be devoted to a single minutia and \
+			shall consist of multiple information items. The \
+			first two information items shall always appear; the \
+			appearance of others is system dependent. The \
+			information items are identified in the order that \
+			they shall appear.";
+
+  9.012..1  T9_MRC_IDX  N		1-x	x	desc="Index Number"
+       long_desc="The first information item shall be the index \
+			number, which shall be initialized to '11 and \
+			incremented by one for each additional minutia in \
+			the fingerprint. This index number serves to \
+			identify each individual minutia.";
+
+  9.012..2  T9_MRC_XYT  N	11  1  desc="X, Y, and Theta Values"
+        long_desc="The X and Y coordinates and the Theta value shall \
+			comprise the second required information item. These \
+			three values shall be coded and recorded as a single \
+			11 digit integer number corresponding to the \
+			concatenated X, Y, and theta values, in that order. \
+			If the minutia is of Type C or type D, the Theta \
+			value shall be recorded as '000'.";
+
+  9.012..3  T9_MRC_QTY  N		0-2	1	desc="Quality Measure"
+        long_desc="If present, the third information item is an \
+			optional quality measure. Values shall range from 0 \
+			to 63. The value 0 shall indicate a manually encoded \
+			minutia. The value 1 shall indicate that no method \
+			of indicating a confidence level is available. \
+			Values between 2 and 63 shall indicate decreasing \
+			levels of confidence, with 2 meaning the greatest \
+			confidence.";
+
+  9.012..4	T9_MRC_TYP  A  1	1	desc="Minutia Type Designation" 	
+				mmap="A:Ridge Ending|\
+					B:Bifurcation|\
+					C:Compund (trifurcation or crossover)
+					D:Type Undetermined"
+       long_desc="The fourth information item is an optional minutia \
+			type designation. This shall be a single alphabetic \
+			character.";
+
+  9.012..5  T9_MRC_RID  N		x	x	desc="Ridge Count Data"
+        long_desc="The fifth information item is optional ridge count \
+			data. It shall be formatted as a series of subitems, \
+			each consisting of a minutia number and a ridge \
+			count. This information shall be conveyed by listing \
+			the identity of the distant minutia followed by a \
+			comma, and the ridge count to that distant minutia. \
+			This subitem may be repeated as many times as \
+			required for each minutia.";
+
+# Type 10 Verification Information For testing:
+# in the Nist Spec, the length values appear to include the separators
+# so the values here are 1 less
+
+[M, CAR,  IRR, VRSP, DPRS, FANC, MAP, DEK, DEU]
+10.001    T10_LEN N  3-7   1 desc="Logical Record Length"
+       long_desc="This mandatory ASCII field shall contain the total \
+			count of the number of bytes in this Type 10 logical \
+			record. Field 10.001 shall begin with '10.001:', \
+			followed by the length of the record including every \
+			character of every field contained in the record and \
+			the information separators. The number of characters \
+			added to the record by the LEN itself shall be \
+			included in calculating the value of LEN.";  
+
+10.002    T10_IDC N  1-4   1 desc="Image Designation Character" 
+       long_desc="This field should contain a positive integer greater \
+			than or equal to zero. It value should be based on \
+			sequentially assigned values starting at zero and \
+			increasing by one for each type 2, type 4 or type 10 \
+			record present. The Type 1 record does not have any \
+			IDC value assigned to it. The type 1 record does \
+			contain a CNT field, which records all IDC \
+			assignments for all other records in the \
+			transaction. This field must always be used for \
+			type 10 records.";
+
+10.003    T10_IMT A  4-6   1 desc="Image Type" 			
+			 mmap="FACE:Face|SCAR:Scar|MARK:Mark|TATTOO:Tattoo"
+       long_desc="This mandatory ASCII field is used to indicate the \
+			type of image contained in this record. The content \
+			of this field shall conform to the requirements set \
+			forth by the agency to whom the transmission is \
+			being sent.";
+
+10.004    T10_SRC AN 9-20  1 desc="Source Agency / ORI"
+       long_desc="This is a mandatory field which identifies the \
+			organization that originally captured the image \
+			contained in the record. Normally the Originating \
+			Agency Identifier (ORI) of the agency that captured \
+			the image will be contained in this field.";
+
+10.005    T10_PHD N  8   1 desc="Photo Date"
+       long_desc="This mandatory ASCII field shall contain the date \
+			that the facial image contained in the record was \
+			captured. The date shall appear as an eight number \
+			in the format CCYYMMDD. The complete date must be a \
+			legitimate date and shall not exceed the current \
+			date.";  
+
+10.006    T10_HLL N  3-4   1 desc="Horizontal Line Length"
+       long_desc="This mandatory field indicates the number of pixels \
+			contained on a single line of the image.";  
+
+10.007    T10_VLL N  3-4   1 desc="Vertical Line Length"
+       long_desc="This mandatory field indicates the number of \
+			horizontal lines contained in the image (pixels per \
+			vertical column)."; 
+
+10.008    T10_SLC N  1   1 desc="Scale Units" 
+					mmap="0:No Scale Given|\
+						1:Pixels per Inch|\
+						2:Pixels per Centimeter"
+       long_desc="This mandatory field specifies the units used to \
+			describe the image sampling frequency (pixel \
+			density). A zero indicates no scale is given, a one \
+			indicates pixels per inch, a two indicates pixels \
+			per centimeter.";
+
+10.009    T10_HPS N  1-4   1 desc="Horizontal Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the horizontal direction providing the SLC \
+			contains a '1' or 1 '2'. Otherwise, it indicates \
+			the horizontal component of the pixel aspect ratio.";
+
+10.010    T10_VPS N  1-4   1 desc="Vertical Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the vertical direction providing the SLC \
+			contains a '1' or a '2'. Otherwise, it indicates \
+			the vertical component of the pixel aspect ratio.";  
+
+10.011    T10_CGA A  4-6   1 desc="Compression Algorithm" 
+		mmap="NONE:None|\
+			JPEGB:Baseline Compression|\
+			JPEGL:Lossless Compression"
+       long_desc="This is a mandatory field which specifies the \
+			algorithm used to compress the color or grayscale \
+			image. An entry of 'NONE' indicates data in this \
+			record is uncompressed. 'JPEGB' indicates that the \
+			scanned or captured image was compressed using \
+			baseline JPEG. 'JPEGL' indicates that the lossless \
+			mode of the JPEG algorithm was used to compress the \
+			image.";  
+
+10.012    T10_CSP A  3-4   1 desc="Color Space" 
+		mmap="YCC:JPEG and JFIF Color Space|\
+			GRAY:Grayscale Images|\
+			RGB:Uncompressed Color Image"
+       long_desc="This is a mandatory field which specifies the color \
+			space used to exchange the image. For compressed \
+			images, the preferred color space using JPEG and \
+			JFIF is YCbCr indicated by 'YCC'. An entry of 'GRAY' \
+			should be used for all grayscale images. This field \
+			shall contain 'RGB' for uncompressed color images \
+			which contain non-interleaved red, green, and blue \
+			pixels in that order.";
+
+[O, CAR, IRR, VRSP, DPRS, FANC, MAP, DEK, DEU]
+10.020    T10_POS A  1    1 desc="Subject Pose" 
+		mmap="F:Full Face Frontal|\
+			R:Right Profile (90 Degrees)|\
+			L:Left Profile (90 Degrees)|\
+			A:Angled Pose|\
+			I:Angled Pose Right (45 Degrees)|\
+			E:Angled Pose Left (45 Degrees)"
+       long_desc="This optional field is used for exchange of facial \
+			image data to describe the pose of the subject. For \
+			angled pose, code A, field POA should contain the \
+			offset angle from the full face orientation.";
+
+[O, CAR, IRR, VRSP, DPRS, FANC, MAP, DEK, DEU]
+10.021    T10_POA NS  1-4  1 desc="Pose Offset Angle" sca="-"
+       long_desc="This optional field shall only be used for the \
+			exchange of facial image data. The offset angle \
+			shall be measured from the full-face position and \
+			have a range of values from -180 to +180 degrees. A \
+			positive angle is used to express the angular offset \
+			as the subject rotates from a full-face pose to \
+			their right (approaching a left profile).";  
+
+[O, CAR, IRR, VRSP, DPRS, FANC, MAP, DEK, DEU]
+10.022    T10_PXS A  3-20 1-9 desc="Photo Description"
+		omap="GLASSES:Wearing Glasses|\
+			HAT:Wearing Hat|\
+			SCARF:Wearing Scarf|\
+			PHYSICAL:Physical Characteristics|\
+			OTHER:Other Characteristics"
+       long_desc="This optional field will be used for the exchange of \
+			facial image data to describe special attributes of \
+			the captured facial image. Up to 9 descriptive \
+			entries are allowed. The choices for attributes are \
+			listed below. The characteristic parameter is only \
+			to be used for 'PHYSICAL' and 'OTHER' attributes.";
+			
+[O, CAR, IRR, VRSP, DPRS, FANC, MAP, DEK, DEU]
+10.040    T10_SMT A  3-10  1-3 desc="NCIC Designation Code"
+         supporteddif("T10_IMT")="SCAR|MARK|TATTOO"
+         omap="FACE:Face|\
+               ABDOM:Abdomen|\
+               ANKL:Ankle, non-specific|\
+               L ANKL:Left Ankle|\
+               R ANKL:Right Ankle"
+       long_desc="This field is mandatory for a Type 10 record \
+			containing SMT image data. It is used to identify a \
+			general location of the captured scar, mark, or \
+			tattoo image. The captured image can encompass an \
+			area larger than that specified by a single NCIC \
+			body part code for the particular image type.";  
+
+[O, CAR, IRR, VRSP, DPRS, MAP, DEK, DEU]
+10.041:    T10_SMS N  2-4  1 desc="Scar/Mark/Tattoo Size"
+       long_desc="This optional field shall contain the dimensions of \
+			the scar, mark, or tattoo. It shall consist of two \
+			information items. Each dimension \
+			shall be entered to the nearest centimeter."; 
+
+10.041..1    T10_SMS_HEIGHT N  1-2  1 desc="Scar/Mark/Tattoo Height";
+10.041..2    T10_SMS_WIDTH  N  1-2  1 desc="Scar/Mark/Tattoo Width";
+ 
+10.042:   T10_SMD AN 15-50 1-9 desc="SMT Descriptors"
+       long_desc="This optional field is used to describe the SMT \
+			image. It shall consist of one or more subfields. \
+			Each subfield shall contain three or four \
+			information items that provide progressively \
+			detailed information describing the total image or \
+			a portion of the image.";
+			
+10.042..1 T10_SMD_SRC     A  3-8 1 
+		mmap="SCAR:Healed scar tissue as result of accident or medical procedure|\
+					MARK:Pattern resulting from needle or track marks|\
+					TATTOO:Tattoo|\
+					CHEMICAL:Chemicals were used to burn image into skin|\
+					BRANDED:Image was burned into skin with branding iron or form of heat|\
+					CUT:image was caused by incision of the skin";  
+					
+10.042..2 T10_SMD_CLASS    A 4-8 1 
+		mmap="HUMAN:Human Forms and Features|\
+					ANIMAL:Animals and Animal Features|\
+					PLANT:Plants|\
+					FLAG:Flags|\
+					OBJECT:Objects|\
+					ABSTRACT:Abstractions|\
+					SYMBOL:Insignias & Symbol|\
+					OTHER:Other Images";  
+					
+10.042..3 T10_SMD_HUMAN    A 3-9 1 if(10.042..2)="HUMAN"    			
+  mmap="MFACE:Male Face|\
+				FFACE:Female Face|\
+				ABFACE:Abstract Face|\
+				MBODY:Male Body|\
+				FBODY:Female Body|\
+				ABBODY:Abstract Body|\
+				ROLES:Roles (Knight, Witch, man, etc)|\
+				SPORT:Sports Figures (Football player, skier, etc.)|\
+				MBPART:Male Body Part|\
+				FBPART:Female Body Part|\
+				ABPART:Abstract Body Parts|\
+				SKULL:Skulls|\
+				MHUMAN:Miscellaneous Human Forms";  
+				
+10.042..3 T10_SMD_ANIMAL   A 3-9 1 if(10.042..2)="ANIMAL"   			
+	mmap="CAT:Cats & Cat Heads|\
+				DOG:Dogs & Dog Heads|\
+				DOMESTIC:Other Domestic Animals|\
+				VICIOUS:Vicious Animals (Lions, Tigers, etc.)|\
+				HORSE:Horses (Donkeys, Mules, etc.)|\
+				WILD:Other Wild Animals|\
+				SNAKE:Snakes|\
+				DRAGON:Dragons|\
+				BIRD:Birds (Cardinal, Hawk, etc)|\
+				INSECT:Spiders, Bugs, and Insects|\
+				ABSTRACT:Abstract Animals|\
+				PARTS:Animal Parts|\
+				MANIMAL:Miscellaneous Animal Forms";  
+				
+10.042..3 T10_SMD_PLANT    A 3-9 1 if(10.042..2)="PLANT"    			
+  mmap="NARCOTICS:Narcotics|\
+				REDFL:Red Flowers|\
+				BLUEFL:Blue Flowers|\
+				YELF:Yellow Flowers|\
+				DRAW:Drawings of Flowers|\
+				ROSE:Rose|\
+				TULIP:Tulip|\
+				LILY:Lily|\
+			  MPLANT:Miscellaneous Plants, Flowers, Vegetables";  
+			  
+10.042..3 T10_SMD_FLAG     A 3-9 1 if(10.042..2)="FLAG"     			
+  mmap="USA:American Flag|\
+				STATE:State Flag|\
+				NAZI:Nazi Flag|\
+				CONFED:Confederate Flag|\
+				BRIT:British Flag|\
+				MFLAG:Miscellaneous Flags"; 
+				   
+10.042..3 T10_SMD_OBJECT   A 3-9 1 if(10.042..2)="OBJECT"   					
+	mmap="FIRE:Fire|\
+				WEAP:Weapons (Guns, Arrows, etc)|\
+				PLANE:Airplanes|\
+				VESSEL:Boats, Ships, and Other Vessels|\
+				TRAIN:Trains|\
+				VEHICLE:Cars, Trucks, and Vehicles|\
+				MYTH:Mythical (Unicorns, etc)|\
+				SPORT:Sporting Objects (Football, Ski, Hurdles, etc.)|\
+				NATURE:Water and Nature Scenes (River, Sky, Trees, etc.)|\
+				MOBJECTS:Miscellaneous Objects";  
+				
+10.042..3 T10_SMD_ABSTRACT A 3-9 1 if(10.042..2)="ABSTRACT" 					
+  mmap="FIGURE:Figure(s)|\
+				SLEEVE:Sleeve|\
+				BRACE:Bracelet|\
+				ANKLET:Anklet|\
+				NECKLC:Necklace|\
+				SHIRT:Shirt|\
+				BODBND:Body Band|\
+				HEDBND:Head Band|\
+				MABSTRACT:Miscellaneous Abstract";  
+				
+10.042..3 T10_SMD_SYMBOL   A 3-9 1 if(10.042..2)="SYMBOL"   					
+  mmap="NATION:National Symbols|\
+				POLITIC:Political Symbols|\
+				MILITARY:Military Symbols|\
+				FRATERNAL:Fraternal Symbols|\
+				PROFESS:Professional Symbols|\
+				GANG:Gang Symbols|\
+				MSYMBOLS:Miscellaneous Symbols";  
+				
+10.042..3 T10_SMD_OTHER    A 3-9 1 if(10.042..2)="OTHER"    					
+  mmap="WORDING:Wording (Mom, Dad, Mary, Etc)|\
+				FREEFRM:Freeform Drawings|\
+				MISC:Miscellaneous Images";  
+				
+10.042..4 T10_SMD_literal  AS 5-25 1 and(10.042..3);  
+
+10.043:   T10_COL            A 3-20  1-9 desc="Colors Present" 			 		
+  mmap="BLACK:Black|\
+				BROWN:Brown|\
+				GRAY:Gray|\
+				BLUE:Blue|\
+				GREEN:Green|\
+				ORANGE:Orange|\
+				PURPLE:Purple|\
+				RED:Red|\
+				YELLOW:Yellow|\
+				WHITE:White|\
+				MULTI:Multi-Colored|\
+				OUTLINE:Outlined"
+       long_desc="This optional field shall contain one subfield \
+			corresponding to each subfield contained in the SMT \
+			field. Each subfield shall contain one or more \
+			information items that list the color(s) of the \
+			tattoo or part of the tattoo.  For each subfield, \
+			the first information item in the subfield shall be \
+			the predominant color chosen from the table below. \
+			Additional colors for the subfield shall be entered \
+			as information items in the subfield. ";
+			
+[M, CAR, MAP, MAPA, FANC]			
+10.999   T10_DAT    B1 1-5000001  1 desc="Image data" 	
+	long_desc="";		 	
+
+# Type 13 Fields, copied from Type 14 Fields directly
+[M, IWTST]
+13.001    T13_LEN N  3-7   1 desc="Logical Record Length"
+       long_desc="This mandatory ASCII field shall contain the total \
+			count of the number of bytes in this Type 13 logical \
+			record. Field 13.001 shall begin with '13.001:', \
+			followed by the length of the record including every \
+			character of every field contained in the record and \
+			the information separators. The number of characters \
+			added to the record by the LEN itself shall be \
+			included in calculating the value of LEN.";  
+
+13.002    T13_IDC N  1-4   1 desc="Image Designation Character" 
+       long_desc="This field should contain a positive integer greater \
+			than or equal to zero. It value should be based on \
+			sequentially assigned values starting at zero and \
+			increasing by one for each type 2, type 4 or type 7, \
+                  type 8, type 9, type 10 and type 13 record present \
+		      The Type 1 record does not have any IDC value \
+			assigned to it. The type 1 record does contain a \
+			CNT field, which records all IDC assignments for \
+			all other records in the transaction. This field \
+			must always be used for type 13 records.";
+			
+13.003    T13_IMP N  1-1   1 desc="Impression Type" 			
+       mmap="0:Live-scan palm|\
+		1:Nonlive-scan palm|\
+		2:Latent palm impression|\
+		3:Latent palm tracing|\
+		4:Latent palm photo|\
+		5:Latent palm lift"
+       long_desc="";
+
+13.004    T13_SRC AN 9-20  1 desc="Source Agency / ORI"
+       long_desc="";
+
+13.005    T13_LCD N  8-8   1 desc="Latent Capture Date"
+       long_desc="";  
+
+13.006    T13_HLL N  3-4   1 desc="Horizontal Line Length"
+       long_desc="This mandatory field indicates the number of pixels \
+			contained on a single line of the image.";  
+
+13.007    T13_VLL N  3-4   1 desc="Vertical Line Length"
+       long_desc="This mandatory field indicates the number of \
+			horizontal lines contained in the image (pixels per \
+			vertical column)."; 
+
+13.008    T13_SLC N  1-1   1 desc="Scale Units" 
+					mmap="0:No Scale Given|\
+								1:Pixels per Inch|\
+								2:Pixels per Centimeter"
+       long_desc="This mandatory field specifies the units used to \
+			describe the image sampling frequency (pixel \
+			density). A zero indicates no scale is given, a one \
+			indicates pixels per inch, a two indicates pixels \
+			per centimeter.";
+
+13.009    T13_HPS N  1-4   1 desc="Horizontal Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the horizontal direction providing the SLC \
+			contains a '1' or 1 '2'. Otherwise, it indicates \
+			the horizontal component of the pixel aspect ratio.";
+
+13.010    T13_VPS N  1-4   1 desc="Vertical Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the vertical direction providing the SLC \
+			contains a '1' or a '2'. Otherwise, it indicates \
+			the vertical component of the pixel aspect ratio.";  
+
+13.011    T13_CGA AN  3-6   1 desc="Compression Algorithm" 
+		mmap="NONE:None|\
+					WSQ:WSQ Compression|\
+					JP2:JPEG 2000 Compression|\
+					JPEGB:JPEG Compression| \
+		      FAX538:Facsimile Compression"
+       long_desc="This is a mandatory field which specifies the \
+			algorithm used to compress palmprint image. An \
+			entry of 'NONE' indicates data in this record \
+			is uncompressed. 'WSQ' indicates that the \
+			scanned or captured image was compressed using \
+			WSQ compression. 'JPEGB' indicates that baseline \
+                  JPEG compression. For binary images, 'FAX538' \
+                  indicates that facsimile compression standard \
+                  (ANSI/EIA 538) is used for the lossless \
+                  compression of binary images.";
+
+13.012    T13_BPX N  1-2   1 desc="Bits per pixel" 
+		omap="1:Binary Images| \
+			8:Grayscale Images"
+       long_desc="This is a mandatory field which specifies the number \
+			of bits used to represent a pixel. This field shall \
+			contain an entry of '8' for normal grayscale values \
+                  of '0' to '255'. Any entry in this field greater \
+                  than or less than '8' shall represent a grayscale \
+                  pixel with increased or decreased precision \
+                  respectively. Binary data shall be represented by \
+                  an ASCII '1'.";
+
+13.013    T13_FGP N  1-2    1-6 desc="Finger Position" 
+                 mmap="0:Unknown Finger|\
+                       1:Right Thumb|\
+                       2:Right Index Finger|\
+                       3:Right Middle Finger|\
+                       4:Right Ring Finger|\
+                       5:Right Little Finger|\
+                       6:Left Thumb|\
+                       7:Left Index Finger|\
+                       8:Left Middle Finger|\
+                       9:Left Ring Finger|\
+                      10:Left Little Finger|\
+                      11:Plain Right Thumb|\
+                      12:Plain Left Thumb|\
+                      13:Plain Right Four Fingers|\
+                      14:Plain Left Four Fingers"
+       long_desc="";
+
+[O, CAR, MAP, FANC, DEK, DEU]
+13.020    T13_COM ANS 1-127   1 desc="Comment" 		
+               sca="PRINT" 
+       long_desc="";
+
+# Type 14 Fields
+[M, CAR, MAP, FANC, DEK, DEU, IWTST]
+14.001    T14_LEN N  3-7   1 desc="Logical Record Length"
+       long_desc="This mandatory ASCII field shall contain the total \
+			count of the number of bytes in this Type 13 logical \
+			record. Field 14.001 shall begin with '14.001:', \
+			followed by the length of the record including every \
+			character of every field contained in the record and \
+			the information separators. The number of characters \
+			added to the record by the LEN itself shall be \
+			included in calculating the value of LEN.";  
+
+14.002    T14_IDC N  1-4   1 desc="Image Designation Character" 
+       long_desc="This field should contain a positive integer greater \
+			than or equal to zero. It value should be based on \
+			sequentially assigned values starting at zero and \
+			increasing by one for each type 2, type 4 or type 7, \
+                  type 8, type 9, type 10 and type 13 record present \
+		      The Type 1 record does not have any IDC value \
+			assigned to it. The type 1 record does contain a \
+			CNT field, which records all IDC assignments for \
+			all other records in the transaction. This field \
+			must always be used for type 13 records.";
+			
+14.003    T14_IMP N  1-1   1 desc="Impression Type" 			
+       mmap="0:Live-scan palm|\
+		1:Nonlive-scan palm|\
+		2:Latent palm impression|\
+		3:Latent palm tracing|\
+		4:Latent palm photo|\
+		5:Latent palm lift"
+       long_desc="";
+
+14.004    T14_SRC AN 9-20  1 desc="Source Agency / ORI"
+       long_desc="";
+
+14.005    T14_LCD N  8-8   1 desc="Latent Capture Date"
+       long_desc="";  
+
+14.006    T14_HLL N  3-4   1 desc="Horizontal Line Length"
+       long_desc="This mandatory field indicates the number of pixels \
+			contained on a single line of the image.";  
+
+14.007    T14_VLL N  3-4   1 desc="Vertical Line Length"
+       long_desc="This mandatory field indicates the number of \
+			horizontal lines contained in the image (pixels per \
+			vertical column)."; 
+
+14.008    T14_SLC N  1-1   1 desc="Scale Units" 
+					mmap="0:No Scale Given|\
+								1:Pixels per Inch|\
+								2:Pixels per Centimeter"
+       long_desc="This mandatory field specifies the units used to \
+			describe the image sampling frequency (pixel \
+			density). A zero indicates no scale is given, a one \
+			indicates pixels per inch, a two indicates pixels \
+			per centimeter.";
+
+14.009    T14_HPS N  1-4   1 desc="Horizontal Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the horizontal direction providing the SLC \
+			contains a '1' or 1 '2'. Otherwise, it indicates \
+			the horizontal component of the pixel aspect ratio.";
+
+14.010    T14_VPS N  1-4   1 desc="Vertical Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the vertical direction providing the SLC \
+			contains a '1' or a '2'. Otherwise, it indicates \
+			the vertical component of the pixel aspect ratio.";  
+
+14.011    T14_CGA AN  3-6   1 desc="Compression Algorithm" 
+		mmap="NONE:None|\
+					WSQ:WSQ Compression|\
+					JP2:JPEG 2000 Compression|\
+					JPEGB:JPEG Compression| \
+		      FAX538:Facsimile Compression"
+       long_desc="This is a mandatory field which specifies the \
+			algorithm used to compress palmprint image. An \
+			entry of 'NONE' indicates data in this record \
+			is uncompressed. 'WSQ' indicates that the \
+			scanned or captured image was compressed using \
+			WSQ compression. 'JPEGB' indicates that baseline \
+                  JPEG compression. For binary images, 'FAX538' \
+                  indicates that facsimile compression standard \
+                  (ANSI/EIA 538) is used for the lossless \
+                  compression of binary images.";
+
+14.012    T14_BPX N  1-2   1 desc="Bits per pixel" 
+		omap="1:Binary Images| \
+			8:Grayscale Images"
+       long_desc="This is a mandatory field which specifies the number \
+			of bits used to represent a pixel. This field shall \
+			contain an entry of '8' for normal grayscale values \
+                  of '0' to '255'. Any entry in this field greater \
+                  than or less than '8' shall represent a grayscale \
+                  pixel with increased or decreased precision \
+                  respectively. Binary data shall be represented by \
+                  an ASCII '1'.";
+
+14.013    T14_FGP N  1-2    1-6 desc="Finger Position" 
+                 mmap="0:Unknown Finger|\
+                       1:Right Thumb|\
+                       2:Right Index Finger|\
+                       3:Right Middle Finger|\
+                       4:Right Ring Finger|\
+                       5:Right Little Finger|\
+                       6:Left Thumb|\
+                       7:Left Index Finger|\
+                       8:Left Middle Finger|\
+                       9:Left Ring Finger|\
+                      10:Left Little Finger|\
+                      11:Plain Right Thumb|\
+                      12:Plain Left Thumb|\
+                      13:Plain Right Four Fingers|\
+                      14:Plain Left Four Fingers"
+       long_desc="";
+
+[O, CAR, MAP, FANC, DEK, DEU]
+14.020    T14_COM ANS 1-127   1 desc="Comment" 		
+               sca="PRINT" 
+       long_desc="";
+
+# Type 15 Fields, copied and adapted from Type 14 Fields section
+[M, IWTST]
+15.001    T15_LEN N  3-7   1 desc="Logical Record Length"
+       long_desc="This mandatory ASCII field shall contain the total \
+			count of the number of bytes in this Type 13 logical \
+			record. Field 15.001 shall begin with '15.001:', \
+			followed by the length of the record including every \
+			character of every field contained in the record and \
+			the information separators. The number of characters \
+			added to the record by the LEN itself shall be \
+			included in calculating the value of LEN.";  
+
+15.002    T15_IDC N  1-4   1 desc="Image Designation Character" 
+       long_desc="This field should contain a positive integer greater \
+			than or equal to zero. It value should be based on \
+			sequentially assigned values starting at zero and \
+			increasing by one for each type 2, type 4 or type 7, \
+                  type 8, type 9, type 10 and type 13 record present \
+		      The Type 1 record does not have any IDC value \
+			assigned to it. The type 1 record does contain a \
+			CNT field, which records all IDC assignments for \
+			all other records in the transaction. This field \
+			must always be used for type 13 records.";
+			
+15.003    T15_IMP N  1-1   1 desc="Impression Type" 			
+       mmap="0:Live-scan palm|\
+		1:Nonlive-scan palm|\
+		2:Latent palm impression|\
+		3:Latent palm tracing|\
+		4:Latent palm photo|\
+		5:Latent palm lift"
+       long_desc="";
+
+15.004    T15_SRC AN 9-20  1 desc="Source Agency / ORI"
+       long_desc="";
+
+15.005    T15_PCD N  8-8   1 desc="Palmprint Capture Date"
+       long_desc="";  
+
+15.006    T15_HLL N  3-4   1 desc="Horizontal Line Length"
+       long_desc="This mandatory field indicates the number of pixels \
+			contained on a single line of the image.";  
+
+15.007    T15_VLL N  3-4   1 desc="Vertical Line Length"
+       long_desc="This mandatory field indicates the number of \
+			horizontal lines contained in the image (pixels per \
+			vertical column)."; 
+
+15.008    T15_SLC N  1-1   1 desc="Scale Units" 
+					mmap="0:No Scale Given|\
+								1:Pixels per Inch|\
+								2:Pixels per Centimeter"
+       long_desc="This mandatory field specifies the units used to \
+			describe the image sampling frequency (pixel \
+			density). A zero indicates no scale is given, a one \
+			indicates pixels per inch, a two indicates pixels \
+			per centimeter.";
+
+15.009    T15_HPS N  1-4   1 desc="Horizontal Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the horizontal direction providing the SLC \
+			contains a '1' or 1 '2'. Otherwise, it indicates \
+			the horizontal component of the pixel aspect ratio.";
+
+15.010    T15_VPS N  1-4   1 desc="Vertical Pixel Scale"
+       long_desc="This mandatory field specifies the pixel density \
+			used in the vertical direction providing the SLC \
+			contains a '1' or a '2'. Otherwise, it indicates \
+			the vertical component of the pixel aspect ratio.";  
+
+15.011    T15_CGA AN  3-6   1 desc="Compression Algorithm" 
+		mmap="NONE:None|\
+					WSQ:WSQ Compression|\
+					JP2:JPEG 2000 Compression|\
+					JPEGB:JPEG Compression| \
+		      FAX538:Facsimile Compression"
+       long_desc="This is a mandatory field which specifies the \
+			algorithm used to compress palmprint image. An \
+			entry of 'NONE' indicates data in this record \
+			is uncompressed. 'WSQ' indicates that the \
+			scanned or captured image was compressed using \
+			WSQ compression. 'JPEGB' indicates that baseline \
+                  JPEG compression. For binary images, 'FAX538' \
+                  indicates that facsimile compression standard \
+                  (ANSI/EIA 538) is used for the lossless \
+                  compression of binary images.";
+
+15.012    T15_BPX N  1-2   1 desc="Bits per pixel" 
+		omap="1:Binary Images| \
+			8:Grayscale Images"
+       long_desc="This is a mandatory field which specifies the number \
+			of bits used to represent a pixel. This field shall \
+			contain an entry of '8' for normal grayscale values \
+                  of '0' to '255'. Any entry in this field greater \
+                  than or less than '8' shall represent a grayscale \
+                  pixel with increased or decreased precision \
+                  respectively. Binary data shall be represented by \
+                  an ASCII '1'.";
+
+15.013    T15_PLP N  3    1 desc="Palmprint Position" 
+                 #mmap="0:Unknown Finger|\
+                 #      1:Right Thumb|\
+                 #      2:Right Index Finger|\
+                 #     14:Plain Left Four Fingers"
+       long_desc="";
+
+[O, CAR, MAP, FANC, DEK, DEU]
+15.020    T15_COM ANS 1-127   1 desc="Comment" 		
+               sca="PRINT" 
+       long_desc="";
+
+# Type 16 Fields
+# Note: this record type is verified through is non-binary form
+# Iris Images go here
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+
+16.001    T16_LEN N  3-7   1 desc="Logical Record Length"
+       long_desc="This mandatory field shall contain the length of \
+			the logical record specifying the total number of \
+			bytes, including every byte of all nine fields \
+			contained in the record."; 
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.002    T16_IDC N  1-4   1 desc="Image Designation Character" 
+       long_desc="This mandatory  field shall be used to identify the \
+			image data contained in this record. The IDC in this \
+			field shall be a binary representation of the IDC \
+			found in the file content field of the Type 1 \
+			record.";
+
+#16.003 - 16.005 are user defined - ANSI/NIST-ITL 1-2000
+#These are defined in the EBTS 		
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]	
+16.003  T16_FID N  1   1 desc="Feature Identifier"
+    mmap="0:Left or right eye not defined|\
+			    1:Right Eye|\
+			    2:Left Eye"
+       long_desc=" This mandatory field shall contain an identifer for which eye \
+                       is represented by the image in the record.  \
+                       An entry of 0 in this field indicates that the image in \
+                       this record is undefined.  An entry of 1 in this field\
+                       indicates that the image in this record is of a right eye. \
+                       An entry of 2 in this field indicates that the image in \
+                       this record is of a left eye.";
+
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.004  T16_MMS ANS  3-150   1 desc="Make/Model/Serial Number"
+                     sca="PRINT"
+       long_desc="This optional field contains the make model and serial number \
+                       for the iris capture device."; 
+                             
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]       
+16.004..1  T16_MMS_MAKE ANS  1-50   1 desc="Make"
+                     sca="PRINT"
+       long_desc="This mandatory field contains the make for the iris capture device.";
+                       
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.004..2  T16_MMS_MODEL ANS  1-50   1 desc="Model"
+                     sca="PRINT"
+       long_desc="This mandatory field contains the model for the iris capture device.";
+                       
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]       
+16.004..3  T16_MMS_SERIAL ANS  1-50   1 desc="Serial"
+                     sca="PRINT"
+       long_desc="This mandatory field contains the serial number for the iris \
+                       capture device."; 
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]			
+16.005   T16_IFM N  1-2   1 desc="Image Format"
+    mmap="0:undefined|\
+				  2:Gray Scale (Mono) raw image format|\
+				  4:RGB (color) raw image format|\
+				  6:RGB Gray scale (Mono) JPEG image format|\
+				  8:RGB (color) JPEG image format"	  
+       long_desc=" This mandatory ASCII field shall contain the image format \
+                       code.  It shall be used to specify the type of \
+                       compression algorithm used.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.006   T16_HLL N  3-4   1 desc="Horizontal Line Length"
+       long_desc="This mandatory field shall contain the number of pixels \
+                       present on a single horizontal line of the transmitted \
+                       image.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]       
+16.007   T16_VLL N  3-4   1 desc="Vertical Line Length"
+       long_desc="This mandatory field shall contain the number of pixels \
+                       present on a single horizontal line of the transmitted \
+                       image.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.008   T16_SLC N  1   1 desc="Scale Units"
+       long_desc="This mandatory ASCII filed shall specify the units used to \
+                  describe the image sampling frequency(pixel density).  A \"1\" in \
+                  this field indicates pixels per inch, or a \"2\" indicates pixel \
+                  per centimenter.  A \"0\" indicates no scale is given.  For this case, \
+                  the quotient of HPS/VPS givels the pixel aspect ratio.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.009   T16_HPS N  1-4   1 desc="Horizintal Pixel Scale"
+       long_desc="This mandatory ASCII field shall specify the integer \
+                  pixel density used in the horizontal direction \
+                  providing the SLC contains a \"1\" or a \"2\". Otherwise, \
+                  it indicates the horizontal component of the \
+                  pixel aspect ratio.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.010   T16_VPS N  1-4   1 desc="Vertical Pixel Scale"
+       long_desc="This mandatory ASCII field shall specify the integer \
+                  pixel density used in the vertical direction providing \
+                  the SLC contains a \"1\" or a \"2\". Otherwise, \
+                  it indicates the vertical component of the pixel \
+                  aspect ratio.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.011   T16_CGA AN  4-6   1 desc="Compression Algorithm"
+    mmap="NONE:Uncompressed|\
+          JPEGB:JPEG"
+       long_desc="This mandatory ASCII field shall specify the algorithm used to\
+                   compress the image.  an entry of \"NONE\" indicates that the data \
+                   contained in the record is uncompressed.  The domain registrar, \
+                   DoD Biometrics, maintains a  registry of acceptable compression \
+                   techniques and and coresponding codes.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.012   T16_BPX N 1-2   1 desc="Bits Per Pixel" 
+    mmap="8:Normal Grayscale|\
+         24:Normal RGB"
+       long_desc="This mandatory field shall contain the number of bits used\ 
+                       to represent a pixel.  This field shall contain an \
+                       entry of 8 for normal grayscale values of 0 to 255 \
+                       or an entry of 24 for normal RGB color values of any \
+                       combination of red, green, and blue values.";
+
+#16.013 - 16.998 are user defined - ANSI/NIST-ITL 1-2000
+#These are defined in the EBTS 
+
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.013   T16_IIQ N  2-3   1 desc="Iris Image Quality" 
+       long_desc="This optional field shall indicate the image quality value. \
+                       This field is defined in ANSI-INCITS 379-2004 - Iris\
+                       Image Interchange Format.";
+
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]       
+16.014   T16_RAE AN  1-4   1 desc="Rotation Angle of Eye" 
+       long_desc="This optional field shall indicate the rotation angle of \
+                       the eye.  For rectilinear images:  rotation angle = \
+                       round (65536 * angle / 360) modulo 65536.  The angle is \
+                       measured in degrees from horizontal.  The value FFFF \
+                       indicates rotation angle of eye is undefined.  For polar \
+                       images, entry shall be FFFF.";
+
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]      
+16.015   T16_RUC AN  1-4   1 desc="Rotation Uncertainty" 
+       long_desc="This optional field shall indicate the rotation uncertainty.  \
+                       The rotation uncertainty is equal to round (65536 * \
+                       uncertainty / 180).  The uncertainty is measured in \
+                       degrees and is the absolute value of maximum error.  \
+                       The value FFFF indicates uncertainty is undefined.";
+
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS] 
+16.016   T16_IPR N  6   1 desc="Image Properties" 
+       long_desc="This optional field shall contain the image property code.  \
+                       It shall contain six information items.  The first \
+                       information item shall indicate the specific horizontal \
+                       orientation.  The second information item shall indicate \
+                       the specific vertical orientation.  The third information \
+                       item shall indicate the specific scan type.  The fourth \
+                       information item shall indicate the specific iris \
+                       occlusions.  The fifth information item shall indicate \
+                       the specific occlusion filling.  The last information \
+                       item shall indicate the specific boundary extraction.  \
+                       These subfields are defined in ANSI-INCITS 379-2004 - \
+                       Iris Image Interchange Format.";
+       
+16.016..1  T16_IPR_HZ_OR N  1 1 desc="Horizontal Orientation"
+    mmap="0:Undefined|\
+				  1:Base|\
+				  2:Flipped"
+       long_desc=" This mandatory field contains the Horizontal Orientation.";
+       
+16.016..2  T16_VR_OR N  1 1 desc="Vertical Orientation"
+    mmap="0:Undefined|\
+					1:Base|\
+					2:Flipped"
+       long_desc=" This mandatory field contains the Vertical Orientation.";
+
+16.016..3  T16_IPR_ST N  1 1 desc="Scan Type"
+    mmap="0:Undefined|\
+				  1:Progressive|\
+				  2:Interlace Frame|\
+          3:Interlace Field"
+       long_desc=" This mandatory field contains the Scan Type.";
+
+16.016..4  T16_IPR_IRIS_OCC N  1 1 desc="Iris Occlusions"
+    mmap="0:Undefined|\
+          1:Processed"
+       long_desc=" This mandatory field contains the Iris Occlusions.";
+
+16.016..5  T16_IPR_OCC_FILL N  1 1 desc="Occlusion Filling"
+    mmap="0:Zerofill|\
+          1:Unitfill"
+       long_desc="This mandatory field contains the Occlusion Filling.";
+
+16.016..6  T16_IPR_BEXT N  1 1 desc="Boundry Extraction"
+    mmap="0:Undefined|\
+          1:Processed"
+       long_desc=" This mandatory field contains the Boundry Exttraction.";
+
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.017   T16_DID ANS  16   1 desc="Device Unique Identifer" 
+                     sca="PRINT"
+       long_desc="This optional field shall contain a sixteen-byte string \
+                       uniquely identifying the device or source of the data.  \
+                       This data can be one of: (1) Device Serial number, \
+                       identified by the first character D, (2) Host PC Mac \
+                       address, identified by the first character M, \
+                       (3) Host PC processor ID, identified by the first \
+                       character P, and (4) No serial number, identified by \
+                       all zeros.";
+                       
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]      
+16.018   T16_GUID AN  16   1 desc="Global Unique Identifier" 
+       long_desc=" This optional field shall contain a 16-character string to \
+                       indicate a GUID, a globally unique identifier.";
+                       
+[O, CAR, FANC, MAP, DEK, DEU,  DPRS]      
+16.019   T16_ITF N  1   1 desc="Image Transformation" 
+    mmap="0:Undefined|\
+          1:Standard"
+       long_desc="This optional field shall specify the transformation type \
+                       used in the record.  A 0 in this filed indicates \
+                       transformation type undefined, or a 1 indicates \
+                       standard transformation type.";
+
+[M, CAR, FANC, MAP, DEK, DEU,  DPRS]
+16.999   T16_DAT   B1   1-x   1 desc="Iris Image"
+       long_desc="This field contains the Iris image data.";
+
+# Type-17, based on Type-10
+[M, IWTST]
+17.001    T17_LEN N  3-7   1 desc="Logical Record Length"
+       long_desc="This mandatory ASCII field shall contain the total \
+			count of the number of bytes in this Type 17 logical \
+			record. Field 17.001 shall begin with '17.001:', \
+			followed by the length of the record including every \
+			character of every field contained in the record and \
+			the information separators. The number of characters \
+			added to the record by the LEN itself shall be \
+			included in calculating the value of LEN.";  
+
+17.002    T17_IDC N  1-4   1 desc="Image Designation Character" 
+       long_desc="This field should contain a positive integer greater \
+			than or equal to zero. It value should be based on \
+			sequentially assigned values starting at zero and \
+			increasing by one for each type 2, type 4 or type 10 \
+			record present. The Type 1 record does not have any \
+			IDC value assigned to it. The type 1 record does \
+			contain a CNT field, which records all IDC \
+			assignments for all other records in the \
+			transaction. This field must always be used for \
+			type 10 records.";
+
+17.003    T17_FID N 1 1 desc="Feature Identifier";
+
+17.004    T17_SRC AN 9-35 1 desc="Source Agency / ORI";
+
+17.005    T17_ICD N 8 1 desc="Iris Capture Date";
+
+17.006    T17_HLL N  3-4   1 desc="Horizontal Line Length";
+
+17.007    T17_VLL N  3-4   1 desc="Vertical Line Length";
+
+17.008    T17_SLC N 1   1 desc="Scale Units" 
+					mmap="0:No Scale Given|\
+						1:Pixels per Inch|\
+						2:Pixels per Centimeter";
+
+17.009    T17_HPS N  1-4   1 desc="Horizontal Pixel Scale";
+
+17.010    T17_VPS N  1-4   1 desc="Vertical Pixel Scale";
+
+17.011    T17_CGA A  4-6   1 desc="Compression Algorithm"
+		mmap="NONE:None|\
+			JPEGB:Baseline Compression|\
+			JPEGL:Lossless Compression";
+
+17.012   T17_BPX N 1-2   1 desc="Bits Per Pixel" 
+    mmap="8:Normal Grayscale|\
+         24:Normal RGB";
+
+17.013    T17_CSP A  3-4   1 desc="Color Space" 
+		mmap="YCC:JPEG and JFIF Color Space|\
+			GRAY:Grayscale Images|\
+			RGB:Uncompressed Color Image";
+
+17.999   T17_DAT    B1 1-5000001  1 desc="Image data";
+
+# Type-99, to support CBEFF
+[M, IWTST]
+99.001    T99_LEN  N    3-7   1 desc="Logical Record Length";
+99.002    T99_IDC  N    1-4   1 desc="Image Designation Character";
+#99.003   reserved for future use
+99.004    T99_SRC AN   9-35   1 desc="Source Agency / ORI";
+99.005    T99_BCD AN    15    1 desc="Biometric Creation Date";
+99.100    T99_HDV  N     4    1 desc="CBEFF header version";
+99.101    T99_BTY  N     8    1 desc="Biometric Type";
+99.103    T99_BFO AN     4    1 desc="BDB Format Owner";
+99.104    T99_BFT AN     4    1 desc="BDB Format Type";
+99.999    T99_DAT B1   1-5000001  1 desc="CBEFF data";
