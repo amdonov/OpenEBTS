@@ -2,8 +2,8 @@
 //
 
 #include "stdafx.h"
-#include "IWNIST.h"
-#include "IWNISTErrors.h"
+#include "OpenEBTS.h"
+#include "OpenEBTSErrors.h"
 #include "..\Helpers.h"
 
 //

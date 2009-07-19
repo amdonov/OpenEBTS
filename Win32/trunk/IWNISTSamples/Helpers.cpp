@@ -1,6 +1,6 @@
 #include "stdafx.h"
-#include "IWNIST.h"
-#include "IWNISTErrors.h"
+#include "OpenEBTS.h"
+#include "OpenEBTSErrors.h"
 #include "Helpers.h"
 
 bool AddPrintHelper(CIWTransaction *pTrans, long lType, char *szFolder, char *szFile, char *szFmtIn, char *szFmtOut, int iImpressionType, int iFingerIndex)

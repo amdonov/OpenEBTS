@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "..\IWNist.h"
+#include "..\OpenEBTS.h"
 #include "IWJPGLib.h"
 
 #define READ_ALL_RECORDS -1

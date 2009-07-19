@@ -41,8 +41,9 @@ BOOL CIWNISTEditorDoc::OnNewDocument()
 
 	IWNew("", NULL, &m_pIWTrans);
 
-	// set the version of NIST file we are creating
-	IWSetItem(m_pIWTrans, (LPCSTR)"0201", 1, 1, 2, 1, 1);
+	// Set the version of NIST file we are creating
+	// For EBTS 8.1, this is 0400
+	IWSetItem(m_pIWTrans, (LPCSTR)"0400", 1, 1, 2, 1, 1);
 
 	ReadType1Record();
 
