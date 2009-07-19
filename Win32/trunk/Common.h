@@ -40,7 +40,7 @@
 #define REC_TAG_VER	2
 #define REC_TAG_IDC	2
 
-#include "IWNISTErrors.h"
+#include "OpenEBTSErrors.h"
 
 /***************
 /* TYPE 1 Fields

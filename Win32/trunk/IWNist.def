@@ -3,53 +3,48 @@
 LIBRARY      "OpenEBTS"
 
 EXPORTS
-    ; Explicit exports can go here
-; core functions
-	IWNew						@10
-	IWRead						@11
-	IWClose						@12
-	IWAddRecord					@13
-	IWGetRecordTypeCount		@14
-	IWWrite						@15
-	IWGetNumRecords				@16
-	IWNumSubfields				@17
-	IWNumItems					@18
-	IWFindItem					@19
-	IWSetItem					@20
-	IWGetImage					@21
-	IWSetImage					@22
-	IWImportImage				@23
-	IWExportImage				@24
-	IWGetImageInfo				@25
-	IWDeleteRecord				@26
-	IWWriteXML					@27
-
-; verification based
-	IWReadVerification			@40
-	IWCloseVerification			@41
-	IWSetVerification			@42
-	IWGet						@43
-	IWSet						@44
-	IWOccurrences				@45
-	IWvGetTransactionCategories	@46
-	IWvGetTransactionTypes		@47
-	IWVerify					@48
-
-; error stuff
-	IWGetErrorCount				@60
-	IWGetError					@61
-
-; iws extentions
-	IWGetNextField				@70
-	IWGetNISTCode				@71
-	IWGetNISTCode2				@72
-	IWGetNISTDesc				@73
-	IWGetNISTDesc2				@74
-
-	BMPtoWSQ					@75
-	WSQtoBMP					@76
-	RAWtoWSQ					@77
-	RAWtoBMP					@78
-	WSQtoRAW					@79
-	BMPtoRAW					@80
-	MemFree						@81
+	IWNew
+	IWRead
+	IWClose
+	IWAddRecord
+	IWGetRecordTypeCount
+	IWWrite
+	IWGetNumRecords
+	IWNumSubfields
+	IWNumItems
+	IWFindItem
+	IWSetItem
+	IWGetImage
+	IWSetImage
+	IWImportImage
+	IWExportImage
+	IWGetImageInfo
+	IWDeleteRecord
+	IWWriteXML
+	IWReadVerification
+	IWCloseVerification
+	IWSetVerification
+	IWGet
+	IWSet
+	IWOccurrences
+	IWGetTransactionCategories
+	IWGetTransactionTypes
+	IWVerify
+	IWGetErrorCount
+	IWGetError
+	IWGetNextField
+	RAWtoWSQ
+	BMPtoWSQ
+	WSQtoRAW
+	WSQtoBMP
+	RAWtoBMP
+	BMPtoRAW
+	JPGtoBMP
+	BMPtoJPG
+	JP2toBMP
+	BMPtoJP2
+	RAWtoFX4
+	FX4toRAW
+	BMPtoFX4
+	FX4toBMP
+	MemFree

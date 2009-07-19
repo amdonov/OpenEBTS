@@ -1062,7 +1062,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 		}
 		else
 		{
-			wsprintf(szErr, "Verification file does not contain Transaction Type %s", sTOT);
+			wsprintf(szErr, "Verification file does not contain Transaction Type %s", sTOT.c_str());
 			pTrans->AddError(szErr, 0);
 			nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 		}

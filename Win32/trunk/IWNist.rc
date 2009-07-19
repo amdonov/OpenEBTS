@@ -27,8 +27,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,10
- PRODUCTVERSION 1,0,0,10
+ FILEVERSION 1,0,0,11
+ PRODUCTVERSION 1,0,0,11
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -44,13 +44,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "ImageWare Systems, Inc"
-            VALUE "FileDescription", "IWNist"
-            VALUE "FileVersion", "1, 0, 0, 10"
-            VALUE "InternalName", "IWNist"
+            VALUE "FileDescription", "OpenEBTS"
+            VALUE "FileVersion", "1, 0, 0, 11"
+            VALUE "InternalName", "OpenEBTS"
             VALUE "LegalCopyright", "Copyright © 2003"
-            VALUE "OriginalFilename", "IWNist.dll"
-            VALUE "ProductName", "NIST Module"
-            VALUE "ProductVersion", "1, 0, 0, 10"
+            VALUE "OriginalFilename", "OpenEBTS.dll"
+            VALUE "ProductName", "OpenEBTS Module"
+            VALUE "ProductVersion", "1, 0, 0, 11"
         END
     END
     BLOCK "VarFileInfo"

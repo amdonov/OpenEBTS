@@ -1,12 +1,12 @@
 #include "stdafx.h"
-#include "IWNISTErrors.h"
+#include "OpenEBTSErrors.h"
 #include "TransactionDef.h"
 #include "IWTransaction.h"
 #include "Common.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
 #include "IWVerification.h"
-#include "IWNIST.h"
+#include "OpenEBTS.h"
 
 
 #define ITEM_RECORDTYPE 1

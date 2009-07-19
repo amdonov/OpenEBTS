@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
-#include "IWNIST.h"
+#include "OpenEBTS.h"
 
 
 static char g_szGS[2] = { (char)0x1D, '\0' };

@@ -1,12 +1,11 @@
 
 #include "stdafx.h"
-#include "IWNist.h"
+#include "OpenEBTS.h"
 #include "TransactionDef.h"
 #include "IWTransaction.h"
 #include "IWVerification.h"
-#include "IWNISTErrors.h"
+#include "OpenEBTSErrors.h"
 #include "Common.h"
-#include "IWNISTCodes.h"
 
 
 /************************************************************/
@@ -471,13 +470,13 @@ IWNIST_API int WINAPI IWGetNextField(CIWTransaction* IWTrans, int RecordType,
 	return nRet;	
 } 
 
-IWNIST_API int WINAPI IWvGetTransactionCategories(CIWVerification *pIWVer, int DataArraySize, const char **ppDataArray, int *Entries)
+IWNIST_API int WINAPI IWGetTransactionCategories(CIWVerification *pIWVer, int DataArraySize, const char **ppDataArray, int *Entries)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
-		IWS_BEGIN_EXCEPTION_METHOD("IWvGetTransactionCategories")
+		IWS_BEGIN_EXCEPTION_METHOD("IWGetTransactionCategories")
 		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
@@ -489,14 +488,14 @@ IWNIST_API int WINAPI IWvGetTransactionCategories(CIWVerification *pIWVer, int D
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWvGetTransactionTypes(CIWVerification* pIWVer, int DataArraySize, const char **ppDataArray, 
+IWNIST_API int WINAPI IWGetTransactionTypes(CIWVerification* pIWVer, int DataArraySize, const char **ppDataArray, 
 																								const char **ppDescArray, int *pEntries, const char *pCategory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
-		IWS_BEGIN_EXCEPTION_METHOD("IWvGetTransactionTypes")
+		IWS_BEGIN_EXCEPTION_METHOD("IWGetTransactionTypes")
 		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
@@ -749,7 +748,7 @@ IWNIST_API int WINAPI WSQtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut
 IWNIST_API int WINAPI RAWtoBMP(int nWidth, int nHeight, int nDPI, int nDepth, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut)
 // Supports 1bpp, 8bpp and 24bpp
 {
-	int		ret = IW_ERR_WSQ_DECOMPRESS;
+	int		ret = IW_ERR_IMAGE_CONVERSION;
 	long	lBytesPerRowBMP;
 	long	lBytesPerRowRAW;
 	long	nBMPDataLen;
@@ -876,7 +875,7 @@ IWNIST_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut
 // Supports 1bpp, 8bpp and 24bpp BMP inputs.
 //
 {
-	int					ret = IW_ERR_WSQ_DECOMPRESS;
+	int					ret = IW_ERR_IMAGE_CONVERSION;
 	BITMAPFILEHEADER	*pbfh;
 	BITMAPINFOHEADER	*pbih;
 	long				lBytesPerRowBMP;
@@ -901,7 +900,7 @@ IWNIST_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut
 
 	// Set pBMPPtr to where image bits start.
 	if (pbih->biBitCount != 24)
-		lLenPalette = (pbih->biClrUsed == 0 ? 1<<pbih->biBitCount :  pbih->biClrUsed) * sizeof(RGBQUAD);
+		lLenPalette = (pbih->biClrUsed == 0 ? 2^pbih->biBitCount :  pbih->biClrUsed) * sizeof(RGBQUAD);
 	else
 		lLenPalette = 0;
 	pBMPPtr = (BYTE*)pbih + sizeof(BITMAPINFOHEADER) + lLenPalette;
@@ -1235,90 +1234,3 @@ IWNIST_API int WINAPI IWGetError(CIWTransaction* IWTrans, int Index, int* Code, 
 
 	return nRet;
 }
-/*
-IWNIST_API int WINAPI IWGetErrorInfo(CIWTransaction* IWTrans, int Index, 
-							  const char** AdditionalInfo, int* ErrorLocationCount)
-{
-	return 1; // DJDTODO
-}
-
-IWNIST_API int WINAPI IWGetErrorLocation(CIWTransaction* IWTrans, 
-  int Index, int ErrorLocationIndex, const char** Data,          
-	const char** Mnemonic, int* RecordType, int* RecordIndex, int* RecordIDC,             
-	int* Field, int* Subfield, int* Item, int* Offset)
-{
-	return 1; // DJDTODO
-}
-
-
-IWNIST_API int WINAPI IWGetErrorString(int ErrorCode, const char ** ErrorName, const char ** ErrorDesc)
-{
-	return 1; // DJDTODO
-}
-*/
-//IWNIST_API void IWFree(LPBYTE *pMem)
-//{
-//	delete *pMem;
-//}
-
-
-#if(1)
-
-	IWNIST_API char* WINAPI IWGetNISTCode(int nType, int nFieldID, int nParentField, BOOL bGetDesc)
-	{
-		char* sRet = NULL;
-		int len;
-
-	/*	for(int i = 0; i < g_NIST_Fields_Count; i++)
-		{
-			IWNISTFIELD field = g_NIST_Fields[i];
-			
-			if (field.nRecordType == nType &&
-				field.nFieldID == nFieldID)
-			{
-				len = strlen(bGetDesc ? field.szDescription : field.szNISTCode);
-				sRet = new char[len];
-				strcpy(sRet, bGetDesc ? field.szDescription : field.szNISTCode);
-				break;
-			}
-		}
-	*/
-		if(!sRet) // description not found. use the field id
-		{
-			
-			len = strlen("[ ### ]");
-			sRet = new char[len];
-			sprintf_s(sRet, len, "[ %03d ]", nFieldID);
-		}
-
-		return sRet;
-	}
-
-	IWNIST_API char* WINAPI IWGetNISTDesc(int nType, int nFieldID, int nParentField)
-	{
-		return IWGetNISTCode(nType, nFieldID, nParentField, TRUE);
-	}
-
-	IWNIST_API char* WINAPI IWGetNISTCode2(CIWTransaction* IWTrans, int nType, 
-		int nFieldID, int nParentField, BOOL bGetDesc)
-	{
-		// move data from Type 2 Record into local variables
-		for(int idx = Jail; idx < FIELD_LAST; idx++)
-		{
-			if (nistTable[idx].whichrecord == 2 &&  // record type 2
-				nistTable[idx].field == nFieldID )
-			{
-				return nistTable[idx].fieldname;
-			}
-		}
-
-		return (char*) NULL;
-	}
-
-	IWNIST_API char* WINAPI IWGetNISTDesc2(CIWTransaction* IWTrans, int nType, int nFieldID, int nParentField)
-	{
-		return IWGetNISTCode2(IWTrans, nType, nFieldID, nParentField, TRUE);
-	}
-
-#endif
-

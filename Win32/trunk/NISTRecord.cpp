@@ -2,7 +2,7 @@
 #include "stdafx.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
-#include "IWNIST.h"
+#include "OpenEBTS.h"
 
 
 CNISTRecord::CNISTRecord()
@@ -54,7 +54,7 @@ void CNISTRecord::InitializeNewRecord(int nRecordType)
 		pField = new CNISTField;
 
 		if (nRecordType == RECORD_TYPE1)
-			wsprintf(szLen, "%s", "0201"); // default version
+			wsprintf(szLen, "%s", "0400"); // default version
 		else
 			wsprintf(szLen, "%s", "00"); // default IDC value, should be correctly set by calling application?
 
@@ -495,7 +495,7 @@ int CNISTRecord::GetNextField(int nField, int *pNextField)
 
 int CNISTRecord::GetNumSubfields(int nField, int *pCount)
 {
-	int nRet = IW_ERR_RECORD_NOT_FOUND;
+	int nRet = IW_ERR_INDEX_OUT_OF_RANGE;
 	CNISTField *pField = GetNISTField(nField);
 
 	*pCount = 0;
