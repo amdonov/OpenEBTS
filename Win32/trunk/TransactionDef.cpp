@@ -14,23 +14,6 @@ CTransactionDefinition::~CTransactionDefinition()
 
 void CTransactionDefinition::FreeRecTypeCounts()
 {
-	//TODO REMOVE
-	/*
-	int nCount;
-	CRecordTypeCount *pRecTypeCount;
-
-	nCount = m_recTypeCountAry.GetSize();
-
-	for (int i=0; i<nCount; i++)
-	{
-		pRecTypeCount = (CRecordTypeCount*)m_recTypeCountAry.GetAt(i);
-		if (pRecTypeCount)
-		{
-			delete pRecTypeCount;
-		}
-	}
-	m_recTypeCountAry.RemoveAll();
-	*/
 }
 
 BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
@@ -77,11 +60,11 @@ BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
 			break;
 		}
 
-		CRecordTypeCount* pRecTypeCount = new CRecordTypeCount;
-		pRecTypeCount->nRecordType = atol(sRecType);
-		pRecTypeCount->nMin = nMin;
-		pRecTypeCount->nMax = nMax;
-		m_recTypeCountAry.push_back(*pRecTypeCount);
+		CRecordTypeCount recTypeCount;
+		recTypeCount.nRecordType = atol(sRecType);
+		recTypeCount.nMin = nMin;
+		recTypeCount.nMax = nMax;
+		m_recTypeCountAry.push_back(recTypeCount);
 	}
 
 	// Make sure each ':' created a CRecordTypeCount

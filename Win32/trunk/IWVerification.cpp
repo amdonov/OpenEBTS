@@ -57,28 +57,6 @@ CIWVerification::CIWVerification()
 
 CIWVerification::~CIWVerification()
 {
-/*
-	int nCount;
-	CTransactionDefinition *pTempDef;
-	CRuleObj *pTempRule;
-	int i;
-
-	nCount = m_transactionDefAry.size();
-	for (i = 0; i < nCount; i++)
-	{
-		pTempDef = &m_transactionDefAry.at(i);
-		if (pTempDef) delete pTempDef;
-	}
-	m_transactionDefAry.clear();
-
-	nCount = m_rulesAry.size();
-	for (i = 0; i < nCount; i++)
-	{
-		pTempRule = &m_rulesAry.at(i);
-		if (pTempRule) delete pTempRule;
-	}
-	m_rulesAry.clear();
-*/
 }
 
 int CIWVerification::ReadVerificationFile(const char* Path, int MaxParseError, char* ParseError)
@@ -94,9 +72,6 @@ int CIWVerification::ReadVerificationFile(const char* Path, int MaxParseError, c
 		{
 			m_bVerificationLoaded = TRUE;
 			nRet = IW_SUCCESS;
-#ifdef _DEBUG
-			
-#endif
 		}
 	}
 
@@ -132,8 +107,7 @@ int CIWVerification::LoadRules(CStdString& sFilePath)
 
 		while (pFile != NULL)
 		{
-			sLine.TrimLeft();
-			sLine.TrimRight();
+			sLine.Trim();
 			sLine.MakeUpper();
 			
 			// find the start of the rules section
@@ -147,9 +121,8 @@ int CIWVerification::LoadRules(CStdString& sFilePath)
 
 		char szDelimsRule[] = ";";
 		char *pRule;
-		CStdString sLocationIndex,sMneumonic,sCharType,sFieldSize,sOccurrence,sTags;
+		CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence, sTags;
 		CStdString sTransactionList;
-		CRuleObj *pRuleObj;
 
 		if (bFound)
 		{
@@ -188,17 +161,15 @@ int CIWVerification::LoadRules(CStdString& sFilePath)
 				{
 					sTags = GetTags(&pRule);
 				}
-
+#ifdef _DEBUG
 				sTemp.Format("Loc: %s, MNU: %s, Type: %s, Size: %s, Occ: %s\n", sLocationIndex,
 							 sMneumonic, sCharType, sFieldSize, sOccurrence);
 				OutputDebugString(sTemp);
+#endif
+				CRuleObj ruleObj;
 
-				pRuleObj = new CRuleObj;
-
-				if (pRuleObj->SetData(sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence, sTags))
-					m_rulesAry.push_back(*pRuleObj);
-				else
-					delete pRuleObj;
+				if (ruleObj.SetData(sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence, sTags))
+					m_rulesAry.push_back(ruleObj);
 
 				pRule = GetRule(&pFile);
 			}
@@ -598,7 +569,7 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 		{
 			sTemp.ReleaseBuffer();
 			sTemp.MakeUpper();
-			sTemp.TrimLeft();
+			sTemp.Trim();
 
 			// found a transaction definition, run it through the state machine
 			if (sTemp.GetLength() >= 12 && !sTemp.Left(12).CompareNoCase(STR_TRANSACTION_DEF_TAG))
@@ -628,8 +599,7 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 
 				sCategory = sTemp.Mid(13);
 				sCategory.Replace('"',' ');
-				sCategory.TrimLeft();
-				sCategory.TrimRight();
+				sCategory.Trim();
 				
 				pTransDef->m_sCategory = sCategory;
 
@@ -690,8 +660,7 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 									bInComment = FALSE;
 									enState = enStClassify; // end of comment, can't wait to see what's next!
 									sComment.Replace('"',' ');
-									sComment.TrimLeft();
-									sComment.TrimRight();
+									sComment.Trim();
 									pTransDef->m_TOTLabelArray.push_back(sComment);
 									bInComment = FALSE;
 								}
@@ -708,9 +677,9 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 							{
 								enState = enStError; // shouldn't be here
 
-#ifdef FAIL_ON_ERROR
+	#ifdef FAIL_ON_ERROR
 							nRet = IW_ERR_LOADING_VERICATION;
-#endif
+	#endif
 							}
 							else
 								sComment += ch;
@@ -737,45 +706,43 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 							}
 						}
 						break;
-					}
+				}
+			}
+
+			if (enState == enStComplete)
+			{
+				// add to the list
+				if (pTransDef->IsValid())
+				{
+					if (pTransDef->m_sCategory == _T(""))	
+						pTransDef->m_sCategory = sCategory; // use the same category as previous
+
+					m_transactionDefAry.push_back(*pTransDef);
 				}
 
-				if (enState == enStComplete)
-				{
-					// add to the list
-					if (pTransDef->IsValid())
-					{
-						if (pTransDef->m_sCategory == _T(""))	
-							pTransDef->m_sCategory = sCategory; // use the same category as previous
+				delete pTransDef;
+				pTransDef = NULL;
 
-						m_transactionDefAry.push_back(*pTransDef);
-					}
-					else
-					{
-						delete pTransDef;
-						pTransDef = NULL;
-					}
+				// There may be multiple definitions with a TRANSACTIONS setion, create 
+				// a new object for the next TOT def, if there is only 1 definition 
+				// this object will be deleted 
+				pTransDef = new CTransactionDefinition; 
+				enState = enStClassify;
+			}
+			else if (enState == enStError)
+			{
+				CStdString sTraceMsg;
+				
+				sTraceMsg.Format("[CIWVerification::ReadVerificationFile] Error reading verification file %s", sFilePath);
+				LogFile(NULL,sTraceMsg);
 
-					// There may be multiple definitions with a TRANSACTIONS setion, create 
-					// a new object for the next TOT def, if there is only 1 definition 
-					// this object will be deleted 
-					pTransDef = new CTransactionDefinition; 
-					enState = enStClassify;
-				}
-				else if (enState == enStError)
-				{
-					CStdString sTraceMsg;
-					
-					sTraceMsg.Format("[CIWVerification::ReadVerificationFile] Error reading verification file %s", sFilePath);
-					LogFile(NULL,sTraceMsg);
-
-					delete pTransDef;
-					pTransDef = NULL;
+				delete pTransDef;
+				pTransDef = NULL;
 
 #ifdef FAIL_ON_ERROR
-					nRet = IW_ERR_LOADING_VERICATION;
+				nRet = IW_ERR_LOADING_VERICATION;
 #endif
-				}
+			}
 		}
 		fclose(f);
 	}
