@@ -1175,12 +1175,12 @@ void CIWTransaction::FreeErrors()
 
 void CIWTransaction::AddError(char* szErr, int nCode)
 {
-	CNISTErr *pErr = new CNISTErr;
+	CNISTErr err;
 
-	pErr->m_nCode = nCode;
-	strcpy_s(pErr->m_szErr, MAXERRORLEN, szErr);
+	err.m_nCode = nCode;
+	strcpy_s(err.m_szErr, MAXERRORLEN, szErr);
 
-	m_ErrAry.push_back(*pErr);
+	m_ErrAry.push_back(err);
 }
 
 int CIWTransaction::GetErrorCount()
