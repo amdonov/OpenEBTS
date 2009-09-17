@@ -39,7 +39,10 @@ int _tmain(int argc, _TCHAR* argv[])
 	strcpy_s(szFilename, _MAX_PATH, szFolderSamples);
 	strcat_s(szFilename, _MAX_PATH, "ebts1_2.txt");
 	lRet = IWReadVerification(szFilename, &pVer, IW_MAX_PARSE_ERROR, szParseError);
-	if (!CheckRet("IWReadVerification", lRet)) goto done;
+	if (!CheckRet("IWReadVerification", lRet)) {
+		printf("Error parsing verification file '%s': %s\n", szFilename, szParseError);
+		goto done;
+	}
 
 	// Create new transaction, with verification file loaded to enable mnemonic
 	// usage for field referral. In this sample we create a transaction of type CAR

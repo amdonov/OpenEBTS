@@ -4,6 +4,7 @@
 # Based on the original ebts1_2.txt, with the transaction
 # IWTST added and Type-8, Type-15, Type-17 and Type-99
 # loosely defined.
+# Also, the version number "400" is now allowed for T1_VER.
 #
 #############################################################
 
@@ -101,7 +102,8 @@ TPRS, DPRS, SRT, LFIS, LFFS, LRE, ERRL, IRQ, IRR, ISR, ERRI, IWTST]
 
 [M]
   1.002  T1_VER   N   4   1  desc="Version Number" 
-		mmap="0300:Type 10 through 16 records supported (ITL 1-2000) |\
+		mmap="  0400:ITL 1-2007 |\
+				0300:Type 10 through 16 records supported (ITL 1-2000) |\
 		        0201:Type 10 records supported" 
 	 long_desc="This Mandatory field shall be used to specify the \
 			version number of the standard implemented by the \

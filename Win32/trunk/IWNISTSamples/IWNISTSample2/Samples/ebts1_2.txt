@@ -3,6 +3,7 @@
 # Chelsea McIntyre - DoD BFC
 # June 2006
 
+# (The version number "400" is now allowed for T1_VER.)
 
 # EBTS 1.1 can be found @
 # http://www.biometrics.dod.mil/
@@ -96,7 +97,8 @@ TPRS, DPRS, SRT, LFIS, LFFS, LRE, ERRL, IRQ, IRR, ISR, ERRI]
 
 [M]
   1.002  T1_VER   N   4   1  desc="Version Number" 
-		mmap="0300:Type 10 through 16 records supported (ITL 1-2000) |\
+		mmap="  0400:ITL 1-2007 |\
+				0300:Type 10 through 16 records supported (ITL 1-2000) |\
 		        0201:Type 10 records supported" 
 	 long_desc="This Mandatory field shall be used to specify the \
 			version number of the standard implemented by the \

@@ -410,45 +410,45 @@ bool CheckRet(char *szContext, long lRetVal)
 
 	switch (lRetVal) {
 		case IW_ERR_LOADING_VERICATION:
-			sprintf_s(szErrMsg, 256, "%s: error loading verification file", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: error loading verification file\n", szContext); break;
 		case IW_ERR_OPENING_FILE_FOR_READING:
-			sprintf_s(szErrMsg, 256, "%s: error opening file for reading", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: error opening file for reading\n", szContext); break;
 		case IW_ERR_OPENING_FILE_FOR_WRITING:
-			sprintf_s(szErrMsg, 256, "%s: error opening file for writing", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: error opening file for writing\n", szContext); break;
 		case IW_ERR_READING_FILE:
-			sprintf_s(szErrMsg, 256, "%s: error reading file", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: error reading file\n", szContext); break;
 		case IW_ERR_WRITING_FILE:
-			sprintf_s(szErrMsg, 256, "%s: error writing file", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: error writing file\n", szContext); break;
 		case IW_ERR_RECORD_NOT_FOUND:
-			sprintf_s(szErrMsg, 256, "%s: record not found error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: record not found error\n", szContext); break;
 		case IW_ERR_TRANSACTION_NOT_LOADED:
-			sprintf_s(szErrMsg, 256, "%s: transaction not loaded error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: transaction not loaded error\n", szContext); break;
 		case IW_ERR_VERIFICATION_NOT_LOADED:
-			sprintf_s(szErrMsg, 256, "%s: verification file not loaded error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: verification file not loaded error\n", szContext); break;
 		case IW_ERR_NULL_POINTER:
-			sprintf_s(szErrMsg, 256, "%s: null pointer error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: null pointer error\n", szContext); break;
 		case IW_ERR_NULL_TRANSACTION_POINTER:
-			sprintf_s(szErrMsg, 256, "%s: null transaction error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: null transaction error\n", szContext); break;
 		case IW_ERR_UNSUPPORTED_IMAGE_FORMAT:
-			sprintf_s(szErrMsg, 256, "%s: unsupported image format error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: unsupported image format error\n", szContext); break;
 		case IW_ERR_UNSUPPORTED_RECORD_TYPE:
-			sprintf_s(szErrMsg, 256, "%s: unsupported record type", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: unsupported record type\n", szContext); break;
 		case IW_ERR_INDEX_OUT_OF_RANGE:
-			sprintf_s(szErrMsg, 256, "%s: index out of range error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: index out of range error\n", szContext); break;
 		case IW_ERR_INVALID_SUBFIELD_NUM:
-			sprintf_s(szErrMsg, 256, "%s: invalid subfield number error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: invalid subfield number error\n", szContext); break;
 		case IW_ERR_MNEMONIC_NOT_FOUND:
-			sprintf_s(szErrMsg, 256, "%s: mnemonic not found error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: mnemonic not found error\n", szContext); break;
 		case IW_ERR_OUT_OF_MEMORY:
-			sprintf_s(szErrMsg, 256, "%s: out of memory error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: out of memory error\n", szContext); break;
 		case IW_ERR_WSQ_COMPRESS:
-			sprintf_s(szErrMsg, 256, "%s: wsq compression error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: wsq compression error\n", szContext); break;
 		case IW_ERR_WSQ_DECOMPRESS:
-			sprintf_s(szErrMsg, 256, "%s: wsq decompression error", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: wsq decompression error\n", szContext); break;
 		case IW_ERR_IMAGE_CONVERSION:
-			sprintf_s(szErrMsg, 256, "%s: error converting image", szContext); break;
+			sprintf_s(szErrMsg, 256, "%s: error converting image\n", szContext); break;
 		default:
-			sprintf_s(szErrMsg, 256, "%s: unknown error %ld", szContext, lRetVal); break;
+			sprintf_s(szErrMsg, 256, "%s: unknown error %ld\n", szContext, lRetVal); break;
 	}
 
 	printf(szErrMsg);
