@@ -21,12 +21,14 @@ CRuleObj::~CRuleObj()
 {
 }
 
-BOOL CRuleObj::SetData(CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
-								CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sTags)
+BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
+					   CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sSpecialChars,
+					   CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr)
 {
 	CStdString sTemp;
 	BOOL bRet = FALSE;
-	CStdString sErr;
+
+	sErr.Empty();
 
 	// extract the TOT's this rule applies to
 	if (SetTransactions(sTransactionList))
@@ -41,42 +43,75 @@ BOOL CRuleObj::SetData(CStdString& sTransactionList, CStdString& sLocation, CStd
 					{
 						if (SetOccurrences(sOccurrences))
 						{
-#pragma message(" ===> CRuleObj, Tag support not implemented")
-							if (SetTags(sTags))
-								bRet = TRUE;
+							if (SetOptionalDescription(sDescription))
+							{
+								if (SetOptionalSpecialChars(sSpecialChars))
+								{
+									if (SetOptionalDateFormat(sDateFormat))
+									{
+										if (SetOptionalMMap(sMMap, sFilePath))
+										{
+											if (SetTags(sTags))
+											{
+												bRet = TRUE;
+											}
+											else
+											{
+												sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+												LogFile(NULL,sErr);
+											}
+										}
+										else
+										{
+											sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
+											LogFile(NULL,sErr);
+										}
+									}
+									else
+									{
+										sErr.Format("%s, invalid date format value: %s", m_sMNU, sDateFormat);
+										LogFile(NULL,sErr);
+									}
+								}
+								else
+								{
+									sErr.Format("%s, invalid sca value: %s", m_sMNU, sSpecialChars);
+									LogFile(NULL,sErr);
+								}
+							}
 							else
 							{
-								sErr.Format("[CRuleObj::SetData] %s, invalid tags value: %s",m_sMNU,sTags.Left(60));
+								sErr.Format("%s, invalid description value: %s", m_sMNU, sDescription);
 								LogFile(NULL,sErr);
 							}
 						}
 						else
 						{
-							sErr.Format("[CRuleObj::SetData] %s, invalid occurrence value: %s",m_sMNU,sOccurrences);
+							sErr.Format("%s, invalid occurrence value: %s", m_sMNU, sOccurrences);
 							LogFile(NULL,sErr);
 						}
 					}
 					else
 					{
-						sErr.Format("[CRuleObj::SetData] %s, invalid field size: %s",m_sMNU,sFieldSize);
+						sErr.Format("%s, invalid field size: %s", m_sMNU, sFieldSize);
 						LogFile(NULL,sErr);
 					}
 				}
 				else
 				{
-					sErr.Format("[CRuleObj::SetData] %s, invalid char type: %s",m_sMNU,sCharType);
+					sErr.Format("%s, invalid char type: %s", m_sMNU, sCharType);
 					LogFile(NULL,sErr);
 				}
 			}
 			else
 			{
-				sErr.Format("[CRuleObj::SetCharType] Invalid MNU: %s",sMNU);
+				sErr.Format("Invalid MNU: %s", sMNU);
 				LogFile(NULL,sErr);
 			}
 		}
 		else
 		{
-			sErr.Format("[CRuleObj::SetData] Invalid location: %s",sLocation);
+			sErr.Format("Invalid location: %s", sLocation);
 			LogFile(NULL,sErr);
 		}
 	}
@@ -92,7 +127,9 @@ void CRuleObj::DumpObject()
 {
 	CStdString sMsg;
 
-	sMsg.Format("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld",m_sMNU,m_sLocation,m_sCharType,m_nMinFieldSize,m_nMaxFieldSize,m_nMinOccurrences,m_nMaxOccurrences);
+	sMsg.Format("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld desc(%s) sca(%s) date(%s) map(%s)",
+				m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
+				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMap());
 	LogFile(NULL,sMsg);
 
 	UINT							nKey;
@@ -144,11 +181,218 @@ CStdString CRuleObj::GetTransactionListString()
 	return sTemp;
 }
 
+BOOL CRuleObj::SetOptionalDescription(CStdString& sDescription)
+{
+	m_sDescription = sDescription;
+
+	return TRUE;
+}
+
+BOOL CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
+{
+	m_sSpecialChars = sSpecialChars;
+
+	return TRUE;
+}
+
+BOOL CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
+// Do a brief format verification. For now we support the "Z" prefix and the abbreviations "CCYY" (or "YYYY"),
+// "MM" and "DD.
+{
+	char		c;
+	CStdString	sAllowed = "CYMD";
+
+	for (int i = 0; i < sDateFormat.GetLength(); i++)
+	{
+		c = sDateFormat.GetAt(i);
+
+		if (sAllowed.Find(c) == -1)
+		{
+			// Invalid char found, unless it's the first char and it's a "Z"
+			if (!(i == 0 && c == 'Z'))
+			{
+				return FALSE;
+			}
+		}
+	}
+
+	if (sDateFormat != "")
+	{
+		// Make sure we have a year, month and day, otherwise the date can't be valid
+		if (sDateFormat.Find("YYYY") == -1 && sDateFormat.Find("CCYY") == -1) return FALSE;
+		if (sDateFormat.Find("MM") == -1) return FALSE;
+		if (sDateFormat.Find("DD") == -1) return FALSE;
+	}
+
+	m_sDateFormat = sDateFormat;
+
+	return TRUE;
+}
+
+BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
+// Populate m_mapVals from the values inside mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."
+// Support external file as well, as in mmap="file://<Path to external file>"
+{
+	char		c;
+	bool		bInsideValue;
+	CStdString	sValue;
+	CStdString	sFilename;
+	CStdString	sFilePrefix = "file://";
+	int			i;
+	int			j;
+	int			npipes = 0;
+	int			ncolons = 0;
+
+	if (sMMap.IsEmpty()) return TRUE;	// no mmap, nothing to copy
+
+	/*
+	// We no longer do this verficiation because many lines in the original verification files
+	// forget to include '|' but contain a carriage return instead.
+
+	// For a quick verification, we count the number of ':'s and '|'s. There should be one more ':' than '|'
+	for (i = 0; i < sMMap.GetLength(); i++)
+	{
+		c = sMMap.GetAt(i);
+
+		if (c == ':') ncolons++;
+		else if (c == '|') npipes++;
+	}
+	if (ncolons != npipes+1) return FALSE;
+	*/
+
+	// First check if the info is in a file
+	if (sMMap.Find(sFilePrefix) == 0) // (starts at position 0)
+	{
+		char		szDrive[_MAX_DRIVE];
+		char		szDir[_MAX_DIR];
+		char		szPath[_MAX_DIR];
+		FILE		*f;
+		char		*pFile;
+		char		*pFileSave;
+		long		lSize;
+
+		// Open file in same folder as main verification file and read-in contents
+
+		sFilename = sMMap.Right(sMMap.GetLength() - sFilePrefix.GetLength());
+
+		_splitpath(sFilePath, szDrive, szDir, NULL, NULL);
+		strcpy(szPath, szDrive);
+		strcat(szPath, szDir);
+		strcat(szPath, sFilename);
+
+		f = fopen(szPath, "r+t");
+		if (f != NULL)
+		{
+			fseek(f, 0, SEEK_END);
+			lSize = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			pFile = new char [lSize+2];
+			memset(pFile,'\0', lSize+2);
+			pFileSave = pFile;
+
+			fread(pFile, 1, lSize, f);
+			fclose(f);
+
+			bInsideValue = true; // the first char of the string is the first char of the first value
+
+			for (i = 0; i < lSize; i++)
+			{
+				c = *pFile++;
+				if (c == 0x09)
+				{
+					bInsideValue = FALSE;	// end of value, about to enter description
+
+					// Save current value in array and reset it
+					sValue.Trim();
+					m_mapVals.push_back(sValue);
+					sValue.Empty();
+				}
+				else if (c == 0x0A)
+				{
+					bInsideValue = TRUE;	// end of description, about to enter value
+				}
+				else
+				{
+					if (bInsideValue)
+					{
+						sValue += c;		// add new char to present value
+					}
+				}
+			}
+
+			delete [] pFileSave;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+	else
+	{
+		// Values and descriptions are inside the verification file
+
+		bInsideValue = true; // the first char of the string is the first char of the first value
+
+		for (i = 0; i < sMMap.GetLength(); i++)
+		{
+			c = sMMap.GetAt(i);
+
+			if (c == ':')
+			{
+				bInsideValue = FALSE;	// end of value, about to enter description
+
+				// Save current value in array and reset it
+				sValue.Trim();
+				m_mapVals.push_back(sValue);
+				sValue.Empty();
+			}
+			else if (c == '|')
+			{
+				// Skip over all carriage returns and white space and back slashes
+				for (j = i+1; j < sMMap.GetLength(); j++)
+				{
+					c = sMMap.GetAt(j);
+					if (c != 0x0D && c != 0x0A && c != 0x09 && c != ' ' && c != '\\')
+					{
+						break;
+					}
+				}
+				i = j-1;	// skip to new position, backtracking to just before
+
+				bInsideValue = TRUE;	// end of description, about to enter value
+			}
+			else
+			{
+				if (bInsideValue)
+				{
+					sValue += c;		// add new char to present value
+				}
+			}
+		}
+	}
+
+	return TRUE;
+}
+
+CStdString CRuleObj::GetMap()
+// Just a debug-outputable string that contains the map values
+{
+	CStdString sRet;
+
+	for (unsigned int i = 0; i < m_mapVals.size(); i++)
+	{
+		sRet += m_mapVals.at(i);
+		if (i != m_mapVals.size()-1) sRet += ",";
+	}
+
+	return sRet;
+}
+
 BOOL CRuleObj::SetTags(CStdString& sTags)
 {
-	BOOL bRet = TRUE;
-
-	return bRet;
+#pragma message(" ===> CRuleObj, Tag support not implemented")
+	return TRUE;
 }
 
 BOOL CRuleObj::SetFieldSize(CStdString& sFieldSize)
@@ -515,7 +759,7 @@ BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
 						m_transactionList[sMNU]= nMandatoryOverride;
 					else
 					{
-						sErr.Format("[CRuleObj::SetTransactions] Invalid MNU: %s",sMNU);
+						sErr.Format("[CRuleObj::SetTransactions] Invalid MNU: %s", sMNU);
 						LogFile(NULL,sErr);
 						bRet = FALSE;
 					}

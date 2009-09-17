@@ -63,28 +63,33 @@ int CIWVerification::ReadVerificationFile(const char* Path, int MaxParseError, c
 {
 	int nRet = IW_ERR_READING_FILE;
 	CStdString sFilePath = Path;
+	CStdString sErr;
 
 	m_bVerificationLoaded = FALSE;
 
 	if ((nRet = LoadTOTDefinitions(sFilePath)) == IW_SUCCESS)
 	{
-		if ((nRet = LoadRules(sFilePath)) == IW_SUCCESS)
+		if ((nRet = LoadRules(sFilePath, sErr)) == IW_SUCCESS)
 		{
 			m_bVerificationLoaded = TRUE;
-			nRet = IW_SUCCESS;
+		}
+		else
+		{
+			strncpy(ParseError, sErr, MaxParseError-1);
+			ParseError[MaxParseError-1] = '\0';
 		}
 	}
 
 	return nRet;
 }
 
-int CIWVerification::LoadRules(CStdString& sFilePath)
+int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 {
 	int nRet = IW_ERR_READING_FILE;
 	FILE *f;
 	char *pFileSave = NULL;
 
-	f = fopen(sFilePath, "r+t");
+	f = fopen(sFilePath, "rb");
 	if (f != NULL)
 	{
 		fseek(f, 0, SEEK_END);
@@ -121,8 +126,10 @@ int CIWVerification::LoadRules(CStdString& sFilePath)
 
 		char szDelimsRule[] = ";";
 		char *pRule;
-		CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence, sTags;
+		CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
+		CStdString sDescription, sSpecialChars, sDateFormat, sTags;
 		CStdString sTransactionList;
+		CStdString sMMap;
 
 		if (bFound)
 		{
@@ -159,6 +166,22 @@ int CIWVerification::LoadRules(CStdString& sFilePath)
 				}
 				if (pRule)
 				{
+					sDescription = GetOptionalDescription(&pRule);
+				}
+				if (pRule)
+				{
+					sSpecialChars = GetOptionalSpecialChars(&pRule);
+				}
+				if (pRule)
+				{
+					sDateFormat = GetOptionalDateFormat(&pRule);
+				}
+				if (pRule)
+				{
+					sMMap = GetOptionalMMap(&pRule);
+				}
+				if (pRule)
+				{
 					sTags = GetTags(&pRule);
 				}
 #ifdef _DEBUG
@@ -168,8 +191,15 @@ int CIWVerification::LoadRules(CStdString& sFilePath)
 #endif
 				CRuleObj ruleObj;
 
-				if (ruleObj.SetData(sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence, sTags))
+				if (ruleObj.SetData(sFilePath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
+									sOccurrence, sDescription, sSpecialChars, sDateFormat, sMMap, sTags, sErr))
+				{
 					m_rulesAry.push_back(ruleObj);
+				}
+				else
+				{
+					return IW_ERR_LOADING_VERICATION;
+				}
 
 				pRule = GetRule(&pFile);
 			}
@@ -369,6 +399,61 @@ CStdString CIWVerification::GetFieldSize(char **ppRule)
 CStdString CIWVerification::GetOccurrences(char **ppRule)
 {
 	return GetRangeToken(ppRule);
+}
+
+CStdString CIWVerification::GetOptionalDescription(char **ppRule)
+// Look for 'desc="The Description"'
+{
+	return ExtractTagValue(ppRule, "desc");
+}
+
+CStdString CIWVerification::GetOptionalSpecialChars(char **ppRule)
+// Look for optional 'sca="-"'
+{
+	return ExtractTagValue(ppRule, "sca");
+}
+
+CStdString CIWVerification::GetOptionalDateFormat(char **ppRule)
+// Look for optional 'date="CCYYMMDD"' date format tag
+{
+	return ExtractTagValue(ppRule, "date");
+}
+
+CStdString CIWVerification::GetOptionalMMap(char **ppRule)
+// Look for optional 'mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."' Mandatory Mapping tag
+{
+	return ExtractTagValue(ppRule, "mmap");
+}
+
+CStdString CIWVerification::ExtractTagValue(char **ppRule, const char *szTag)
+// // Look for tage '[tagname]="[tagvalue]"'
+{
+	CStdString sFullTag;
+	CStdString sString;
+	CStdString sRet;
+	long	   lPosStart;
+	long	   lPosEnd;
+
+	sRet = "";
+
+	sString = *ppRule;												// Copy string into a CStdString
+
+	sFullTag = szTag;
+	sFullTag += "=\"";												// e.g. desc --> desc="
+	lPosStart = sString.Find(sFullTag);								// Find beginning of tag
+
+	// Note that it's possible that there is no such tag, which is fine, we just return ""
+	if (lPosStart != -1)
+	{
+		lPosStart += sFullTag.GetLength();							// Jump to actual tag value
+		lPosEnd = sString.Find("\"", lPosStart);					// Find closing double-quote
+		if (lPosEnd != -1)
+		{
+			sRet = sString.Mid(lPosStart, lPosEnd - lPosStart);		// Extract tag value
+		}
+	}
+
+	return sRet;
 }
 
 CStdString CIWVerification::GetTags(char **ppRule)
@@ -835,11 +920,11 @@ void CIWVerification::DebugOutputVerification()
 	for (i = 0; i < nCount; i++)
 	{
 		pRule = &m_rulesAry.at(i);
-		sTraceMsg.Format("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %s\n",
+		sTraceMsg.Format("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%s) sca(%s) date(%s) map(%s) Trans %s\n",
 						 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
-						 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(),
-						 pRule->GetMinOccurrences(), pRule->GetMaxOccurrences(),
-						 pRule->GetTransactionListString());
+						 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(), pRule->GetMinOccurrences(),
+						 pRule->GetMaxOccurrences(), pRule->GetDescription(), pRule->GetSpecialChars(),
+						 pRule->GetDateFormat(), pRule->GetMap(), pRule->GetTransactionListString());
 		OutputDebugString(sTraceMsg);
 	}
 
@@ -971,12 +1056,14 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 			{
 				pRule = &m_rulesAry.at(i);
 
+#ifdef _DEBUG
 				sTraceMsg.Format("applying %s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %s\n",
 								 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
 								 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(),
 								 pRule->GetMinOccurrences(), pRule->GetMaxOccurrences(),
 								 pRule->GetTransactionListString());
 				OutputDebugString(sTraceMsg);
+#endif
 
 				bFieldsOK = true;
 				switch (pRule->GetLocFormType())
@@ -1071,8 +1158,7 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 	{
 		if (CNISTRecord::IsDATField(iRecType, iField))
 		{
-			bRet &= VerifyFieldLength(pTrans, pRule, NULL);
-			bRet &= VerifyFieldChars(pTrans, pRule, NULL);
+			bRet &= VerifyfieldContents(pTrans, pRule, NULL);
 		}
 		else
 		{
@@ -1102,8 +1188,7 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 						// TODO: this should be considered a bad problem (?)
 					}
 
-					bRet &= VerifyFieldLength(pTrans, pRule, pData);
-					bRet &= VerifyFieldChars(pTrans, pRule, pData);
+					bRet &= VerifyfieldContents(pTrans, pRule, pData);
 				}
 			}
 		}
@@ -1255,8 +1340,7 @@ BOOL CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans
 			if (nRet == IW_SUCCESS)
 			// Note that an error may occur, because it's not a given that item 'iItem' exists
 			{
-				bRet &= VerifyFieldLength(pTrans, pRule, pData);
-				bRet &= VerifyFieldChars(pTrans, pRule, pData);
+				bRet &= VerifyfieldContents(pTrans, pRule, pData);
 			}
 		}
 	}
@@ -1347,6 +1431,18 @@ BOOL CIWVerification::VerifyFieldsForm7(CStdString& sTOT, CIWTransaction *pTrans
 // It is useful for fields (or subfields) which contain different types of items.
 {
 	BOOL bRet = TRUE;
+
+	return bRet;
+}
+
+BOOL CIWVerification::VerifyfieldContents(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+{
+	BOOL bRet = TRUE;
+
+	bRet &= VerifyFieldLength(pTrans, pRule, pData);
+	bRet &= VerifyFieldChars(pTrans, pRule, pData);
+	bRet &= VerifyFieldDateFormat(pTrans, pRule, pData);
+	bRet &= VerifyFieldValue(pTrans, pRule, pData);
 
 	return bRet;
 }
@@ -1479,42 +1575,64 @@ BOOL CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 //
 {
 	BOOL		bRet = TRUE;
-	CStdString		sCharType;
-	CStdString		sErr;
-	CStdString		sVal;
+	CStdString	sCharType;
+	CStdString	sSpecialChars;
+	CStdString	sErr;
+	CStdString	sVal;
 	DWORD		dwVal;
 	DWORD		dwValMax;
 
 	sCharType = pRule->GetCharType();
-	if (!sCharType.CompareNoCase(_T("A"))  || !sCharType.CompareNoCase(_T("N")) ||
-		!sCharType.CompareNoCase(_T("AN")))
+	sSpecialChars = pRule->GetSpecialChars();
+	sVal = pData;
+
+	if (!sCharType.CompareNoCase(_T("A")))
 	{
-		sVal = pData;
-		if (!sCharType.CompareNoCase(_T("A")) && !IsAlpha(sVal))
+		if (!IsAlpha(sVal))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, "Invalid value '%s' for CharType %s", sVal.c_str(), sCharType.c_str());
-			bRet = FALSE;
-		}
-		if (!sCharType.CompareNoCase(_T("N")) && !IsNumeric(sVal))
-		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, "Invalid value '%s' for CharType %s", sVal.c_str(), sCharType.c_str());
-			bRet = FALSE;
-		}
-		if (!sCharType.CompareNoCase(_T("AN")) && !IsAlphaNumeric(sVal))
-		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, "Invalid value '%s' for CharType %s", sVal.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, "Invalid value '%s' for CharType '%s'", sVal.c_str(), sCharType.c_str());
 			bRet = FALSE;
 		}
 	}
-	else if (!sCharType.CompareNoCase(_T("AS"))  || !sCharType.CompareNoCase(_T("NS")) ||
-			 !sCharType.CompareNoCase(_T("ANS")))
+	else if (!sCharType.CompareNoCase(_T("N")))
 	{
-		// TODO: support Special Characters, as defined in the optional tag "sca", as in
-		// sca="PRINT", sca=".", sca="-", sca=",= ", sca=" ", sca=", -/", sca=",-&/# ",
-		// sca=".+-", sca="PRINTCTRL", sca=" -,", sca="-" (exhaustive list from ebts1_2.txt)
-		sErr.Format(_T("[CIWVerification::VerifyField] %s, unsupported CharType: %s"), pRule->GetMNU(), sCharType);
-		LogFile(NULL,sErr);
-		OutputDebugString(sErr);
+		if (!IsNumeric(sVal))
+		{
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, "Invalid value '%s' for CharType '%s'", sVal.c_str(), sCharType.c_str());
+			bRet = FALSE;
+		}
+	}
+	else if (!sCharType.CompareNoCase(_T("AN")))
+	{
+		if (!IsAlphaNumeric(sVal))
+		{
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, "Invalid value '%s' for CharType '%s'", sVal.c_str(), sCharType.c_str());
+			bRet = FALSE;
+		}
+	}
+	else if (!sCharType.CompareNoCase(_T("AS")))
+	{
+		if (!IsAlphaSpecial(sVal, sSpecialChars))
+		{
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, "Invalid value '%s' for CharType '%s', Special Chars '%s'", sVal.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			bRet = FALSE;
+		}
+	}
+	else if (!sCharType.CompareNoCase(_T("NS")))
+	{
+		if (!IsNumericSpecial(sVal, sSpecialChars))
+		{
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, "Invalid value '%s' for CharType '%s', Special Chars '%s'", sVal.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			bRet = FALSE;
+		}
+	}
+	else if (!sCharType.CompareNoCase(_T("ANS")))
+	{
+		if (!IsAlphaNumericSpecial(sVal, sSpecialChars))
+		{
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL, "Invalid value '%s' for CharType '%s', Special Chars '%s'", sVal.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			bRet = FALSE;
+		}
 	}
 	else if (!sCharType.CompareNoCase(_T("B1"))  || !sCharType.CompareNoCase(_T("B2")) ||
 			 !sCharType.CompareNoCase(_T("B4")))
@@ -1535,12 +1653,136 @@ BOOL CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	else
 	{
 		// Unknown CharType code
-		sErr.Format(_T("[CIWVerification::VerifyField] %s, unknown CharType: %s"), pRule->GetMNU(), sCharType);
+		sErr.Format(_T("[CIWVerification::VerifyField] %s, unknown CharType: %s\n"), pRule->GetMNU(), sCharType);
 		LogFile(NULL,sErr);
 		OutputDebugString(sErr);
 	}
 
 	return bRet;
+}
+
+BOOL CIWVerification::VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+{
+	BOOL		bRet = TRUE;
+	BOOL		bAllowNil = FALSE;
+	CStdString	sFmt;
+	CStdString	sVal;
+	CStdString	sY, sM, sD;
+	long		iY, iM, iD;
+	long		lY, lM, lD;
+
+	sFmt = pRule->GetDateFormat();
+	sVal = pData;
+
+	// If there is no date format specified there's nothing to check
+	if (sFmt == "") return TRUE;
+
+	// See if there's the "Z" prefix to indicate the whole date can be a string of '0's
+	if (sFmt.GetAt(0) == 'Z')
+	{
+		if (sVal == "00000000") return TRUE;	// 8 0's is fine with the "Z" prefix
+		bAllowNil = TRUE;
+	}
+
+	// Get indexes of individual items. These have been checked when reading-in
+	// the verification file so none of them should be -1.
+	iY = sFmt.Find("CCYY");
+	if (iY == -1)
+	{
+		iY = sFmt.Find("YYYY");
+	}
+	iM = sFmt.Find("MM");
+	iD = sFmt.Find("DD");
+
+	if (bAllowNil)
+	{
+		iY--; iM--; iD--;	// Shift all index counters down 1
+	}
+
+	sY = sVal.Mid(iY, 4);	// extract year string
+	sM = sVal.Mid(iM, 2);	// extract month string
+	sD = sVal.Mid(iD, 2);	// extract day stting
+
+	lY = atol(sY.c_str());	// extract year number
+	lM = atol(sM.c_str());	// extract month number
+	lD = atol(sD.c_str());	// extract day number
+
+	// Year must be anywhere from 1900 to 2099
+	if (lY < 1900 || lY > 2099)
+	{
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, "Invalid year %ld", lY);
+		bRet = FALSE;
+	}
+
+	// Month between 1 and 12
+	if (lM < 1 || lM > 12) 
+	{
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, "Invalid month %ld", lM);
+		bRet = FALSE;
+	}
+
+	// Day between 1 and ...
+	if (lD < 1 || lD > DaysInMonth(lY, lM))
+	{
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, "Invalid day %ld", lD);
+		bRet = FALSE;
+	}
+
+	return bRet;
+}
+
+long CIWVerification::DaysInMonth(long y, long m)
+{
+	long numberOfDays;
+
+	if (m == 4 || m == 6 || m == 9 || m == 11)
+	{
+		numberOfDays = 30;
+	}
+	else if (m == 2)
+	{
+		bool isLeapYear;
+		isLeapYear = (y % 4 == 0 && y % 100 != 0 || (y % 400 == 0));
+		if (isLeapYear)
+			numberOfDays = 29;
+		else
+			numberOfDays = 28;
+	}
+	else
+	{
+		numberOfDays = 31;
+	}
+
+	return numberOfDays;
+}
+
+BOOL CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+// Check Mandatory Map contents, if applicable
+{
+	std::vector<CStdString> vals;
+	CStdString				sVal;
+	BOOL					bFound = false;
+
+	vals = pRule->GetMapVals();
+
+	if (vals.size() == 0) return TRUE; // nothing to check, no mandatory map exists
+
+	for (unsigned int i = 0; i < vals.size(); i++)
+	{
+		sVal = vals.at(i);
+		if (strcmp(sVal, pData) == 0)
+		{	
+			bFound = TRUE;
+			break;
+		}
+	}
+
+	if (!bFound)
+	{
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, "'%s': invalid data from mandatory map", pData);
+	}
+
+	return bFound;
 }
 
 BOOL CIWVerification::VerifySubfieldOccurences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount)
@@ -1596,7 +1838,7 @@ BOOL CIWVerification::VerifySubfieldOccurences(CIWTransaction *pTrans, CRuleObj 
 BOOL CIWVerification::IsAlpha(CStdString& s)
 {
 	BOOL bRet = TRUE;
-	int i;
+	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
 	{
@@ -1613,7 +1855,7 @@ BOOL CIWVerification::IsAlpha(CStdString& s)
 BOOL CIWVerification::IsNumeric(CStdString& s)
 {
 	BOOL bRet = TRUE;
-	int i;
+	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
 	{
@@ -1630,7 +1872,7 @@ BOOL CIWVerification::IsNumeric(CStdString& s)
 BOOL CIWVerification::IsAlphaNumeric(CStdString& s)
 {
 	BOOL bRet = TRUE;
-	int i;
+	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
 	{
@@ -1642,6 +1884,138 @@ BOOL CIWVerification::IsAlphaNumeric(CStdString& s)
 	}
 
 	return bRet;
+}
+
+BOOL CIWVerification::IsPrintable(CStdString& s, BOOL bAllowControlChars)
+{
+	BOOL bRet = TRUE;
+	char c;
+	int  i;
+
+	for (i=0; i<s.GetLength(); i++)
+	{
+		c = s.GetAt(i);
+		if (!_istprint(c))
+		{
+			if (bAllowControlChars)
+			{
+				if  (c != 0x09 && c != 0x0A && c != 0x0D) // TAB, LF, CR
+				{
+					bRet = FALSE;
+					break;
+				}
+			}
+			else
+			{
+				bRet = FALSE;
+				break;
+			}
+		}
+	}
+
+	return bRet;
+}
+
+BOOL CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
+// Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
+// means all printable characters + CR + LF + TAB.
+{
+	BOOL bRet = TRUE;
+	char c;
+	int	 i;
+
+	if (!sSpecial.CompareNoCase("PRINT"))
+	{
+		return IsPrintable(s, false);
+	}
+	else if (!sSpecial.CompareNoCase("PRINTCTRL"))
+	{
+		return IsPrintable(s, true);
+	}
+	else
+	{
+		for (i=0; i<s.GetLength(); i++)
+		{
+			c = s.GetAt(i);
+			// If the char is not alphabetic and it can't be found in the set of
+			// Special Characters the string fails the test.
+			if (!_istalpha(c) && sSpecial.Find(c) == -1)
+			{
+				bRet = FALSE;
+				break;
+			}
+		}
+
+		return bRet;
+	}
+}
+
+BOOL CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
+// Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
+// means all printable characters + CR + LF + TAB.
+{
+	BOOL bRet = TRUE;
+	char c;
+	int	 i;
+
+	if (!sSpecial.CompareNoCase("PRINT"))
+	{
+		return IsPrintable(s, false);
+	}
+	else if (!sSpecial.CompareNoCase("PRINTCTRL"))
+	{
+		return IsPrintable(s, true);
+	}
+	else
+	{
+		for (i=0; i<s.GetLength(); i++)
+		{
+			c = s.GetAt(i);
+			// If the char is not numeric and it can't be found in the set of
+			// Special Characters the string fails the test.
+			if (!_istdigit(c) && sSpecial.Find(c) == -1)
+			{
+				bRet = FALSE;
+				break;
+			}
+		}
+
+		return bRet;
+	}
+}
+
+BOOL CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
+// Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
+// means all printable characters + CR + LF + TAB.
+{
+	BOOL bRet = TRUE;
+	char c;
+	int	 i;
+
+	if (!sSpecial.CompareNoCase("PRINT"))
+	{
+		return IsPrintable(s, false);
+	}
+	else if (!sSpecial.CompareNoCase("PRINTCTRL"))
+	{
+		return IsPrintable(s, true);
+	}
+	else
+	{
+		for (i=0; i<s.GetLength(); i++)
+		{
+			c = s.GetAt(i);
+			// If the char is not alphabetic, not numeric and it can't be found in the set of
+			// Special Characters the string fails the test.
+			if (!_istalpha(c) && !_istdigit(c) && sSpecial.Find(c) == -1)
+			{
+				bRet = FALSE;
+				break;
+			}
+		}
+
+		return bRet;
+	}
 }
 
 void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, const TCHAR *szFormat, ...)

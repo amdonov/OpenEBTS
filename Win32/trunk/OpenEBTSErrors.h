@@ -35,5 +35,10 @@
 #define IW_WARN_TOO_MANY_SUBFIELDS                1010
 #define IW_WARN_UNSUPPORT_FIELD_PRESENT           1011
 #define IW_WARN_TRANSACTION_FAILED_XML_PARSE      1012
+#define IW_WARN_DATA_NOT_NUMERIC_SPECIAL          1013
+#define IW_WARN_DATA_NOT_ALPHA_SPECIAL            1014
+#define IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL     1015
+#define IW_WARN_INVALID_DATE                      1016
+#define IW_WARN_INVALID_DATA                      1017
 
 #endif /* _IWNISTERRORS_H_ */

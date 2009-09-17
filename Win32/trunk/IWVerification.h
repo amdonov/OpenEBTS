@@ -8,7 +8,7 @@ class CIWVerification
 {
 private:
 	int LoadTOTDefinitions(CStdString& sFilePath);
-	int LoadRules(CStdString& sFilePath);
+	int LoadRules(CStdString& sFilePath, CStdString& sErr);
 
 	CRuleObj *GetRule(const char *pMNU);
 	BOOL GetLocation(int *recordType, int *recordIndex, int *field, int *subField, int *item);
@@ -20,8 +20,13 @@ private:
 	CStdString GetCharType(char **ppRule);
 	CStdString GetFieldSize(char **ppRule);
 	CStdString GetOccurrences(char **ppRule);
+	CStdString GetOptionalDescription(char **ppRule);
+	CStdString GetOptionalSpecialChars(char **ppRule);
+	CStdString GetOptionalDateFormat(char **ppRule);
+	CStdString GetOptionalMMap(char **ppRule);
 	CStdString GetTags(char **ppRule);
-	
+	CStdString ExtractTagValue(char **ppRule, const char *szTag);
+
 	CStdString GetNextToken(char **ppRule);
 	CStdString GetRangeToken(char **ppRule);
 	void SkipComments(char **ppRule);
@@ -37,14 +42,22 @@ private:
 	BOOL VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule);
 	BOOL VerifyFieldsForm7(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule);
 	BOOL VerifySubfieldOccurences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount);
+	BOOL VerifyfieldContents(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
 	BOOL VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
 	BOOL VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *pRule, int nTotalLen);
 	BOOL VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
+	BOOL VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
+	BOOL VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
+	long DaysInMonth(long y, long m);
 	void FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, const TCHAR *szFormat, ...);
 
 	BOOL IsAlpha(CStdString& s);
 	BOOL IsNumeric(CStdString& s);
 	BOOL IsAlphaNumeric(CStdString& s);
+	BOOL IsAlphaSpecial(CStdString& s, CStdString& sSpecial);
+	BOOL IsNumericSpecial(CStdString& s, CStdString& sSpecial);
+	BOOL IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial);
+	BOOL IsPrintable(CStdString& sIsPrintable, BOOL bAllowControlChars);
 
 	std::vector<CTransactionDefinition> m_transactionDefAry;
 	BOOL m_bVerificationLoaded;

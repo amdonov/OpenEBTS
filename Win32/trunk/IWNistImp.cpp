@@ -85,8 +85,6 @@ IWNIST_API int WINAPI IWReadVerification(const char* pszPath, CIWVerification** 
 			else
 				delete pVerification;
 		}
-		else
-			nErrCode = IW_ERR_OPENING_FILE_FOR_READING;
 	}
 	else
 		nErrCode = IW_ERR_OUT_OF_MEMORY;
