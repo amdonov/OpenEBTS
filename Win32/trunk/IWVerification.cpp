@@ -1023,7 +1023,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 							if (nRecTypeCount < pRecTypeCount->nMin)
 							{
 								wsprintf(szErr, "Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.",
-										 sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
+										 sTOT.c_str(), pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
 								pTrans->AddError(szErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
@@ -1033,7 +1033,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 							if (nRecTypeCount > pRecTypeCount->nMax)
 							{
 								wsprintf(szErr, "Transaction Type %s may contain at most %ld Type %ld records: it contains %ld.",
-										 sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
+										 sTOT.c_str(), pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
 								pTrans->AddError(szErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
@@ -1045,7 +1045,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				// We have a record of an unsupported Record-Type
 				{
 					wsprintf(szErr, "Transaction Type %s may not contain Type %ld records: it contains %ld of them.",
-							 sTOT, iRecType, nRecTypeCount);
+							 sTOT.c_str(), iRecType, nRecTypeCount);
 					pTrans->AddError(szErr, 0);
 					nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 				}
