@@ -197,7 +197,6 @@ int NISTRAWtoWSQ(char *pRAW, long lWidth, long lHeight, long lDPI, HGLOBAL *phWS
 {
 	int					iRet = 0;
 	int					iRetWSQ;
-	BYTE				*pRaw = NULL;
 	BYTE				*pOut;
 	int					iLenOut;
 	void				*pWSQ;
@@ -208,7 +207,7 @@ int NISTRAWtoWSQ(char *pRAW, long lWidth, long lHeight, long lDPI, HGLOBAL *phWS
 		*phWSQ = NULL;
 	}
 
-	iRetWSQ = wsq_encode_mem(&pOut, &iLenOut, fRate, pRaw, lWidth, lHeight, 8, lDPI, WSQCOMMENT);
+	iRetWSQ = wsq_encode_mem(&pOut, &iLenOut, fRate, pRAW, lWidth, lHeight, 8, lDPI, WSQCOMMENT);
 
 	if (iRetWSQ == 0) {
 		
@@ -222,7 +221,6 @@ int NISTRAWtoWSQ(char *pRAW, long lWidth, long lHeight, long lDPI, HGLOBAL *phWS
 	}
 
 done:
-	if (pRaw != NULL) free(pRaw);
 
 	return iRet;
 }
