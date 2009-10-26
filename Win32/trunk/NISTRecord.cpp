@@ -178,6 +178,9 @@ int CNISTRecord::ReadRecord(char *pTransactionData, int nRecordType)
 							m_bGetImage = TRUE;
 							pszFieldData = IWStrTok(NULL, CHAR_GS, &bEndofRecord); // get the field	data	
 							m_bGetImage = FALSE;
+							// Explicitly set bEndofRecord because we know that DAT fields are
+							// always the last fields
+							bEndofRecord = TRUE;
 						}
 						else
 							pszFieldData = IWStrTok(NULL, CHAR_GS, &bEndofRecord); // get the field	data	
@@ -216,7 +219,10 @@ int CNISTRecord::ReadRecord(char *pTransactionData, int nRecordType)
 					}
 				}
 				// get next field
-				pTemp = IWStrTok(NULL, CHAR_PERIOD, &bEndofRecord);
+				if (!bEndofRecord)
+				{
+					pTemp = IWStrTok(NULL, CHAR_PERIOD, &bEndofRecord);
+				}
 			}
 			delete [] pRecord;
 		}
