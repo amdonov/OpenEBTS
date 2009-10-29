@@ -110,12 +110,14 @@ jas_image_t *bmp_decode(jas_stream_t *in, char *optstr)
 		jas_eprintf("warning: ignoring BMP decoder options\n");
 	}
 
+	/*
 	jas_eprintf(
 	  "THE BMP FORMAT IS NOT FULLY SUPPORTED!\n"
 	  "THAT IS, THE JASPER SOFTWARE CANNOT DECODE ALL TYPES OF BMP DATA.\n"
 	  "IF YOU HAVE ANY PROBLEMS, PLEASE TRY CONVERTING YOUR IMAGE DATA\n"
 	  "TO THE PNM FORMAT, AND USING THIS FORMAT INSTEAD.\n"
 	  );
+	*/
 
 	/* Read the bitmap header. */
 	if (bmp_gethdr(in, &hdr)) {
