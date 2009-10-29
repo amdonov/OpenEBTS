@@ -39,7 +39,7 @@ int NISTBMPtoWSQ(char *pBMP, long lLenBMP, HGLOBAL *phWSQ, float fRate)
 	BYTE				*pBMPPtr;
 	BYTE				*pRawPtr;
 
-	if (phWSQ == NULL) {
+	if (phWSQ == NULL || fRate < 0.04 || fRate > 4.0) {
 		goto done;
 	} else {
 		*phWSQ = NULL;
