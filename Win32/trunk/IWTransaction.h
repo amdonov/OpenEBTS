@@ -46,6 +46,7 @@ public:
 	virtual ~CIWTransaction();
 
 	int ReadTransactionFile(const char *pFilePath);
+	int ReadTransactionFileMem(const unsigned char *pMemFile, int MemFileSize);
 	int GetRecords();
 	BOOL IsTransactionLoaded() { return m_bTransactionLoaded; } 
 	BOOL IsVerificationLoaded(); 

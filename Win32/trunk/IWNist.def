@@ -48,3 +48,4 @@ EXPORTS
 	BMPtoFX4
 	FX4toBMP
 	MemFree
+	IWReadMem

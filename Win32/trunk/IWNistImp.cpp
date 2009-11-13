@@ -58,6 +58,50 @@ IWNIST_API int WINAPI IWRead(const char *pszPath,
 	return nErrCode;
 }
 
+IWNIST_API int WINAPI IWReadMem(unsigned char *pBuffer, int BufferSize, 
+																	CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
+{
+	SetLogFlags();
+
+	if (!pBuffer)
+		return IW_ERR_NULL_POINTER;
+
+	if (ppIWTrans == NULL)
+		return IW_ERR_NULL_TRANSACTION_POINTER;
+
+	int nErrCode = IW_ERR_READING_FILE;
+
+	IWS_BEGIN_EXCEPTION_METHOD("IWReadMem")
+	
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	CIWTransaction *pTrans = new CIWTransaction;
+
+	if (pTrans)
+	{
+		if ((nErrCode = pTrans->ReadTransactionFileMem((const unsigned char *)pBuffer,BufferSize)) == IW_SUCCESS)
+		{
+			nErrCode = pTrans->GetRecords();
+
+			if (nErrCode == IW_SUCCESS || nErrCode == IW_WARN_INVALID_FIELD_NUM)
+			{
+				*ppIWTrans = pTrans;
+				pTrans->SetVerification(pIWVer);
+			}
+			else
+				delete pTrans;
+		}
+		else
+			nErrCode = IW_ERR_READING_FILE;
+	}
+	else
+		nErrCode = IW_ERR_OUT_OF_MEMORY;
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	return nErrCode;
+}
+
 IWNIST_API int WINAPI IWReadVerification(const char* pszPath, CIWVerification** ppIWVer, int MaxParseError, char* ParseError)
 {
 	SetLogFlags();

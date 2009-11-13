@@ -76,6 +76,13 @@ IWNIST_API int WINAPI IWRead(
                                  Pointer */
 );
 
+IWNIST_API int WINAPI IWReadMem(
+	unsigned char *pBuffer, /* Pointer to Transaction Buffer */
+	int BufferSize, /* Size of the transaction */
+	CIWVerification *pIWVer, /* Verification Pointer */
+	CIWTransaction **ppIWTrans /* Pointer to a Transaction Pointer */
+);
+
 IWNIST_API int WINAPI IWClose(
   CIWTransaction **ppIWTrans   /* Pointer to Transaction Pointer */
 );

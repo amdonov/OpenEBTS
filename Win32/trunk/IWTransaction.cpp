@@ -137,6 +137,54 @@ int CIWTransaction::ReadTransactionFile(const char *pFilePath)
 	return nRet;
 }
 
+int CIWTransaction::ReadTransactionFileMem(const unsigned char *pMemFile, int MemFileSize)
+{
+	int nRet = IW_ERR_READING_FILE;
+
+	m_sFilePath = _T("");
+
+	IWS_BEGIN_EXCEPTION_METHOD("CIWTransaction::ReadTransactionFileMem")
+
+	if (m_pTransactionData)
+	{
+		delete [] m_pTransactionData;
+		m_pTransactionData = 0;
+	}
+
+	m_bTransactionLoaded = FALSE;
+
+	m_pTransactionData = new char[MemFileSize];
+
+	if (m_pTransactionData)
+	{
+		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+		memcpy(m_pTransactionData,pMemFile,MemFileSize);
+		nRet = IW_SUCCESS;
+
+		IWS_END_CATCHEXCEPTION_BLOCK()
+	}		
+	else
+		nRet = IW_ERR_OUT_OF_MEMORY;
+
+	if (nRet != IW_SUCCESS && m_pTransactionData)
+	{
+		delete [] m_pTransactionData;
+		m_pTransactionData = 0;
+	}
+
+	if (g_bTraceOn)
+	{
+		CStdString sTraceFrom("CIWTransaction::ReadTransactionFileMem");
+		CStdString sTraceMsg;
+		
+		sTraceMsg.Format("[%s] Result %d", sTraceFrom, nRet);
+		TraceMsg(sTraceMsg);
+	}
+
+	return nRet;
+}
+
 int CIWTransaction::GetRecords()
 {
 	int nRet = IW_SUCCESS;
