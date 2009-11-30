@@ -139,6 +139,14 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 			{
 				SkipComments(&pRule);
 
+				// kas, 17Nov2009
+				// the entire rule may be commented out, if
+				// nothing is left get next rule
+				if (strlen(pRule) == 0)
+				{
+					pRule = GetRule(&pFile);
+					continue;
+				}
 				sTemp = GetTransactionList(&pRule);
 				
 				if (sTemp != _T(""))
