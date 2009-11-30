@@ -28,7 +28,6 @@ public:
 
 private:
 	CStdString m_sRule;
-	void FreeRecTypeCounts();
 	std::vector<CRecordTypeCount> m_recTypeCountAry;
 };
 

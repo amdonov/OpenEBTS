@@ -2122,21 +2122,18 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const char **pp
 int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataArray, 
 																const char **ppDescArray, int *pEntries, const char *pCategory)
 {
-	int nRet = IW_SUCCESS;
-	int nSize = m_transactionDefAry.size();
-	CTransactionDefinition *pTransDef = NULL; 
-	
-	CStdString sTemp(pCategory);
-	const char *pCat = ppDataArray ? *ppDataArray : NULL;
-	const char *pCatDesc = ppDescArray ? *ppDescArray : NULL;
-	int nPos = 0;
-	BOOL bCopy = DataArraySize > 0;
+	int						nRet = IW_SUCCESS;
+	int						nSize = m_transactionDefAry.size();
+	CTransactionDefinition	*pTransDef = NULL; 
+	CStdString				sCategory(pCategory);
+	int						nPos = 0;
+	BOOL					bCopy = DataArraySize > 0;
 
 	for (int i = 0; i < nSize; i++)
 	{
 		pTransDef = &m_transactionDefAry.at(i);
 
-		if (sTemp == _T(""))
+		if (sCategory == _T(""))
 		{
 			for (int j = 0; j < (int)pTransDef->m_TOTArray.size(); j++)
 			{
@@ -2156,14 +2153,18 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataA
 		}
 		else
 		{
-			if (!sTemp.CompareNoCase(pTransDef->m_sCategory)) 
+			if (!sCategory.CompareNoCase(pTransDef->m_sCategory)) 
 			{
 				for (int j = 0; j < (int)pTransDef->m_TOTArray.size(); j++)
 				{
 					if (bCopy)
 					{
 						if (nPos < DataArraySize)
-							pCat = (LPCSTR)pTransDef->m_TOTArray.at(j);
+						{
+							ppDataArray[nPos] = (LPCSTR)pTransDef->m_TOTArray.at(j);
+							if (ppDescArray)
+								ppDescArray[nPos] = (LPCSTR)pTransDef->m_TOTLabelArray.at(j);
+						}
 						else
 							break;
 					}
@@ -2175,5 +2176,52 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataA
 			
 	*pEntries = nPos;
 		
+	return nRet;
+}
+
+int CIWVerification::GetRecordTypeOccurences(int DataArraySize, int *piRecordType, int *piMinOccurences, int *piMaxOccurences, int *pEntries, const char *pCategory)
+{
+	int								nRet = IW_SUCCESS;
+	int								nSize = m_transactionDefAry.size();
+	CTransactionDefinition			*pTransDef = NULL; 
+	std::vector<CRecordTypeCount>	recTypeCountAry;
+	BOOL							bCopy = DataArraySize > 0;
+	CStdString						sCategory(pCategory);
+
+	if (!pEntries) return IW_ERR_NULL_POINTER;
+
+	if (DataArraySize)
+	{
+		if (!piRecordType || !piMinOccurences || !piMaxOccurences)
+		{
+			return IW_ERR_NULL_POINTER;
+		}
+	}
+
+	for (int i = 0; i < nSize; i++)
+	{
+		pTransDef = &m_transactionDefAry.at(i);
+
+		if (!sCategory.CompareNoCase(pTransDef->m_sCategory)) 
+		{
+			recTypeCountAry = pTransDef->GetRecTypeCountAry();
+			*pEntries = (int)recTypeCountAry.size();
+
+			if (bCopy)
+			{
+				for (int j = 0; j < *pEntries; j++)
+				{
+					CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
+					if (pRecTypeCount)
+					{
+						piRecordType[j] = pRecTypeCount->nRecordType;
+						piMinOccurences[j] = pRecTypeCount->nMin;
+						piMaxOccurences[j] = pRecTypeCount->nMax;
+					}
+				}
+			}
+		}
+	}
+
 	return nRet;
 }

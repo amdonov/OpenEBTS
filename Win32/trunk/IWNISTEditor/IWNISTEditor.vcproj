@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenEBTS.lib"
+				AdditionalDependencies="OpenEBTSd.lib"
 				OutputFile="$(ProjectDir)\$(IntDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\Debug;..\..\..\Image\WSQ\libwsq\Debug"

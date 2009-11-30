@@ -125,11 +125,21 @@ IWNIST_API int WINAPI IWGetTransactionCategories(
 
 IWNIST_API int WINAPI IWGetTransactionTypes(
 	CIWVerification* IWVer, /* Verification Pointer */
-	int DataArraySize, /* Number of string pointers in DataArray & DescArray*/
+	int DataArraySize, /* Number of string pointers in DataArray & DescArray */
 	const char** DataArray, /* Block of string pointers */
 	const char** DescArray, /* Block of string pointers to descriptions */
 	int* Entries, /* Number of entries entered into DataArray */
 	const char * Category /* Transaction Category */
+);
+
+IWNIST_API int WINAPI IWGetRecordTypeOccurences(
+	CIWVerification* pIWVer, /* Verification Pointer */
+	int DataArraySize, /* Number of ints in piRecordType & piMinOccurences & piMaxOccurences */
+	int *piRecordType, /* Block of Record Types */
+	int *piMinOccurences, /* Block of minimum occurences of a Record Type */
+	int *piMaxOccurences, /* Block of maximum occurences of a Record Type */
+	int *pEntries, /* Number of entries returned */
+	const char *pTOT /* TOT input parameter */
 );
 
 /************************************************************/

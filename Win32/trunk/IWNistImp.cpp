@@ -531,7 +531,7 @@ IWNIST_API int WINAPI IWGetTransactionCategories(CIWVerification *pIWVer, int Da
 }
 
 IWNIST_API int WINAPI IWGetTransactionTypes(CIWVerification* pIWVer, int DataArraySize, const char **ppDataArray, 
-																								const char **ppDescArray, int *pEntries, const char *pCategory)
+											const char **ppDescArray, int *pEntries, const char *pCategory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
@@ -542,6 +542,25 @@ IWNIST_API int WINAPI IWGetTransactionTypes(CIWVerification* pIWVer, int DataArr
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 		nRet = pIWVer->GetTransactionTypes(DataArraySize, ppDataArray, ppDescArray, pEntries, pCategory);
+
+		IWS_END_CATCHEXCEPTION_BLOCK()
+	}
+
+	return nRet;
+}
+
+IWNIST_API int WINAPI IWGetRecordTypeOccurences(CIWVerification* pIWVer, int DataArraySize, int *piRecordType,
+												int *piMinOccurences, int *piMaxOccurences, int *pEntries, const char *pTOT)
+{
+	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
+
+	if (pIWVer && pIWVer->IsLoaded())
+	{
+		IWS_BEGIN_EXCEPTION_METHOD("IWGetRecordTypeOccurences")
+		
+		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+		nRet = pIWVer->GetRecordTypeOccurences(DataArraySize, piRecordType, piMinOccurences, piMaxOccurences, pEntries, pTOT);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}

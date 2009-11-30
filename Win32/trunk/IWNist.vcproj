@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="IWNist"
 	ProjectGUID="{2467573B-4701-4AAA-B412-BEDDDBD17AC1}"
+	RootNamespace="IWNist"
 	Keyword="MFCProj"
 	TargetFrameworkVersion="0"
 	>
@@ -182,7 +183,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-gd-1_35.lib"
-				OutputFile=".\Debug\OpenEBTS.dll"
+				OutputFile=".\Debug\OpenEBTSd.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="TIFF\libtiff\Debug;WSQ\libwsq\Debug;JPEG2000\libjasper\Debug;JPEG\libjpeg\Debug;Boost\Libs\regex"
@@ -191,7 +192,7 @@
 				ProgramDatabaseFile=".\Debug/IWNist.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\Debug/OpenEBTS.lib"
+				ImportLibrary=".\Debug/OpenEBTSd.lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -216,7 +217,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>

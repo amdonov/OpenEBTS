@@ -9,11 +9,6 @@ CTransactionDefinition::CTransactionDefinition()
 
 CTransactionDefinition::~CTransactionDefinition()
 {
-	FreeRecTypeCounts();
-}
-
-void CTransactionDefinition::FreeRecTypeCounts()
-{
 }
 
 BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
@@ -29,8 +24,6 @@ BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
 	CStdString sTemp;
 	CStdString sRecType;
 	CStdString sRecRange;
-
-	FreeRecTypeCounts();
 
 	m_sRule = sRule;
 

@@ -78,6 +78,7 @@ public:
 	int GetTransactionCategories(int DataArraySize, const char **ppDataArray, int *pEntries);
 	int GetTransactionTypes(int DataArraySize, const char **ppDataArray, 
 							const char **ppDescArray, int *pEntries, const char *pCategory);
+	int GetRecordTypeOccurences(int DataArraySize, int *piRecordType, int *piMinOccurences, int *piMaxOccurences, int *pEntries, const char *pCategory);
 	int GetNumRulesPerMNU(CStdString &sMNU);
 };
 
