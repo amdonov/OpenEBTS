@@ -86,7 +86,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="TIFF\libtiff\Release;WSQ\libwsq\Release;JPEG2000\libjasper\Release;JPEG\libjpeg\Release;Boost\Libs\regex"
-				ModuleDefinitionFile=".\IWNist.def"
+				ModuleDefinitionFile=".\OpenEBTS.def"
 				ProgramDatabaseFile=".\Release/IWNist.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -187,7 +187,7 @@
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="TIFF\libtiff\Debug;WSQ\libwsq\Debug;JPEG2000\libjasper\Debug;JPEG\libjpeg\Debug;Boost\Libs\regex"
-				ModuleDefinitionFile=".\IWNist.def"
+				ModuleDefinitionFile=".\OpenEBTSd.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/IWNist.pdb"
 				RandomizedBaseAddress="1"
@@ -248,10 +248,6 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="IWNist.def"
-				>
 			</File>
 			<File
 				RelativePath="IWNistImp.cpp"

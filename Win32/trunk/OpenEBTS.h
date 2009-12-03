@@ -142,6 +142,35 @@ IWNIST_API int WINAPI IWGetRecordTypeOccurences(
 	const char *pTOT /* TOT input parameter */
 );
 
+IWNIST_API int WINAPI IWGetMnemonics(
+	CIWVerification* pIWVer, /* Verification Pointer */
+	const char* TransactionType, /* Type of transaction */
+	int DataArraySize, /* Number of string pointers in DataArray & DescArray*/
+	const char** DataArray, /* Block of string pointers */
+	const char** DescArray, /* Block of string pointers to descriptions */
+	int* pEntries /* Number of entries entered into DataArray */
+);
+
+IWNIST_API int WINAPI IWGetRuleRestrictions(
+	CIWVerification* pIWVer, /* Verification Pointer */
+	const char* TransactionType, /* Type of transaction */
+	const char* Mnemonic, /* Field Identifier */
+	int* RecordType, /* Record Type */
+	int* Field, /* Field Number */
+	int* Subfield, /* Subfield number */
+	int* Item, /* Item Number */
+	const char** Desc, /* Description string */
+	const char** LongDesc, /* Long Description */
+	const char** CharType, /* Character Types allowed */
+	const char** DateFormat, /* e.g."CCYYMMDD", or "" when not a date */
+	int* SizeMin, /* Minimum field size */
+	int* SizeMax, /* Maximum field size */
+	int* OccMin, /* Minimum number of occurrences */
+	int* OccMax, /* Maximum number of occurrences */
+	int* Offset, /* Item offset from record/field start*/
+	bool* AutomaticallySet /* true if OpenEBTS handles this field */
+);
+
 /************************************************************/
 /*                                                          */
 /*                   Verification based                     */

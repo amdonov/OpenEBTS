@@ -22,8 +22,8 @@ CRuleObj::~CRuleObj()
 }
 
 BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
-					   CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sSpecialChars,
-					   CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr)
+					   CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
+					   CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr)
 {
 	CStdString sTemp;
 	BOOL bRet = FALSE;
@@ -45,38 +45,41 @@ BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 						{
 							if (SetOptionalDescription(sDescription))
 							{
-								if (SetOptionalSpecialChars(sSpecialChars))
+								if (SetOptionalLongDescription(sLongDescription))
 								{
-									if (SetOptionalDateFormat(sDateFormat))
+									if (SetOptionalSpecialChars(sSpecialChars))
 									{
-										if (SetOptionalMMap(sMMap, sFilePath))
+										if (SetOptionalDateFormat(sDateFormat))
 										{
-											if (SetTags(sTags))
+											if (SetOptionalMMap(sMMap, sFilePath))
 											{
-												bRet = TRUE;
+												if (SetTags(sTags))
+												{
+													bRet = TRUE;
+												}
+												else
+												{
+													sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+													LogFile(NULL,sErr);
+												}
 											}
 											else
 											{
-												sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+												sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
 												LogFile(NULL,sErr);
 											}
 										}
 										else
 										{
-											sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
+											sErr.Format("%s, invalid date format value: %s", m_sMNU, sDateFormat);
 											LogFile(NULL,sErr);
 										}
 									}
 									else
 									{
-										sErr.Format("%s, invalid date format value: %s", m_sMNU, sDateFormat);
+										sErr.Format("%s, invalid sca value: %s", m_sMNU, sSpecialChars);
 										LogFile(NULL,sErr);
 									}
-								}
-								else
-								{
-									sErr.Format("%s, invalid sca value: %s", m_sMNU, sSpecialChars);
-									LogFile(NULL,sErr);
 								}
 							}
 							else
@@ -184,6 +187,13 @@ CStdString CRuleObj::GetTransactionListString()
 BOOL CRuleObj::SetOptionalDescription(CStdString& sDescription)
 {
 	m_sDescription = sDescription;
+
+	return TRUE;
+}
+
+BOOL CRuleObj::SetOptionalLongDescription(CStdString& sLongDescription)
+{
+	m_sLongDescription = sLongDescription;
 
 	return TRUE;
 }

@@ -34,6 +34,7 @@ private:
 	BOOL SetFieldSize(CStdString& sFieldSize);
 	BOOL SetOccurrences(CStdString& sOccurence);
 	BOOL SetOptionalDescription(CStdString& sDescription);
+	BOOL SetOptionalLongDescription(CStdString& sLongDescription);
 	BOOL SetOptionalSpecialChars(CStdString& sSpecialChars);
 	BOOL SetOptionalDateFormat(CStdString& sDateFormat);
 	BOOL SetOptionalMMap(CStdString& sMMap, CStdString sFilePath);
@@ -64,6 +65,7 @@ private:
 	int m_nMinOccurrences;
 	int m_nMaxOccurrences;
 	CStdString m_sDescription;			// desc tag
+	CStdString m_sLongDescription;		// long_desc tag
 	CStdString m_sSpecialChars;			// sca tag
 	CStdString m_sDateFormat;			// from date tag
 	std::vector<CStdString> m_mapVals;	// from mmap tag
@@ -76,8 +78,8 @@ public:
 	BOOL SetRange(CStdString& sRange, int *pMin, int *pMax);
 
 	BOOL SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
-				 CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sSpecialChars,
-				 CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr);
+				 CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
+				 CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr);
 	BOOL IsValid();
 	BOOL GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
 
@@ -86,17 +88,20 @@ public:
 	CStdString GetCharType() { return m_sCharType; }
 	CStdString GetSpecialChars() { return m_sSpecialChars; }
 	CStdString GetDescription() { return m_sDescription; }
+	CStdString GetLongDescription() { return m_sLongDescription; }
 	CStdString GetDateFormat() { return m_sDateFormat; }
 	std::vector<CStdString> GetMapVals() { return m_mapVals; }
 	CStdString GetMap();
 	int GetLocFormType() { return m_nLocFormType; }
 	int	GetRecordType() { return m_nRecordType; }
 	int	GetField() { return m_nField; }
+	int	GetSubField() { return m_nSubField; }
 	int	GetItem() { return m_nItem; }
 	int GetMinFieldSize() { return m_nMinFieldSize; }
 	int GetMaxFieldSize() { return m_nMaxFieldSize; }
 	int GetMinOccurrences() { return m_nMinOccurrences; }
 	int GetMaxOccurrences() { return m_nMaxOccurrences; }
+	int GetOffset() { return m_nOffset; }
 	
 	CStdString GetTransactionListString();
 
