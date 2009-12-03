@@ -127,7 +127,7 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 		char szDelimsRule[] = ";";
 		char *pRule;
 		CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
-		CStdString sDescription, sSpecialChars, sDateFormat, sTags;
+		CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sTags;
 		CStdString sTransactionList;
 		CStdString sMMap;
 
@@ -190,6 +190,10 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 				}
 				if (pRule)
 				{
+					sLongDescription = GetOptionalLongDescription(&pRule);
+				}
+				if (pRule)
+				{
 					sTags = GetTags(&pRule);
 				}
 #ifdef _DEBUG
@@ -200,7 +204,8 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 				CRuleObj ruleObj;
 
 				if (ruleObj.SetData(sFilePath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
-									sOccurrence, sDescription, sSpecialChars, sDateFormat, sMMap, sTags, sErr))
+									sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat, sMMap,
+									sTags, sErr))
 				{
 					m_rulesAry.push_back(ruleObj);
 				}
@@ -431,6 +436,12 @@ CStdString CIWVerification::GetOptionalMMap(char **ppRule)
 // Look for optional 'mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."' Mandatory Mapping tag
 {
 	return ExtractTagValue(ppRule, "mmap");
+}
+
+CStdString CIWVerification::GetOptionalLongDescription(char **ppRule)
+// Look for optional 'long_desc="This field does blah blah blah"'
+{
+	return ExtractTagValue(ppRule, "long_desc");
 }
 
 CStdString CIWVerification::ExtractTagValue(char **ppRule, const char *szTag)
@@ -2217,7 +2228,7 @@ int CIWVerification::GetRecordTypeOccurences(int DataArraySize, int *piRecordTyp
 
 			if (bCopy)
 			{
-				for (int j = 0; j < *pEntries; j++)
+				for (int j = 0; j < min(DataArraySize, *pEntries); j++)
 				{
 					CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
 					if (pRecTypeCount)
@@ -2227,6 +2238,150 @@ int CIWVerification::GetRecordTypeOccurences(int DataArraySize, int *piRecordTyp
 						piMaxOccurences[j] = pRecTypeCount->nMax;
 					}
 				}
+			}
+		}
+	}
+
+	return nRet;
+}
+
+#define MAXLEN_MNU			32
+#define	MAXLEN_DESC			1024
+#define	MAXLEN_LONGDESC		2048
+#define MAXLEN_CHARTYPE		64
+#define MAXLEN_DATEFORMAT	64
+
+int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize, const char** ppDataArray, const char** ppDescArray, int* pEntries)
+{
+	int			nRet = IW_SUCCESS;
+	CRuleObj	*pRule;
+	int			nPos = 0;
+	BOOL		bCopy = DataArraySize > 0;
+	CStdString	sTOT(TransactionType);
+	// Kludge: We follow the same interface where strings get passed back as pre-allocated memory
+	// hence we keep 500 static slots on hand.
+	static char szMNU[500][MAXLEN_MNU];
+	static char szMNUDescription[500][1024];
+
+	for (int i=0; i < (int)m_rulesAry.size(); i++)
+	{
+		pRule = &m_rulesAry.at(i);
+
+		if (pRule->IsMandatory(sTOT) || pRule->IsOptional(sTOT))
+		{
+			if (bCopy)
+			{
+				if (nPos < DataArraySize)
+				{
+					strncpy(szMNU[nPos], pRule->GetMNU(), MAXLEN_MNU); szMNU[nPos][MAXLEN_MNU-1] = '\0';
+					ppDataArray[nPos] = szMNU[nPos];
+
+					strncpy(szMNUDescription[nPos], pRule->GetDescription(), MAXLEN_DESC); szMNUDescription[nPos][MAXLEN_DESC-1] = '\0';
+					ppDescArray[nPos] = szMNUDescription[nPos];
+				}
+				else
+				{
+					break;
+				}
+			}
+			nPos++;
+		}
+	}
+
+	*pEntries = nPos;
+
+	return nRet;
+}
+
+static const char s_rgszAutomaticMNU[][10] =
+{
+	 "T1_LEN",  "T1_VER",  "T1_CNT",  "T1_TOT",
+	 "T2_LEN",  "T2_IDC",
+	 "T4_LEN",  "T4_IDC",  "T4_HLL",  "T4_VLL",  "T4_GCA",  "T4_DAT",
+	 "T7_LEN",  "T7_IDC",  "T7_HLL",  "T7_VLL",  "T7_GCA",  "T7_DAT",
+	 "T9_LEN",  "T9_IDC",
+	"T10_LEN", "T10_IDC", "T10_HLL", "T10_VLL", "T10_SLC", "T10_HPS", "T10_VPS", "T10_CGA", "T10_DAT",
+	"T14_LEN", "T14_IDC", "T14_HLL", "T14_VLL", "T14_SLC", "T14_HPS", "T14_VPS", "T10_CGA", "T14_BPX", "T10_DAT",
+	"T16_LEN", "T16_IDC", "T16_HLL", "T16_VLL", "T16_SLC", "T16_HPS", "T16_VPS", "T16_CGA", "T16_BPX", "T16_DAT"
+};
+
+static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticMNU[0]);;
+  
+int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
+										 int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType,
+										 const char** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
+										 bool* pAutomaticallySet)
+{
+	int			nRet = IW_ERR_MNEMONIC_NOT_FOUND;
+	CRuleObj	*pRule;
+	CStdString	sTOT(TransactionType);
+	bool		bAuto;
+	// We follow the same interface where strings get passed back as pre-allocated memory
+	// hence we keep static slots on hand.
+	static char szMNUDescription[MAXLEN_DESC];
+	static char szMNULongDescription[MAXLEN_LONGDESC];
+	static char szMNUCharType[64];
+	static char szMNUDateFormat[64];
+
+	if (TransactionType == NULL) return IW_ERR_NULL_POINTER;
+	if (pMnemonic == NULL) return IW_ERR_NULL_POINTER;
+	if (pRecordType == NULL) return IW_ERR_NULL_POINTER;
+	if (pField == NULL) return IW_ERR_NULL_POINTER;
+	if (pSubfield == NULL) return IW_ERR_NULL_POINTER;
+	if (pItem == NULL) return IW_ERR_NULL_POINTER;
+	if (ppDesc == NULL) return IW_ERR_NULL_POINTER;
+	if (ppLongDesc == NULL) return IW_ERR_NULL_POINTER;
+	if (ppCharType == NULL) return IW_ERR_NULL_POINTER;
+	if (ppDateFormat == NULL) return IW_ERR_NULL_POINTER;
+	if (pSizeMin == NULL) return IW_ERR_NULL_POINTER;
+	if (pSizeMax == NULL) return IW_ERR_NULL_POINTER;
+	if (pOccMin == NULL) return IW_ERR_NULL_POINTER;
+	if (pOccMax == NULL) return IW_ERR_NULL_POINTER;
+	if (pOffset == NULL) return IW_ERR_NULL_POINTER;
+	if (pAutomaticallySet == NULL) return IW_ERR_NULL_POINTER;
+
+	for (int i = 0; i < (int)m_rulesAry.size(); i++)
+	{
+		pRule = &m_rulesAry.at(i);
+
+		if (pRule->GetMNU().CompareNoCase(pMnemonic) == 0)
+		{
+			if (pRule->IsMandatory(sTOT) || pRule->IsOptional(sTOT))
+			{
+				// integral parameters
+				*pRecordType = pRule->GetRecordType();
+				*pField = pRule->GetField();
+				*pSubfield = pRule->GetSubField();
+				*pItem = pRule->GetItem();
+				*pSizeMin = pRule->GetMinFieldSize();
+				*pSizeMax = pRule->GetMaxFieldSize();
+				*pOccMin = pRule->GetMinOccurrences();
+				*pOccMax = pRule->GetMaxOccurrences();
+				*pOffset = pRule->GetOffset();
+
+				// string parameters
+				strncpy(szMNUDescription, pRule->GetDescription(), MAXLEN_DESC); szMNUDescription[MAXLEN_DESC-1] = '\0';
+				*ppDesc = szMNUDescription;
+				strncpy(szMNULongDescription, pRule->GetLongDescription(), MAXLEN_LONGDESC); szMNULongDescription[MAXLEN_LONGDESC-1] = '\0';
+				*ppLongDesc = szMNULongDescription;
+				strncpy(szMNUCharType, pRule->GetCharType(), MAXLEN_CHARTYPE); szMNUCharType[MAXLEN_CHARTYPE-1] = '\0';
+				*ppCharType = szMNUCharType;
+				strncpy(szMNUDateFormat, pRule->GetDateFormat(), MAXLEN_DATEFORMAT); szMNUDateFormat[MAXLEN_DATEFORMAT-1] = '\0';
+				*ppDateFormat = szMNUDateFormat;
+
+				// Is field automatically managed by OpenEBTS? Scan array.
+				bAuto = false;
+				for (int j = 0; j < s_nAutomaticMNUs; j++)
+				{
+					if (pRule->GetMNU().CompareNoCase(s_rgszAutomaticMNU[j]) == 0)
+					{
+						bAuto = TRUE;
+						break;
+					}
+				}
+				*pAutomaticallySet = bAuto;
+
+				nRet = IW_SUCCESS;
 			}
 		}
 	}
