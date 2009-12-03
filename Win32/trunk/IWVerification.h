@@ -24,6 +24,7 @@ private:
 	CStdString GetOptionalSpecialChars(char **ppRule);
 	CStdString GetOptionalDateFormat(char **ppRule);
 	CStdString GetOptionalMMap(char **ppRule);
+	CStdString GetOptionalLongDescription(char **ppRule);
 	CStdString GetTags(char **ppRule);
 	CStdString ExtractTagValue(char **ppRule, const char *szTag);
 
@@ -73,13 +74,17 @@ public:
 
 	void DebugOutputVerification();
 
-	// Mneumonic based data access methods
+	// Mnemonic based data access methods
 	int GetMNULocation(const char *pMNU, int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
 	int GetTransactionCategories(int DataArraySize, const char **ppDataArray, int *pEntries);
 	int GetTransactionTypes(int DataArraySize, const char **ppDataArray, 
 							const char **ppDescArray, int *pEntries, const char *pCategory);
 	int GetRecordTypeOccurences(int DataArraySize, int *piRecordType, int *piMinOccurences, int *piMaxOccurences, int *pEntries, const char *pCategory);
 	int GetNumRulesPerMNU(CStdString &sMNU);
+	int GetMnemonics(const char* TransactionType, int DataArraySize, const char** ppDataArray, const char** ppDescArray, int* pEntries);
+	int GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType,
+							int* pField, int* pSubfield, int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType,
+							const char** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset, bool* pAutomaticallySet);
 };
 
 #endif // IWVERIFICATION_H
