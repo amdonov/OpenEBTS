@@ -37,7 +37,9 @@ private:
 	BOOL SetOptionalLongDescription(CStdString& sLongDescription);
 	BOOL SetOptionalSpecialChars(CStdString& sSpecialChars);
 	BOOL SetOptionalDateFormat(CStdString& sDateFormat);
-	BOOL SetOptionalMMap(CStdString& sMMap, CStdString sFilePath);
+	BOOL SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath);
+	BOOL SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath);
+	BOOL SetOptionalMap(CStdString& sMap, CStdString& sFilePath, std::vector<CStdString>& mapValNames, std::vector<CStdString>& mapValDescriptions);
 	BOOL SetTags(CStdString& sTags);
 
 	BOOL GetRangeValue(CStdString& sToken, int *pValue);
@@ -68,7 +70,10 @@ private:
 	CStdString m_sLongDescription;		// long_desc tag
 	CStdString m_sSpecialChars;			// sca tag
 	CStdString m_sDateFormat;			// from date tag
-	std::vector<CStdString> m_mapVals;	// from mmap tag
+	std::vector<CStdString> m_mmapName;	// from mmap tag
+	std::vector<CStdString> m_omapName;	// from omap tag
+	std::vector<CStdString> m_mmapDesc;	// from mmap tag
+	std::vector<CStdString> m_omapDesc;	// from omap tag
 
 public:
 	CRuleObj();
@@ -79,7 +84,8 @@ public:
 
 	BOOL SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
 				 CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
-				 CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr);
+				 CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sOMap, CStdString& sTags,
+				 CStdString& sErr);
 	BOOL IsValid();
 	BOOL GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
 
@@ -90,8 +96,11 @@ public:
 	CStdString GetDescription() { return m_sDescription; }
 	CStdString GetLongDescription() { return m_sLongDescription; }
 	CStdString GetDateFormat() { return m_sDateFormat; }
-	std::vector<CStdString> GetMapVals() { return m_mapVals; }
-	CStdString GetMap();
+	std::vector<CStdString> GetMMapValNames() { return m_mmapName; }
+	std::vector<CStdString> GetOMapValNames() { return m_omapName; }
+	std::vector<CStdString> GetMMapValDescriptions() { return m_mmapDesc; }
+	std::vector<CStdString> GetOMapValDescriptions() { return m_omapDesc; }
+	CStdString GetMMap();
 	int GetLocFormType() { return m_nLocFormType; }
 	int	GetRecordType() { return m_nRecordType; }
 	int	GetField() { return m_nField; }

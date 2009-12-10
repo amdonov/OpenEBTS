@@ -24,6 +24,7 @@ private:
 	CStdString GetOptionalSpecialChars(char **ppRule);
 	CStdString GetOptionalDateFormat(char **ppRule);
 	CStdString GetOptionalMMap(char **ppRule);
+	CStdString GetOptionalOMap(char **ppRule);
 	CStdString GetOptionalLongDescription(char **ppRule);
 	CStdString GetTags(char **ppRule);
 	CStdString ExtractTagValue(char **ppRule, const char *szTag);
@@ -85,6 +86,8 @@ public:
 	int GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType,
 							int* pField, int* pSubfield, int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType,
 							const char** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset, bool* pAutomaticallySet);
+	int GetValueList(const char* TransactionType, const char* Mnemonic, int *Mandatory,
+					 int DataArraySize, const char** DataArray, const char** DescArray, int *Entries);
 };
 
 #endif // IWVERIFICATION_H

@@ -129,7 +129,7 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 		CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
 		CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sTags;
 		CStdString sTransactionList;
-		CStdString sMMap;
+		CStdString sMMap, sOMap;
 
 		if (bFound)
 		{
@@ -190,6 +190,10 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 				}
 				if (pRule)
 				{
+					sOMap = GetOptionalOMap(&pRule);
+				}
+				if (pRule)
+				{
 					sLongDescription = GetOptionalLongDescription(&pRule);
 				}
 				if (pRule)
@@ -204,8 +208,8 @@ int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
 				CRuleObj ruleObj;
 
 				if (ruleObj.SetData(sFilePath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
-									sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat, sMMap,
-									sTags, sErr))
+									sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat,
+									sMMap, sOMap, sTags, sErr))
 				{
 					m_rulesAry.push_back(ruleObj);
 				}
@@ -438,14 +442,58 @@ CStdString CIWVerification::GetOptionalMMap(char **ppRule)
 	return ExtractTagValue(ppRule, "mmap");
 }
 
+CStdString CIWVerification::GetOptionalOMap(char **ppRule)
+// Look for optional 'omap="<Value>[:<Desc>]|<Value>[:<Desc]|..."' Optional Mapping tag
+{
+	return ExtractTagValue(ppRule, "omap");
+}
+
 CStdString CIWVerification::GetOptionalLongDescription(char **ppRule)
 // Look for optional 'long_desc="This field does blah blah blah"'
 {
-	return ExtractTagValue(ppRule, "long_desc");
+	CStdString sLongDesc;
+	CStdString sLongDescRet;
+	CStdString sMarker;
+	int		   iPosStart;
+	int		   iPosEnd;
+
+	sLongDesc = ExtractTagValue(ppRule, "long_desc");
+
+	// Clean-up string by removing end-of-line backslashes. This means
+	// removing all back-slash + CR + LF + whitespace sequences.
+
+	sMarker = "\\";
+	sMarker += char(0xd);
+	sMarker += char(0xa);
+
+	for (int i = 0; i < sLongDesc.GetLength(); i++)
+	{
+		if (sLongDesc.Mid(i, 3).Compare(sMarker) == 0)
+		{
+			iPosStart = i;
+			iPosEnd = 0;
+			i += 3;	// skip over marker
+			for (int j = i; j < sLongDesc.GetLength(); j++)
+			{
+				if (!isspace(sLongDesc.at(j)))
+				{
+					iPosEnd = j-1;
+					break;
+				}
+			}
+			if (iPosEnd != 0)
+			{
+				// remove all chars between iPosStart and iPosEnd
+				sLongDesc = sLongDesc.Left(iPosStart) + sLongDesc.Right(sLongDesc.GetLength() - iPosEnd -1);
+			}
+		}
+	}
+
+	return sLongDesc;
 }
 
 CStdString CIWVerification::ExtractTagValue(char **ppRule, const char *szTag)
-// // Look for tage '[tagname]="[tagvalue]"'
+// Look for tag '[tagname]="[tagvalue]"'
 {
 	CStdString sFullTag;
 	CStdString sString;
@@ -672,7 +720,6 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 		while (fgets(sTemp.GetBuffer(1024), 1024, f) && nRet == IW_SUCCESS)
 		{
 			sTemp.ReleaseBuffer();
-			sTemp.MakeUpper();
 			sTemp.Trim();
 
 			// found a transaction definition, run it through the state machine
@@ -943,7 +990,7 @@ void CIWVerification::DebugOutputVerification()
 						 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
 						 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(), pRule->GetMinOccurrences(),
 						 pRule->GetMaxOccurrences(), pRule->GetDescription(), pRule->GetSpecialChars(),
-						 pRule->GetDateFormat(), pRule->GetMap(), pRule->GetTransactionListString());
+						 pRule->GetDateFormat(), pRule->GetMMap(), pRule->GetTransactionListString());
 		OutputDebugString(sTraceMsg);
 	}
 
@@ -1782,7 +1829,7 @@ BOOL CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, 
 	CStdString				sVal;
 	BOOL					bFound = false;
 
-	vals = pRule->GetMapVals();
+	vals = pRule->GetMMapValNames();
 
 	if (vals.size() == 0) return TRUE; // nothing to check, no mandatory map exists
 
@@ -2139,7 +2186,7 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const char **pp
 }
 
 int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataArray, 
-																const char **ppDescArray, int *pEntries, const char *pCategory)
+										 const char **ppDescArray, int *pEntries, const char *pCategory)
 {
 	int						nRet = IW_SUCCESS;
 	int						nSize = m_transactionDefAry.size();
@@ -2250,6 +2297,9 @@ int CIWVerification::GetRecordTypeOccurences(int DataArraySize, int *piRecordTyp
 #define	MAXLEN_LONGDESC		2048
 #define MAXLEN_CHARTYPE		64
 #define MAXLEN_DATEFORMAT	64
+#define MAXLEN_VALUENAME	64
+#define MAXLEN_VALUEDESC	1024
+#define MAXSLOTS			1000
 
 int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize, const char** ppDataArray, const char** ppDescArray, int* pEntries)
 {
@@ -2260,8 +2310,8 @@ int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize
 	CStdString	sTOT(TransactionType);
 	// Kludge: We follow the same interface where strings get passed back as pre-allocated memory
 	// hence we keep 500 static slots on hand.
-	static char szMNU[500][MAXLEN_MNU];
-	static char szMNUDescription[500][1024];
+	static char szMNU[MAXSLOTS][MAXLEN_MNU];
+	static char szMNUDescription[MAXSLOTS][1024];
 
 	for (int i=0; i < (int)m_rulesAry.size(); i++)
 	{
@@ -2271,7 +2321,7 @@ int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize
 		{
 			if (bCopy)
 			{
-				if (nPos < DataArraySize)
+				if (nPos < min(DataArraySize, MAXSLOTS))
 				{
 					strncpy(szMNU[nPos], pRule->GetMNU(), MAXLEN_MNU); szMNU[nPos][MAXLEN_MNU-1] = '\0';
 					ppDataArray[nPos] = szMNU[nPos];
@@ -2382,6 +2432,76 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 				*pAutomaticallySet = bAuto;
 
 				nRet = IW_SUCCESS;
+			}
+		}
+	}
+
+	return nRet;
+}
+
+int CIWVerification::GetValueList(const char* TransactionType, const char* pMnemonic, int *pMandatory,
+								  int DataArraySize, const char** ppDataArray, const char** ppDescArray, int *pEntries)
+{
+	int						nRet = IW_ERR_MNEMONIC_NOT_FOUND;
+	CRuleObj				*pRule;
+	CStdString				sTOT(TransactionType);
+	std::vector<CStdString> names;
+	std::vector<CStdString> descriptions;
+	CStdString				sVal;
+	BOOL					bCopy = DataArraySize > 0;
+	// We follow the same interface where strings get passed back as pre-allocated memory
+	// hence we keep static slots on hand.
+	static char szValueName[MAXSLOTS][MAXLEN_VALUENAME];
+	static char szValueDesc[MAXSLOTS][MAXLEN_VALUEDESC];
+
+	if (TransactionType == NULL) return IW_ERR_NULL_POINTER;
+	if (pMnemonic == NULL) return IW_ERR_NULL_POINTER;
+
+	for (int i = 0; i < (int)m_rulesAry.size(); i++)
+	{
+		pRule = &m_rulesAry.at(i);
+
+		if (pRule->GetMNU().CompareNoCase(pMnemonic) == 0)
+		{
+			if (pRule->IsMandatory(sTOT) || pRule->IsOptional(sTOT))
+			{
+				*pEntries = 0;
+				// Only one of MMap or OMap can be specified, so both cannot be non-zero in length
+				names = pRule->GetMMapValNames();
+				if (names.size() == 0)
+				{
+					names = pRule->GetOMapValNames();
+					descriptions = pRule->GetOMapValDescriptions();
+					if (pMandatory != NULL) *pMandatory = 0;
+				}
+				else
+				{
+					descriptions = pRule->GetMMapValDescriptions();
+					if (pMandatory != NULL) *pMandatory = 1;
+				}
+				// The names and descriptions arrays are parallel, so should have the
+				// same size; we just do this for safety.
+				*pEntries = min(names.size(), descriptions.size());
+
+				if (bCopy)
+				{
+					for (int j = 0; j < *pEntries; j++)
+					{
+						if (j < min(DataArraySize, MAXSLOTS))
+						{
+							strncpy(szValueName[j], names.at(j), MAXLEN_VALUENAME); szValueName[j][MAXLEN_VALUENAME-1] = '\0';
+							ppDataArray[j] = szValueName[j];
+
+							strncpy(szValueDesc[j], descriptions.at(j), MAXLEN_VALUEDESC); szValueDesc[j][MAXLEN_VALUEDESC-1] = '\0';
+							ppDescArray[j] = szValueDesc[j];
+						}
+						else
+							break;
+					}
+				}
+
+				nRet = IW_SUCCESS;
+				break;
 			}
 		}
 	}

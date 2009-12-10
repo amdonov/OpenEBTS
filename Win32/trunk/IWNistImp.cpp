@@ -598,11 +598,30 @@ IWNIST_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const char*
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetRuleRestrictions")
-		
+
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 		nRet = pIWVer->GetRuleRestrictions(TransactionType, Mnemonic, RecordType, Field, Subfield, Item, Desc, LongDesc,
 										   CharType, DateFormat, SizeMin, SizeMax, OccMin, OccMax, Offset, AutomaticallySet);
+
+		IWS_END_CATCHEXCEPTION_BLOCK()
+	}
+
+	return nRet;
+}
+
+IWNIST_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const char* TransactionType, const char* Mnemonic, int *Mandatory,
+									 int DataArraySize, const char** DataArray, const char** DescArray, int *Entries)
+{
+	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
+
+	if (pIWVer && pIWVer->IsLoaded())
+	{
+		IWS_BEGIN_EXCEPTION_METHOD("IWGetValueList")
+
+		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+		nRet = pIWVer->GetValueList(TransactionType, Mnemonic, Mandatory, DataArraySize, DataArray, DescArray, Entries);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}

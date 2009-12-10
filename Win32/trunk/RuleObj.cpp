@@ -23,7 +23,8 @@ CRuleObj::~CRuleObj()
 
 BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
 					   CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
-					   CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sTags, CStdString& sErr)
+					   CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sOMap,
+					   CStdString& sTags, CStdString& sErr)
 {
 	CStdString sTemp;
 	BOOL bRet = FALSE;
@@ -53,20 +54,23 @@ BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 										{
 											if (SetOptionalMMap(sMMap, sFilePath))
 											{
-												if (SetTags(sTags))
+												if (SetOptionalOMap(sOMap, sFilePath))
 												{
-													bRet = TRUE;
+													if (SetTags(sTags))
+													{
+														bRet = TRUE;
+													}
+													else
+													{
+														sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+														LogFile(NULL,sErr);
+													}
 												}
 												else
 												{
-													sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+													sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
 													LogFile(NULL,sErr);
 												}
-											}
-											else
-											{
-												sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
-												LogFile(NULL,sErr);
 											}
 										}
 										else
@@ -132,7 +136,7 @@ void CRuleObj::DumpObject()
 
 	sMsg.Format("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld desc(%s) sca(%s) date(%s) map(%s)",
 				m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
-				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMap());
+				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMMap());
 	LogFile(NULL,sMsg);
 
 	UINT							nKey;
@@ -239,25 +243,39 @@ BOOL CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 	return TRUE;
 }
 
-BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
-// Populate m_mapVals from the values inside mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."
+BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath)
+{
+	return SetOptionalMap(sMMap, sFilePath, m_mmapName, m_mmapDesc);
+}
+
+BOOL CRuleObj::SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath)
+{
+	return SetOptionalMap(sOMap, sFilePath, m_omapName, m_omapDesc);
+}
+
+BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
+							  std::vector<CStdString>& mapValNames,
+							  std::vector<CStdString>& mapValDescriptions)
+// Populate map from the values inside mmap or omap tag, such as mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."
 // Support external file as well, as in mmap="file://<Path to external file>"
 {
 	char		c;
 	bool		bInsideValue;
-	CStdString	sValue;
+	CStdString	sName;
+	CStdString	sDesc;
 	CStdString	sFilename;
 	CStdString	sFilePrefix = "file://";
 	int			i;
 	int			j;
-	int			npipes = 0;
-	int			ncolons = 0;
 
-	if (sMMap.IsEmpty()) return TRUE;	// no mmap, nothing to copy
+	if (sMap.IsEmpty()) return TRUE;	// no map, nothing to copy
 
 	/*
 	// We no longer do this verficiation because many lines in the original verification files
 	// forget to include '|' but contain a carriage return instead.
+
+	int			npipes = 0;
+	int			ncolons = 0;
 
 	// For a quick verification, we count the number of ':'s and '|'s. There should be one more ':' than '|'
 	for (i = 0; i < sMMap.GetLength(); i++)
@@ -271,7 +289,7 @@ BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
 	*/
 
 	// First check if the info is in a file
-	if (sMMap.Find(sFilePrefix) == 0) // (starts at position 0)
+	if (sMap.Find(sFilePrefix) == 0) // (starts at position 0)
 	{
 		char		szDrive[_MAX_DRIVE];
 		char		szDir[_MAX_DIR];
@@ -283,7 +301,7 @@ BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
 
 		// Open file in same folder as main verification file and read-in contents
 
-		sFilename = sMMap.Right(sMMap.GetLength() - sFilePrefix.GetLength());
+		sFilename = sMap.Right(sMap.GetLength() - sFilePrefix.GetLength());
 
 		_splitpath(sFilePath, szDrive, szDir, NULL, NULL);
 		strcpy(szPath, szDrive);
@@ -313,20 +331,29 @@ BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
 				{
 					bInsideValue = FALSE;	// end of value, about to enter description
 
-					// Save current value in array and reset it
-					sValue.Trim();
-					m_mapVals.push_back(sValue);
-					sValue.Empty();
+					// Save current value name in array and reset it
+					sName.Trim();
+					mapValNames.push_back(sName);
+					sName.Empty();
 				}
 				else if (c == 0x0A)
 				{
 					bInsideValue = TRUE;	// end of description, about to enter value
+
+					// save current value descriptions is array and reset it
+					sDesc.Trim();
+					mapValDescriptions.push_back(sDesc);
+					sDesc.Empty();
 				}
 				else
 				{
 					if (bInsideValue)
 					{
-						sValue += c;		// add new char to present value
+						sName += c;		// add new char to present name
+					}
+					else
+					{
+						sDesc += c;		// add new char to present description
 					}
 				}
 			}
@@ -344,25 +371,25 @@ BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
 
 		bInsideValue = true; // the first char of the string is the first char of the first value
 
-		for (i = 0; i < sMMap.GetLength(); i++)
+		for (i = 0; i < sMap.GetLength(); i++)
 		{
-			c = sMMap.GetAt(i);
+			c = sMap.GetAt(i);
 
 			if (c == ':')
 			{
 				bInsideValue = FALSE;	// end of value, about to enter description
 
-				// Save current value in array and reset it
-				sValue.Trim();
-				m_mapVals.push_back(sValue);
-				sValue.Empty();
+				// Save current name value in array and reset it
+				sName.Trim();
+				mapValNames.push_back(sName);
+				sName.Empty();
 			}
 			else if (c == '|')
 			{
 				// Skip over all carriage returns and white space and back slashes
-				for (j = i+1; j < sMMap.GetLength(); j++)
+				for (j = i+1; j < sMap.GetLength(); j++)
 				{
-					c = sMMap.GetAt(j);
+					c = sMap.GetAt(j);
 					if (c != 0x0D && c != 0x0A && c != 0x09 && c != ' ' && c != '\\')
 					{
 						break;
@@ -371,12 +398,21 @@ BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
 				i = j-1;	// skip to new position, backtracking to just before
 
 				bInsideValue = TRUE;	// end of description, about to enter value
+
+				// save current value descriptions is array and reset it
+				sDesc.Trim();
+				mapValDescriptions.push_back(sDesc);
+				sDesc.Empty();
 			}
 			else
 			{
 				if (bInsideValue)
 				{
-					sValue += c;		// add new char to present value
+					sName += c;		// add new char to present name
+				}
+				else
+				{
+					sDesc += c;		// add new char to present description
 				}
 			}
 		}
@@ -385,15 +421,15 @@ BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString sFilePath)
 	return TRUE;
 }
 
-CStdString CRuleObj::GetMap()
+CStdString CRuleObj::GetMMap()
 // Just a debug-outputable string that contains the map values
 {
 	CStdString sRet;
 
-	for (unsigned int i = 0; i < m_mapVals.size(); i++)
+	for (unsigned int i = 0; i < m_mmapName.size(); i++)
 	{
-		sRet += m_mapVals.at(i);
-		if (i != m_mapVals.size()-1) sRet += ",";
+		sRet += m_mmapName.at(i);
+		if (i != m_mmapName.size()-1) sRet += ",";
 	}
 
 	return sRet;

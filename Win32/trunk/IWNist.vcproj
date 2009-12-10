@@ -217,6 +217,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description=""
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
@@ -324,6 +326,14 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\OpenEBTS.def"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenEBTSd.def"
+				>
+			</File>
+			<File
 				RelativePath="RuleObj.cpp"
 				>
 				<FileConfiguration
@@ -379,79 +389,15 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
-				RelativePath=".\ITL2007f\niem\ansi-nist\2.0\ansi-nist_itl_constraint.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\ansi_d20\2.0\ansi_d20.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\appinfo\2.0\appinfo.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\atf\2.0\atf.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\census\2.0\census.hxx"
-				>
-			</File>
-			<File
 				RelativePath="Common.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ITL2007f\niem\dod_jcs-pub2.0-misc\2.0\dod_jcs-pub2.0-misc.hxx"
+				RelativePath=".\IWTransaction.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ITL2007f\niem\fbi\2.0\fbi.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\fips_10-4\2.0\fips_10-4.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\fips_5-2\2.0\fips_5-2.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\fips_6-4\2.0\fips_6-4.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\iso_3166\2.0\iso_3166.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\iso_4217\2.0\iso_4217.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\iso_639-3\2.0\iso_639-3.hxx"
-				>
-			</File>
-			<File
-				RelativePath="IWNist.h"
-				>
-			</File>
-			<File
-				RelativePath="IWNISTCodes.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IWNISTErrors.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\nga\2.0\nga.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\niem-core\2.0\niem-core_itl_constraint.hxx"
+				RelativePath=".\IWVerification.h"
 				>
 			</File>
 			<File
@@ -463,11 +409,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ITL2007f\niem\nonauthoritative-code\2.0\nonauthoritative-code.hxx"
+				RelativePath=".\OpenEBTS.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ITL2007f\niem\post-canada\2.0\post-canada.hxx"
+				RelativePath=".\OpenEBTSErrors.h"
 				>
 			</File>
 			<File
@@ -479,27 +425,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ITL2007f\niem\structures\2.0\structures.hxx"
+				RelativePath=".\StdString.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ITL2007f\niem\twpdes\2.0\twpdes.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\unece_rec20-misc\2.0\unece_rec20-misc.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\usps_states\2.0\usps_states.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\ut_offender-tracking-misc\2.0\ut_offender-tracking-misc.hxx"
-				>
-			</File>
-			<File
-				RelativePath=".\ITL2007f\niem\proxy\xsd\2.0\xsd.hxx"
+				RelativePath=".\transactiondef.h"
 				>
 			</File>
 		</Filter>

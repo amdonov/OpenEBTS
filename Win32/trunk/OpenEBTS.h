@@ -171,6 +171,17 @@ IWNIST_API int WINAPI IWGetRuleRestrictions(
 	bool* AutomaticallySet /* true if OpenEBTS handles this field */
 );
 
+IWNIST_API int WINAPI IWGetValueList(
+	CIWVerification* pIWVer, /*Verification Pointer */
+	const char* TransactionType, /*Type of transaction */
+	const char* Mnemonic, /* Field Identifier */
+	int *Mandatory, /* Field is Mandatory */
+	int DataArraySize, /* Number of string pointers in DataArray & DescArray */
+	const char** DataArray, /* Block of string pointers */
+	const char** DescArray, /* Block of string pointers to descriptions */
+	int *Entries /* Number of entries entered into DataArray */
+);
+
 /************************************************************/
 /*                                                          */
 /*                   Verification based                     */
