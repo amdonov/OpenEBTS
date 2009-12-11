@@ -217,10 +217,10 @@
 	catch (...) \
 	{ \
 		sException.Format("[%s] Unknown exception occured.",sFrom); \
-		LogFile(LF_IWNIST,sException); \
+		LogFile(LF_OPENEBTS,sException); \
 	}
 
-#define LF_IWNIST	"IWNist.log"
+#define LF_OPENEBTS	"OpenEBTS.log"
 
 extern BOOL g_bTraceOn; 
 extern BOOL g_bLogErrors; 

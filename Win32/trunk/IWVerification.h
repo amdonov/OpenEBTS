@@ -43,7 +43,7 @@ private:
 	BOOL VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule);
 	BOOL VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule);
 	BOOL VerifyFieldsForm7(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule);
-	BOOL VerifySubfieldOccurences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount);
+	BOOL VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount);
 	BOOL VerifyfieldContents(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
 	BOOL VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData);
 	BOOL VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *pRule, int nTotalLen);
@@ -80,7 +80,7 @@ public:
 	int GetTransactionCategories(int DataArraySize, const char **ppDataArray, int *pEntries);
 	int GetTransactionTypes(int DataArraySize, const char **ppDataArray, 
 							const char **ppDescArray, int *pEntries, const char *pCategory);
-	int GetRecordTypeOccurences(int DataArraySize, int *piRecordType, int *piMinOccurences, int *piMaxOccurences, int *pEntries, const char *pCategory);
+	int GetRecordTypeOccurrences(int DataArraySize, int *piRecordType, int *piMinOccurrences, int *piMaxOccurrences, int *pEntries, const char *pTOT);
 	int GetNumRulesPerMNU(CStdString &sMNU);
 	int GetMnemonics(const char* TransactionType, int DataArraySize, const char** ppDataArray, const char** ppDescArray, int* pEntries);
 	int GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType,

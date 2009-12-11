@@ -111,7 +111,7 @@ void InitializePath()
 			*(pFName+1) = '\0';
 
 			strcpy_s(g_LogFilePath,_MAX_PATH+1,szPath);
-			strcat_s(g_LogFilePath,_MAX_PATH+1,LF_IWNIST);
+			strcat_s(g_LogFilePath,_MAX_PATH+1,LF_OPENEBTS);
 		}
 		else
 			g_LogFilePath[0] = '\0';
@@ -147,7 +147,7 @@ CStdString GetRegString(char *pszKey, char *pszValue, BOOL bSetValue)
 
 	try
 	{
-		CStdString csKey = "SOFTWARE\\ImageWare Software Inc.\\NIST";
+		CStdString csKey = "SOFTWARE\\ImageWare Systems\\OpenEBTS";
 
 		lResult = RegCreateKeyEx(HKEY_LOCAL_MACHINE, csKey, 0, 
 				NULL,REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hKey, &lDisposition);
@@ -182,7 +182,7 @@ CStdString GetRegString(char *pszKey, char *pszValue, BOOL bSetValue)
 		{
 			CStdString sErr;
 
-			sErr.Format("Error reading registry entry for HKEY_LOCAL_MACHINE\\SOFTWARE\\ImageWare Software Inc.\\BiometricLicense\\Visionics\\%s",pszKey);
+//			sErr.Format("Error reading registry entry for HKEY_LOCAL_MACHINE\\SOFTWARE\\ImageWare Systems\\OpenEBTS\\%s", pszKey);
 //			AfxMessageBox(sErr,MB_ICONEXCLAMATION|MB_OK);
 		}
  

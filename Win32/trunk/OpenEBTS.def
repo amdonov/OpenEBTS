@@ -49,7 +49,7 @@ EXPORTS
 	FX4toBMP
 	MemFree
 	IWReadMem
-	IWGetRecordTypeOccurences
+	IWGetRecordTypeOccurrences
 	IWGetMnemonics
 	IWGetRuleRestrictions
 	IWGetValueList

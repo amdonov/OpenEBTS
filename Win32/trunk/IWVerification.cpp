@@ -909,8 +909,18 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 	}
 
 	CStdString sTraceMsg;
+
 	sTraceMsg.Format("[CIWVerification::LoadTOTDefinitions] %ld TOT definitions in file", m_transactionDefAry.size());
 	TraceMsg(sTraceMsg);
+
+	/*
+	for (UINT i = 0; i < m_transactionDefAry.size(); i++)
+	{
+		CTransactionDefinition *pTrans = &m_transactionDefAry.at(i);
+		sTraceMsg.Format("[CIWVerification::LoadTOTDefinitions] (%s, %s)", pTrans->m_sCategory, pTrans->GetRuleString());
+		TraceMsg(sTraceMsg);
+	}
+	*/
 
 	return nRet;
 }
@@ -1230,8 +1240,8 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 		{
 			nRet = pTrans->GetNumSubfields(iRecType, iRecord, iField, &nSubfieldCount);
 
-			// Note: VerifySubfieldOccurences will add any pertinent errors
-			VerifySubfieldOccurences(pTrans, pRule, nSubfieldCount);
+			// Note: VerifySubfieldOccurrences will add any pertinent errors
+			VerifySubfieldOccurrences(pTrans, pRule, nSubfieldCount);
 
 			for (iSubfield = 1; iSubfield <= nSubfieldCount; iSubfield++)	// 1-based
 			{
@@ -1337,8 +1347,8 @@ BOOL CIWVerification::VerifyFieldsForm4(CStdString& sTOT, CIWTransaction *pTrans
 		{
 			nRet = pTrans->GetNumSubfields(iRecType, iRecord, iField, &nSubfieldCount);
 
-			// Note: VerifySubfieldOccurences will add any pertinent errors
-			VerifySubfieldOccurences(pTrans, pRule, nSubfieldCount);
+			// Note: VerifySubfieldOccurrences will add any pertinent errors
+			VerifySubfieldOccurrences(pTrans, pRule, nSubfieldCount);
 
 			for (iSubfield = 1; iSubfield <= nSubfieldCount; iSubfield++)	// 1-based
 			{
@@ -1456,8 +1466,8 @@ BOOL CIWVerification::VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans
 		{
 			nRet = pTrans->GetNumSubfields(iRecType, iRecord, iField, &nSubfieldCount);
 
-			// Note: VerifySubfieldOccurences will add any pertinent errors
-			VerifySubfieldOccurences(pTrans, pRule, nSubfieldCount);
+			// Note: VerifySubfieldOccurrences will add any pertinent errors
+			VerifySubfieldOccurrences(pTrans, pRule, nSubfieldCount);
 
 			for (iSubfield = 1; iSubfield <= nSubfieldCount; iSubfield++)	// 1-based
 			{
@@ -1851,48 +1861,48 @@ BOOL CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, 
 	return bFound;
 }
 
-BOOL CIWVerification::VerifySubfieldOccurences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount)
+BOOL CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount)
 // Given a rule, make sure the number of subfields falls in the legal range. Note that we never consider
 // 0 an error, since this just means the subfield is not present, and mandatory fields are checked elsewhere.
 {
 	BOOL		bRet = TRUE;
-	int			nMinOccurences;
-	int			nMaxOccurences;
+	int			nMinOccurrences;
+	int			nMaxOccurrences;
 
 	if (nSubfieldCount == 0) return TRUE;
 
-	nMinOccurences = pRule->GetMinOccurrences();
-	nMaxOccurences = pRule->GetMaxOccurrences();
+	nMinOccurrences = pRule->GetMinOccurrences();
+	nMaxOccurrences = pRule->GetMaxOccurrences();
 
-	if (nMinOccurences == nMaxOccurences) // Custom error message for min=max
+	if (nMinOccurrences == nMaxOccurrences) // Custom error message for min=max
 	{
-		if (nMinOccurences != RANGE_NOTSPECIFIED) // Check !=
+		if (nMinOccurrences != RANGE_NOTSPECIFIED) // Check !=
 		{
-			if (nSubfieldCount != nMinOccurences)
+			if (nSubfieldCount != nMinOccurrences)
 			{
-				if (nSubfieldCount < nMinOccurences)
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, "Too few subfields (%ld), must be %ld", nSubfieldCount, nMinOccurences);
+				if (nSubfieldCount < nMinOccurrences)
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, "Too few subfields (%ld), must be %ld", nSubfieldCount, nMinOccurrences);
 				else
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, "Too many subfields (%ld), must be %ld", nSubfieldCount, nMinOccurences);
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, "Too many subfields (%ld), must be %ld", nSubfieldCount, nMinOccurrences);
 				bRet = FALSE;
 			}
 		}
 	}
 	else
 	{
-		if (nMinOccurences != RANGE_NOTSPECIFIED) // Check min
+		if (nMinOccurrences != RANGE_NOTSPECIFIED) // Check min
 		{
-			if (nSubfieldCount < nMinOccurences)
+			if (nSubfieldCount < nMinOccurrences)
 			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, "Too few subfields (%ld), minimum allowed is %ld", nSubfieldCount, nMinOccurences);
+				FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, "Too few subfields (%ld), minimum allowed is %ld", nSubfieldCount, nMinOccurrences);
 				bRet = FALSE;
 			}
 		}
-		if (nMaxOccurences != RANGE_NOTSPECIFIED) // Check max
+		if (nMaxOccurrences != RANGE_NOTSPECIFIED) // Check max
 		{
-			if (nSubfieldCount > nMaxOccurences)
+			if (nSubfieldCount > nMaxOccurrences)
 			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, "Too many subfields (%ld), maximum allowed is %ld", nSubfieldCount, nMaxOccurences);
+				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, "Too many subfields (%ld), maximum allowed is %ld", nSubfieldCount, nMaxOccurrences);
 				bRet = FALSE;
 			}
 		}
@@ -2142,6 +2152,8 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const char **pp
 	int nRet = IW_SUCCESS;
 	int nSize = m_transactionDefAry.size();
 	CTransactionDefinition *pTransDef = NULL; 
+
+	DebugOutputVerification();
 	
 	const char *pCat = ppDataArray ? *ppDataArray : NULL;
 	int nPos = 0;
@@ -2245,20 +2257,21 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataA
 	return nRet;
 }
 
-int CIWVerification::GetRecordTypeOccurences(int DataArraySize, int *piRecordType, int *piMinOccurences, int *piMaxOccurences, int *pEntries, const char *pCategory)
+int CIWVerification::GetRecordTypeOccurrences(int DataArraySize, int *piRecordType, int *piMinOccurrences, int *piMaxOccurrences,
+											 int *pEntries, const char *pTOT)
 {
 	int								nRet = IW_SUCCESS;
 	int								nSize = m_transactionDefAry.size();
 	CTransactionDefinition			*pTransDef = NULL; 
 	std::vector<CRecordTypeCount>	recTypeCountAry;
 	BOOL							bCopy = DataArraySize > 0;
-	CStdString						sCategory(pCategory);
+	CStdString						sTOT(pTOT);
 
 	if (!pEntries) return IW_ERR_NULL_POINTER;
 
 	if (DataArraySize)
 	{
-		if (!piRecordType || !piMinOccurences || !piMaxOccurences)
+		if (!piRecordType || !piMinOccurrences || !piMaxOccurrences)
 		{
 			return IW_ERR_NULL_POINTER;
 		}
@@ -2268,21 +2281,24 @@ int CIWVerification::GetRecordTypeOccurences(int DataArraySize, int *piRecordTyp
 	{
 		pTransDef = &m_transactionDefAry.at(i);
 
-		if (!sCategory.CompareNoCase(pTransDef->m_sCategory)) 
+		for (UINT j = 0; j < pTransDef->m_TOTArray.size(); j++)
 		{
-			recTypeCountAry = pTransDef->GetRecTypeCountAry();
-			*pEntries = (int)recTypeCountAry.size();
-
-			if (bCopy)
+			if (!sTOT.CompareNoCase(pTransDef->m_TOTArray.at(j))) 
 			{
-				for (int j = 0; j < min(DataArraySize, *pEntries); j++)
+				recTypeCountAry = pTransDef->GetRecTypeCountAry();
+				*pEntries = (int)recTypeCountAry.size();
+
+				if (bCopy)
 				{
-					CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
-					if (pRecTypeCount)
+					for (int j = 0; j < min(DataArraySize, *pEntries); j++)
 					{
-						piRecordType[j] = pRecTypeCount->nRecordType;
-						piMinOccurences[j] = pRecTypeCount->nMin;
-						piMaxOccurences[j] = pRecTypeCount->nMax;
+						CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
+						if (pRecTypeCount)
+						{
+							piRecordType[j] = pRecTypeCount->nRecordType;
+							piMinOccurrences[j] = pRecTypeCount->nMin;
+							piMaxOccurrences[j] = pRecTypeCount->nMax;
+						}
 					}
 				}
 			}
