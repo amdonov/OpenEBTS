@@ -316,15 +316,16 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 			fseek(f, 0, SEEK_SET);
 
 			pFile = new char [lSize+2];
-			memset(pFile,'\0', lSize+2);
+			memset(pFile, '\0', lSize+2);
 			pFileSave = pFile;
-
 			fread(pFile, 1, lSize, f);
 			fclose(f);
 
+			pFile[lSize] =  0x0A; // end file with carriage return so parser canb include last element easily
+
 			bInsideValue = true; // the first char of the string is the first char of the first value
 
-			for (i = 0; i < lSize; i++)
+			for (i = 0; i < lSize+1; i++)
 			{
 				c = *pFile++;
 				if (c == 0x09)
