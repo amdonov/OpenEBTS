@@ -308,7 +308,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 		strcat(szPath, szDir);
 		strcat(szPath, sFilename);
 
-		f = fopen(szPath, "r+t");
+		f = fopen(szPath, "rb");
 		if (f != NULL)
 		{
 			fseek(f, 0, SEEK_END);
@@ -321,20 +321,20 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 			fread(pFile, 1, lSize, f);
 			fclose(f);
 
-			pFile[lSize] =  0x0A; // end file with carriage return so parser canb include last element easily
+			pFile[lSize] =  0x0A; // end file with carriage return so parser can include last element easily
 
 			bInsideValue = true; // the first char of the string is the first char of the first value
 
 			for (i = 0; i < lSize+1; i++)
 			{
-				c = *pFile++;
+				c = pFile[i];
 				if (c == 0x09)
 				{
 					bInsideValue = FALSE;	// end of value, about to enter description
 
 					// Save current value name in array and reset it
 					sName.Trim();
-					mapValNames.push_back(sName);
+					if (!sName.IsEmpty()) mapValNames.push_back(sName);
 					sName.Empty();
 				}
 				else if (c == 0x0A)
@@ -343,7 +343,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 
 					// save current value descriptions is array and reset it
 					sDesc.Trim();
-					mapValDescriptions.push_back(sDesc);
+					if (!sDesc.IsEmpty()) mapValDescriptions.push_back(sDesc);
 					sDesc.Empty();
 				}
 				else
