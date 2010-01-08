@@ -453,29 +453,29 @@ CStdString CIWVerification::GetOptionalLongDescription(char **ppRule)
 {
 	CStdString sLongDesc;
 	CStdString sLongDescRet;
-	CStdString sMarker;
 	int		   iPosStart;
 	int		   iPosEnd;
+	char	   c;
 
 	sLongDesc = ExtractTagValue(ppRule, "long_desc");
 
 	// Clean-up string by removing end-of-line backslashes. This means
-	// removing all back-slash + CR + LF + whitespace sequences.
-
-	sMarker = "\\";
-	sMarker += char(0xd);
-	sMarker += char(0xa);
+	// removing all back-slash + whitespace + CR + LF + whitespace sequences.
+	// To make things a bit simpler, we look for the backslash, and then jump
+	// over any sequence containing whitespace, CR or LF in any order.
 
 	for (int i = 0; i < sLongDesc.GetLength(); i++)
 	{
-		if (sLongDesc.Mid(i, 3).Compare(sMarker) == 0)
+		// Look for backslash
+		if (sLongDesc.at(i) == '\\')
 		{
 			iPosStart = i;
 			iPosEnd = 0;
-			i += 3;	// skip over marker
+			i += 1;	// skip over backslash
 			for (int j = i; j < sLongDesc.GetLength(); j++)
 			{
-				if (!isspace(sLongDesc.at(j)))
+				c = sLongDesc.at(j);
+				if (!isspace(c) && (c != 0xd) && (c != 0xa))
 				{
 					iPosEnd = j-1;
 					break;
@@ -2376,7 +2376,7 @@ static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticM
 int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
 										 int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType,
 										 const char** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
-										 bool* pAutomaticallySet)
+										 bool* pAutomaticallySet, bool* pMandatory)
 {
 	int			nRet = IW_ERR_MNEMONIC_NOT_FOUND;
 	CRuleObj	*pRule;
@@ -2405,6 +2405,7 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 	if (pOccMax == NULL) return IW_ERR_NULL_POINTER;
 	if (pOffset == NULL) return IW_ERR_NULL_POINTER;
 	if (pAutomaticallySet == NULL) return IW_ERR_NULL_POINTER;
+	if (pMandatory == NULL) return IW_ERR_NULL_POINTER;
 
 	for (int i = 0; i < (int)m_rulesAry.size(); i++)
 	{
@@ -2424,6 +2425,7 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 				*pOccMin = pRule->GetMinOccurrences();
 				*pOccMax = pRule->GetMaxOccurrences();
 				*pOffset = pRule->GetOffset();
+				*pMandatory = pRule->IsMandatory(sTOT) ? true : false;
 
 				// string parameters
 				strncpy(szMNUDescription, pRule->GetDescription(), MAXLEN_DESC); szMNUDescription[MAXLEN_DESC-1] = '\0';

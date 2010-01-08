@@ -168,7 +168,8 @@ IWNIST_API int WINAPI IWGetRuleRestrictions(
 	int* OccMin, /* Minimum number of occurrences */
 	int* OccMax, /* Maximum number of occurrences */
 	int* Offset, /* Item offset from record/field start*/
-	bool* AutomaticallySet /* true if OpenEBTS handles this field */
+	bool* AutomaticallySet, /* true if OpenEBTS handles this field */
+	bool* Mandatory /* true if field is mandatory, false if optional */
 );
 
 IWNIST_API int WINAPI IWGetValueList(

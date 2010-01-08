@@ -591,7 +591,7 @@ IWNIST_API int WINAPI IWGetMnemonics(CIWVerification* pIWVer, const char* Transa
 IWNIST_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const char* TransactionType, const char* Mnemonic, int* RecordType,
 											int* Field, int* Subfield, int* Item, const char** Desc, const char** LongDesc, const char** CharType,
 											const char** DateFormat, int* SizeMin, int* SizeMax, int* OccMin, int* OccMax, int* Offset,
-											bool* AutomaticallySet)
+											bool* AutomaticallySet, bool* Mandatory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
@@ -601,8 +601,8 @@ IWNIST_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const char*
 
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetRuleRestrictions(TransactionType, Mnemonic, RecordType, Field, Subfield, Item, Desc, LongDesc,
-										   CharType, DateFormat, SizeMin, SizeMax, OccMin, OccMax, Offset, AutomaticallySet);
+		nRet = pIWVer->GetRuleRestrictions(TransactionType, Mnemonic, RecordType, Field, Subfield, Item, Desc, LongDesc, CharType,
+										   DateFormat, SizeMin, SizeMax, OccMin, OccMax, Offset, AutomaticallySet, Mandatory);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}

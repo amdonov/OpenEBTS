@@ -372,6 +372,8 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 
 		bInsideValue = true; // the first char of the string is the first char of the first value
 
+		sMap += "|";	// succeed string with marker to allow easy parsing of final element
+
 		for (i = 0; i < sMap.GetLength(); i++)
 		{
 			c = sMap.GetAt(i);
