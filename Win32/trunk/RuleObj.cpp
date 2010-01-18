@@ -670,12 +670,12 @@ BOOL CRuleObj::SetLocation(CStdString& sLocation)
 		int nForm;
 		char szRegex[80];
 	} formAry[] = {
-		{ LOC_FORM_1, "^\\d+\\.\\d+$" },											// digit . digit
-		{ LOC_FORM_2, "^\\d+\\.\\d+\\.\\d+$" },								// digit . digit . digit
-		{ LOC_FORM_3, "^\\d+\\.\\d+\\.\\d+\\.\\d+$" },				// digit . digit . digit . digit
-		{ LOC_FORM_4, "^\\d+\\.\\d+\\:$" },										// digit . digit :
-		{ LOC_FORM_5, "^\\d+\\.\\d+\\.{2}\\d+$" },						// digit . digit .. digit
-		{ LOC_FORM_6, "^\\d+\\.\\d+\\.{3}\\d+$" },						// digit . digit ... digit
+		{ LOC_FORM_1, "^\\d+\\.\\d+$" },						// digit . digit
+		{ LOC_FORM_2, "^\\d+\\.\\d+\\.\\d+$" },					// digit . digit . digit
+		{ LOC_FORM_3, "^\\d+\\.\\d+\\.\\d+\\.\\d+$" },			// digit . digit . digit . digit
+		{ LOC_FORM_4, "^\\d+\\.\\d+\\:$" },						// digit . digit :
+		{ LOC_FORM_5, "^\\d+\\.\\d+\\.{2}\\d+$" },				// digit . digit .. digit
+		{ LOC_FORM_6, "^\\d+\\.\\d+\\.{3}\\d+$" },				// digit . digit ... digit
 		{ LOC_FORM_7, "^\\d+\\.\\d+\\.\\d+\\.\\d+\\.\\d+$" }	// digit . digit . digit . digit . digit
 	};
 	int nSize = sizeof(formAry)/sizeof(formAry[0]);
@@ -710,11 +710,24 @@ BOOL CRuleObj::SetLocation(CStdString& sLocation)
 		m_nItem = nCount > 3 ? numAry.at(3) : 1;
 
 		if (m_nLocFormType == LOC_FORM_5)
+		{
 			m_nItem = nCount > 2 ? numAry.at(2) : 1;
+		}
 		else if (m_nLocFormType == LOC_FORM_6)
+		{
 			m_nOffset = nCount > 2 ? numAry.at(2) : 1;
+		}
+		else if (m_nLocFormType == LOC_FORM_4)
+		{
+			// This is a heading for a section, so it doesn't represent a subfield or an item.
+			// We use 0 to denote this fact.
+			m_nSubField = 0;
+			m_nItem = 0;
+		}
 		else
+		{
 			m_nSubField = nCount > 2 ? numAry.at(2) : 1;
+		}
 
 		bRet = TRUE;
 	}
