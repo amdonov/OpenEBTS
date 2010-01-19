@@ -2313,6 +2313,7 @@ int CIWVerification::GetRecordTypeOccurrences(int DataArraySize, int *piRecordTy
 #define	MAXLEN_LONGDESC		2048
 #define MAXLEN_CHARTYPE		64
 #define MAXLEN_DATEFORMAT	64
+#define MAXLEN_ALLOWEDCHARS 257
 #define MAXLEN_VALUENAME	64
 #define MAXLEN_VALUEDESC	1024
 #define MAXSLOTS			1000
@@ -2374,7 +2375,7 @@ static const char s_rgszAutomaticMNU[][10] =
 static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticMNU[0]);;
   
 int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
-										 int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType,
+										 int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType, const char** ppAllowedChars,
 										 const char** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
 										 bool* pAutomaticallySet, bool* pMandatory)
 {
@@ -2386,8 +2387,9 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 	// hence we keep static slots on hand.
 	static char szMNUDescription[MAXLEN_DESC];
 	static char szMNULongDescription[MAXLEN_LONGDESC];
-	static char szMNUCharType[64];
-	static char szMNUDateFormat[64];
+	static char szMNUCharType[MAXLEN_CHARTYPE];
+	static char szMNUAllowedChars[MAXLEN_ALLOWEDCHARS];
+	static char szMNUDateFormat[MAXLEN_DATEFORMAT];
 
 	if (TransactionType == NULL) return IW_ERR_NULL_POINTER;
 	if (pMnemonic == NULL) return IW_ERR_NULL_POINTER;
@@ -2434,6 +2436,8 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 				*ppLongDesc = szMNULongDescription;
 				strncpy(szMNUCharType, pRule->GetCharType(), MAXLEN_CHARTYPE); szMNUCharType[MAXLEN_CHARTYPE-1] = '\0';
 				*ppCharType = szMNUCharType;
+				strncpy(szMNUAllowedChars, pRule->GetAllowedChars(), MAXLEN_ALLOWEDCHARS); szMNUCharType[MAXLEN_ALLOWEDCHARS-1] = '\0';
+				*ppAllowedChars = szMNUAllowedChars;
 				strncpy(szMNUDateFormat, pRule->GetDateFormat(), MAXLEN_DATEFORMAT); szMNUDateFormat[MAXLEN_DATEFORMAT-1] = '\0';
 				*ppDateFormat = szMNUDateFormat;
 

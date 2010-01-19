@@ -42,6 +42,8 @@ private:
 	BOOL SetOptionalMap(CStdString& sMap, CStdString& sFilePath, std::vector<CStdString>& mapValNames, std::vector<CStdString>& mapValDescriptions);
 	BOOL SetTags(CStdString& sTags);
 
+	void SetAllowedChars();
+
 	BOOL GetRangeValue(CStdString& sToken, int *pValue);
 
 	BOOL TestRegEx(CStdString& sInput, CStdString& sRegEx);
@@ -74,6 +76,8 @@ private:
 	std::vector<CStdString> m_omapName;	// from omap tag
 	std::vector<CStdString> m_mmapDesc;	// from mmap tag
 	std::vector<CStdString> m_omapDesc;	// from omap tag
+
+	CStdString m_sAllowedChars;			// Set of chars based on m_sCharType/m_sSpecialChars
 
 public:
 	CRuleObj();
@@ -111,8 +115,9 @@ public:
 	int GetMinOccurrences() { return m_nMinOccurrences; }
 	int GetMaxOccurrences() { return m_nMaxOccurrences; }
 	int GetOffset() { return m_nOffset; }
-	
+
 	CStdString GetTransactionListString();
+	CStdString GetAllowedChars()  { return m_sAllowedChars; }
 
 	BOOL IsMandatory(CStdString& sTOT);
 	BOOL IsOptional(CStdString& sTOT);

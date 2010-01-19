@@ -32,100 +32,88 @@ BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 	sErr.Empty();
 
 	// extract the TOT's this rule applies to
-	if (SetTransactions(sTransactionList))
+	if (!SetTransactions(sTransactionList))
 	{
-		if (SetLocation(sLocation))
-		{
-			if (SetMNU(sMNU))
-			{
-				if (SetCharType(sCharType))
-				{
-					if (SetFieldSize(sFieldSize))
-					{
-						if (SetOccurrences(sOccurrences))
-						{
-							if (SetOptionalDescription(sDescription))
-							{
-								if (SetOptionalLongDescription(sLongDescription))
-								{
-									if (SetOptionalSpecialChars(sSpecialChars))
-									{
-										if (SetOptionalDateFormat(sDateFormat))
-										{
-											if (SetOptionalMMap(sMMap, sFilePath))
-											{
-												if (SetOptionalOMap(sOMap, sFilePath))
-												{
-													if (SetTags(sTags))
-													{
-														bRet = TRUE;
-													}
-													else
-													{
-														sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
-														LogFile(NULL,sErr);
-													}
-												}
-												else
-												{
-													sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
-													LogFile(NULL,sErr);
-												}
-											}
-										}
-										else
-										{
-											sErr.Format("%s, invalid date format value: %s", m_sMNU, sDateFormat);
-											LogFile(NULL,sErr);
-										}
-									}
-									else
-									{
-										sErr.Format("%s, invalid sca value: %s", m_sMNU, sSpecialChars);
-										LogFile(NULL,sErr);
-									}
-								}
-							}
-							else
-							{
-								sErr.Format("%s, invalid description value: %s", m_sMNU, sDescription);
-								LogFile(NULL,sErr);
-							}
-						}
-						else
-						{
-							sErr.Format("%s, invalid occurrence value: %s", m_sMNU, sOccurrences);
-							LogFile(NULL,sErr);
-						}
-					}
-					else
-					{
-						sErr.Format("%s, invalid field size: %s", m_sMNU, sFieldSize);
-						LogFile(NULL,sErr);
-					}
-				}
-				else
-				{
-					sErr.Format("%s, invalid char type: %s", m_sMNU, sCharType);
-					LogFile(NULL,sErr);
-				}
-			}
-			else
-			{
-				sErr.Format("Invalid MNU: %s", sMNU);
-				LogFile(NULL,sErr);
-			}
-		}
-		else
-		{
-			sErr.Format("Invalid location: %s", sLocation);
-			LogFile(NULL,sErr);
-		}
+		sErr = "SetTransaction Failed";
+		goto done;
 	}
+	if (!SetLocation(sLocation))
+	{
+		sErr.Format("Invalid location: %s", sLocation);
+		goto done;
+	}
+	if (!SetMNU(sMNU))
+	{
+		sErr.Format("Invalid MNU: %s", sMNU);
+		goto done;
+	}
+	if (!SetCharType(sCharType))
+	{
+		sErr.Format("%s, invalid char type: %s", m_sMNU, sCharType);
+		goto done;
+	}
+	if (!SetFieldSize(sFieldSize))
+	{
+		sErr.Format("%s, invalid field size: %s", m_sMNU, sFieldSize);
+		goto done;
+	}
+	if (!SetOccurrences(sOccurrences))
+	{
+		sErr.Format("%s, invalid occurrence value: %s", m_sMNU, sOccurrences);
+		goto done;
+	}
+	if (!SetOptionalDescription(sDescription))
+	{
+		sErr.Format("%s, invalid description value: %s", m_sMNU, sDescription);
+		goto done;
+	}
+	if (!SetOptionalLongDescription(sLongDescription))
+	{
+		sErr.Format("%s, invalid long description value: %s", m_sMNU, sDescription);
+		goto done;
+	}
+	if (!SetOptionalSpecialChars(sSpecialChars))
+	{
+		sErr.Format("%s, invalid sca value: %s", m_sMNU, sSpecialChars);
+		goto done;
+	}
+	if (!SetOptionalDateFormat(sDateFormat))
+	{
+		sErr.Format("%s, invalid date format value: %s", m_sMNU, sDateFormat);
+		goto done;
+	}
+	if (!SetOptionalMMap(sMMap, sFilePath))
+	{
+		sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
+		goto done;
+	}
+	if (!SetOptionalOMap(sOMap, sFilePath))
+	{
+		sErr.Format("%s, invalid omap value: %s", m_sMNU, sMMap);
+		goto done;
+	}
+	if (!SetTags(sTags))
+	{
+		sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+		goto done;
+	}
+
+	// Sets m_sAllowedChars based on m_sCharType and m_sSpecialChars
+	SetAllowedChars();
+	OutputDebugString(GetAllowedChars());
+	OutputDebugString("\n");
+
+	bRet = TRUE;
 
 #ifdef _DEBUG
 	DumpObject();
 #endif // _DEBUG
+
+done:
+	if (!sErr.IsEmpty())
+	{
+		LogFile(NULL, sErr);
+	}
 
 	return bRet;
 }
@@ -137,7 +125,7 @@ void CRuleObj::DumpObject()
 	sMsg.Format("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld desc(%s) sca(%s) date(%s) map(%s)",
 				m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
 				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMMap());
-	LogFile(NULL,sMsg);
+	LogFile(NULL ,sMsg);
 
 	UINT							nKey;
 	CStdString						sTemp, sMNU;
@@ -616,6 +604,76 @@ BOOL CRuleObj::SetCharType(CStdString& sCharType)
 		m_sCharType = sCharType;
 
 	return bRet;
+}
+
+void CRuleObj::SetAllowedChars()
+// Sets m_sAllowedChars based on m_sCharType and m_sSpecialChars.
+// It's just a list of all alowed characters.
+{
+	char c;
+	BOOL bA;		// Alpha
+	BOOL bN;		// Numeric
+	BOOL bS;		// Special
+	BOOL bB;		// Binary
+	BOOL bP;		// Printable
+	BOOL bC;		// Control Chars
+	BOOL bCharOK;
+
+	m_sAllowedChars.Empty();
+
+	// Simplify m_sCharType into 4 bools
+	bA = (m_sCharType.Find('A') != -1);
+	bN = (m_sCharType.Find('N') != -1);
+	bS = (m_sCharType.Find('S') != -1);
+	bB = (m_sCharType.Find('B') != -1);
+
+	// Simplify m_sSpecialChars into 2 bools
+	bC = !m_sSpecialChars.CompareNoCase("PRINTCTRL");
+	bP = bC || (!m_sSpecialChars.CompareNoCase("PRINT"));
+
+	// Check all ASCII chars for conformance
+	for (int i = 1; i < 256; i++)
+	{
+		c = (BYTE)i;
+		bCharOK = false;	// default to "don't add"
+
+		// To minimize function calls and comparisons we compare
+		// with the largest sets before the smaller ones.
+		if (bB)
+		{
+			bCharOK = true;
+		}
+		else if (bP && _istprint(c))
+		{
+			bCharOK = true;
+		}
+		else if (bA && _istalpha(c))
+		{
+			bCharOK = true;
+		}
+		else if (bN && _istdigit(c))
+		{
+			bCharOK = true;
+		}
+		else if (bC && (c == 0x09 || c == 0x0A || c == 0x0D))	// TAB, LF, CR
+		{
+			bCharOK = true;
+		}
+		else if (bS && !bP)
+		{
+			// m_sSpecialChars is neither "PRINT" nor "PRINTCTRL" so m_sSpecialChars
+			// contains the extra allowed characters.
+			if (m_sSpecialChars.Find(c) != -1)
+			{
+				bCharOK = true;
+			}
+		}
+
+		if (bCharOK)
+		{
+			m_sAllowedChars += c;
+		}
+	}
 }
 
 BOOL CRuleObj::SetMNU(CStdString& sMNU)

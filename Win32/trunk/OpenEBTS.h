@@ -162,6 +162,7 @@ IWNIST_API int WINAPI IWGetRuleRestrictions(
 	const char** Desc, /* Description string */
 	const char** LongDesc, /* Long Description */
 	const char** CharType, /* Character Types allowed */
+	const char** AllowedChars,	/* List of characters allowed */
 	const char** DateFormat, /* e.g."CCYYMMDD", or "" when not a date */
 	int* SizeMin, /* Minimum field size */
 	int* SizeMax, /* Maximum field size */
