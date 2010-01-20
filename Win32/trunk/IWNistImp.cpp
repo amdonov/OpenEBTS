@@ -1022,7 +1022,7 @@ IWNIST_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut
 
 	// Set pBMPPtr to where image bits start.
 	if (pbih->biBitCount != 24)
-		lLenPalette = (pbih->biClrUsed == 0 ? 2^pbih->biBitCount :  pbih->biClrUsed) * sizeof(RGBQUAD);
+		lLenPalette = (pbih->biClrUsed == 0 ? 1 << pbih->biBitCount :  pbih->biClrUsed) * sizeof(RGBQUAD);
 	else
 		lLenPalette = 0;
 	pBMPPtr = (BYTE*)pbih + sizeof(BITMAPINFOHEADER) + lLenPalette;
