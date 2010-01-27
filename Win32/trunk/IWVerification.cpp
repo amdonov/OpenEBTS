@@ -2436,7 +2436,7 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 				*ppLongDesc = szMNULongDescription;
 				strncpy(szMNUCharType, pRule->GetCharType(), MAXLEN_CHARTYPE); szMNUCharType[MAXLEN_CHARTYPE-1] = '\0';
 				*ppCharType = szMNUCharType;
-				strncpy(szMNUAllowedChars, pRule->GetAllowedChars(), MAXLEN_ALLOWEDCHARS); szMNUCharType[MAXLEN_ALLOWEDCHARS-1] = '\0';
+				strncpy(szMNUAllowedChars, pRule->GetAllowedChars(), MAXLEN_ALLOWEDCHARS); szMNUAllowedChars[MAXLEN_ALLOWEDCHARS-1] = '\0';
 				*ppAllowedChars = szMNUAllowedChars;
 				strncpy(szMNUDateFormat, pRule->GetDateFormat(), MAXLEN_DATEFORMAT); szMNUDateFormat[MAXLEN_DATEFORMAT-1] = '\0';
 				*ppDateFormat = szMNUDateFormat;
