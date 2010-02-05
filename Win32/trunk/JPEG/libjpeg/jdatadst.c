@@ -151,8 +151,8 @@ term_destination (j_compress_ptr cinfo)
 			else
 				dest->memsize = dest->memsize+REALLOC_INCREMENT;
 		}
-		memcpy((dest->memdest+dest->jpgsize),dest->buffer,OUTPUT_BUF_SIZE);
-		dest->jpgsize += OUTPUT_BUF_SIZE;
+		memcpy((dest->memdest+dest->jpgsize),dest->buffer,datacount);
+		dest->jpgsize += datacount;
 	}
 }
 
