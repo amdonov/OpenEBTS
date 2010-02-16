@@ -39,11 +39,11 @@ BOOL CIWNISTEditorDoc::OnNewDocument()
 	if (!CDocument::OnNewDocument())
 		return FALSE;
 
-	IWNew("", NULL, &m_pIWTrans);
+	IWNew(_T(""), NULL, &m_pIWTrans);
 
 	// Set the version of NIST file we are creating
 	// For EBTS 8.1, this is 0400
-	IWSetItem(m_pIWTrans, (LPCSTR)"0400", 1, 1, 2, 1, 1);
+	IWSetItem(m_pIWTrans, _T("0400"), 1, 1, 2, 1, 1);
 
 	ReadType1Record();
 
@@ -72,7 +72,7 @@ BOOL CIWNISTEditorDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	else
 	{
 		CString csMessage;
-		csMessage.Format("%s is not a valid NIST file.", lpszPathName);
+		csMessage.Format(_T("%s is not a valid NIST file."), lpszPathName);
 		AfxMessageBox(csMessage);
 	}
 
@@ -145,7 +145,7 @@ int CIWNISTEditorDoc::ReadNIST(void)
 	IWClose(&m_pIWTrans);
 
 	CWnd* pWnd = theApp.m_pStatusWnd;
-	if(pWnd->GetSafeHwnd()) pWnd->SendMessage(WM_UPDATE_STATUS, NULL, (LPARAM) "Ready");
+	if(pWnd->GetSafeHwnd()) pWnd->SendMessage(WM_UPDATE_STATUS, NULL, (LPARAM) _T("Ready"));
 	
 	return nRet;
 }
@@ -171,7 +171,7 @@ int CIWNISTEditorDoc::ReadType1Record()
 
 ///	CString sSubField;
 ///	CString sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 	// establish the number of records to read
 	IWGetRecordTypeCount(m_pIWTrans, nRecordType, &nRecordTypeCount);
@@ -385,7 +385,7 @@ int CIWNISTEditorDoc::ReadType2Record()
 	int NumItems, Item;
 
 	CString sSubField, sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 	// establish the number of records to read
 	IWGetRecordTypeCount(m_pIWTrans, nRecordType, &nRecordTypeCount);
@@ -410,7 +410,7 @@ int CIWNISTEditorDoc::ReadType2Record()
 			{
 				CIWNistSubfield* pSubfield = new CIWNistSubfield;
 
-				sSubField.Format("Subfield %d%c", Subfield, US);
+				sSubField.Format(_T("Subfield %d%c"), Subfield, US);
 
 				sData += sSubField;
 
@@ -468,7 +468,7 @@ int CIWNISTEditorDoc::ReadFingerprintRecords(int nRecordType, int nPos, BOOL bIs
 	int NumItems, Item;
 
 	CString sSubField, sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 	char* fld_name[] = { "Unknown", "Record Length","Image Designator","Impression Type",
 	                     "Finger Position","Image Resolution","Image Width","Image Height","Compression Alogrithm" };
@@ -488,12 +488,12 @@ int CIWNISTEditorDoc::ReadFingerprintRecords(int nRecordType, int nPos, BOOL bIs
 	CProgressBar* pBar = NULL;
 
 	if(pWnd->IsKindOf(RUNTIME_CLASS(CMainFrame)))
-		pBar = new CProgressBar("", 100, 100);
+		pBar = new CProgressBar(_T(""), 100, 100);
 
 	for (int i = nFirstToRead; i <= nLastToRead; i++)
 	{
-		char* szText = new char[80];
-		sprintf_s(szText, 80, "Reading fingerprint record %d of %d...", i, nRecordTypeCount);
+		TCHAR* szText = new TCHAR[80];
+		_stprintf_s(szText, 80, _T("Reading fingerprint record %d of %d..."), i, nRecordTypeCount);
 
 		if(pBar)
 		{
@@ -521,7 +521,7 @@ int CIWNISTEditorDoc::ReadFingerprintRecords(int nRecordType, int nPos, BOOL bIs
 				continue;
 			}
 
-			sLBText.Format("%d\t", FieldNum);
+			sLBText.Format(_T("%d\t"), FieldNum);
 
 			IWNumSubfields(m_pIWTrans, nRecordType, i, FieldNum, &NumSubfields);
 			
@@ -534,24 +534,24 @@ int CIWNISTEditorDoc::ReadFingerprintRecords(int nRecordType, int nPos, BOOL bIs
 				sData = "";
 				for (Item = 1; Item <= NumItems; Item++)
 				{
-					IWFindItem(m_pIWTrans, nRecordType, i, FieldNum, Subfield, Item,&Data);
+					IWFindItem(m_pIWTrans, nRecordType, i, FieldNum, Subfield, Item, &Data);
 
 					sItemData.Format(_T("Item %d = %s"), Item, CString(Data));
 					sData += sItemData;
 				}
 
-				int nData = atoi(Data);
+				int nData = _ttoi(Data);
 				switch(FieldNum)
 				{
 					case 3:
 						if(nData >= 0 && nData < sizeof(imp_type)/sizeof(imp_type[0]))
-							sLBText += imp_type[atoi(Data)];
+							sLBText += imp_type[_ttoi(Data)];
 						else
 							sLBText += Data;
 						break;
 					case 4:
 						if(nData >= 0 && nData < sizeof(print_pos)/sizeof(print_pos[0]))
-							sLBText += print_pos[atoi(Data)];
+							sLBText += print_pos[_ttoi(Data)];
 						else
 							sLBText += Data;
 						break;
@@ -580,7 +580,7 @@ int CIWNISTEditorDoc::ReadFingerprintRecords(int nRecordType, int nPos, BOOL bIs
 	if (pBar) delete pBar;
 
 	if (pWnd->IsKindOf(RUNTIME_CLASS(CMainFrame)) && pWnd->GetSafeHwnd())
-		pWnd->SendMessage(WM_UPDATE_STATUS, 100, (LPARAM) "Ready");
+		pWnd->SendMessage(WM_UPDATE_STATUS, 100, (LPARAM) _T("Ready"));
 
 	return ERROR_SUCCESS;
 }
@@ -608,7 +608,7 @@ int CIWNISTEditorDoc::ReadType8Records()
 	int NumItems, Item;
 
 	CString sSubField, sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 	for (int i = 1; i <= nRecordTypeCount; i++)
 	{
@@ -628,7 +628,7 @@ int CIWNISTEditorDoc::ReadType8Records()
 				continue;
 			}
 
-			sLBText.Format("%d\t", FieldNum);
+			sLBText.Format(_T("%d\t"), FieldNum);
 
 			IWNumSubfields(m_pIWTrans, nRecordType, i, FieldNum, &NumSubfields);
 			
@@ -641,14 +641,14 @@ int CIWNISTEditorDoc::ReadType8Records()
 				sData = "";
 				for (Item = 1; Item <= NumItems; Item++)
 				{
-					IWFindItem(m_pIWTrans, nRecordType, i, FieldNum, Subfield, Item,&Data);
+					IWFindItem(m_pIWTrans, nRecordType, i, FieldNum, Subfield, Item, &Data);
 
 					sItemData.Format(_T("Item %d = %s"), Item, CString(Data));
 					sData += sItemData;
 				}
 				
 				sLBText += Data;
-				sLBText += "\n";
+				sLBText += _T("\n");
 				
 			}
 			
@@ -692,7 +692,7 @@ int CIWNISTEditorDoc::ReadType10Records()
 
 	CString sSubField;
 	CString sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 	for (int i = 1; i <= nRecordTypeCount; i++)
 	{
@@ -784,7 +784,7 @@ int CIWNISTEditorDoc::ReadType15Records()
 
 	CString sSubField;
 	CString sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 	for (int i = 1; i <= nRecordTypeCount; i++)
 	{
@@ -812,7 +812,7 @@ int CIWNISTEditorDoc::ReadType15Records()
 
 				IWNumItems(m_pIWTrans, nRecordType, i, FieldNum, Subfield, &NumItems);
 
-				sData = "";
+				sData = _T("");
 				for (Item = 1; Item <= NumItems; Item++)
 				{
 					IWFindItem(m_pIWTrans, nRecordType, i, FieldNum, Subfield, Item, &Data);
@@ -834,7 +834,7 @@ int CIWNISTEditorDoc::ReadType15Records()
 					}
 				}
 
-				sLBText.Format(_T("%d\t%s%s%s\n"), FieldNum, sSubField, NumItems > 1 ? ": " : "", sData);
+				sLBText.Format(_T("%d\t%s%s%s\n"), FieldNum, sSubField, NumItems > 1 ? _T(": ") : _T(""), sData);
 				pRec->m_arrStrings.Add(sLBText);
 			}
 
@@ -886,7 +886,7 @@ int CIWNISTEditorDoc::ReadType1617Records(int nRecordType)
 	int NumItems, Item;
 
 	CString sSubField, sItemData, sData, sLBText;
-	const char *Data;
+	const TCHAR *Data;
 
 //	IWFindItem(m_pIWTrans, nRecordType, 3, FieldNum, Subfield, Item, &Data);
 
@@ -991,17 +991,17 @@ int CIWNISTEditorDoc::ReadType99Records()
 	return ERROR_SUCCESS;
 }
 
-int CIWNISTEditorDoc::GetImageType(const char* szType)
+int CIWNISTEditorDoc::GetImageType(const TCHAR* szType)
 {
 	UINT nRet = -1;
-	char *szImageType[] = { "FINGERPRINT", "FACE", "SMT", "IRIS" };
+	TCHAR *szImageType[] = { _T("FINGERPRINT"), _T("FACE"), _T("SMT"), _T("IRIS") };
 	int nTypeCount = sizeof(szImageType)/ sizeof(szImageType[0]);
 
-	if (szType == NULL)return nRet;
+	if (szType == NULL) return nRet;
 
 	for(int i = 0; i < nTypeCount; i++)
 	{
-		if(_strcmpi(szType, szImageType[i]) == 0)
+		if(_tcsicmp(szType, szImageType[i]) == 0)
 		{
 			nRet = i;
 			break;
@@ -1048,57 +1048,57 @@ HGLOBAL CIWNISTEditorDoc::GetThumbnail(int nType, int nPos)
 	if(!m_pIWTrans) return NULL;
 
 	HGLOBAL hRet = NULL;
-	char *pStorageFormat;
-	char *pImageData = NULL;
+	const TCHAR *pStorageFormat;
+	BYTE *pImageData = NULL;
 	long lImageLen;
-	char *pBMP;
+	BYTE *pBMP;
 	long nLength;
 
-	if (IWGetImage(m_pIWTrans, nType, nPos, (const char**) &pStorageFormat, &lImageLen, (const void**) &pImageData) == 0) //IW_SUCCESS)
+	if (IWGetImage(m_pIWTrans, nType, nPos, &pStorageFormat, &lImageLen, (const void**)&pImageData) == 0) //IW_SUCCESS)
 	{
 		if (pImageData && lImageLen)
 		{
-			if (pStorageFormat && !strcmp(pStorageFormat, "raw"))
+			if (pStorageFormat && !_tcscmp(pStorageFormat, _T("raw")))
 			{
-				const char* Data;
+				const TCHAR* Data;
 				long nWidth, nHeight, nDepth;
-				
+
 				IWFindItem(m_pIWTrans, nType, nPos, 6, 1, 1, &Data);
-				nWidth = atol(Data);
-				
+				nWidth = _ttol(Data);
+
 				IWFindItem(m_pIWTrans, nType, nPos, 7, 1, 1, &Data);
-				nHeight = atol(Data);
+				nHeight = _ttol(Data);
 
 				IWFindItem(m_pIWTrans, nType, nPos, 12, 1, 1, &Data);
-				nDepth = atol(Data);
+				nDepth = _ttol(Data);
 
 				if (RAWtoBMP(nWidth, nHeight, 500, nDepth, (BYTE*)pImageData, (BYTE**)&pBMP, &nLength) == 0)
 				{
 					return PackageAsHGLOBAL(pBMP, nLength);
 				}
 			}
-			else if (pStorageFormat && !strcmp(pStorageFormat, "jpg"))
+			else if (pStorageFormat && !_tcscmp(pStorageFormat, _T("jpg")))
 			{
 				if (JPGtoBMP((BYTE*)pImageData, lImageLen, (BYTE**)&pBMP, &nLength) == 0)
 				{
 					return PackageAsHGLOBAL(pBMP, nLength);
 				}
 			}
-			else if (pStorageFormat && !strcmp(pStorageFormat, "wsq"))
+			else if (pStorageFormat && !_tcscmp(pStorageFormat, _T("wsq")))
 			{
 				if (WSQtoBMP((BYTE*)pImageData, lImageLen, (BYTE**)&pBMP, &nLength) == 0)
 				{
 					return PackageAsHGLOBAL(pBMP, nLength);
 				}
 			}
-			else if (pStorageFormat && !strcmp(pStorageFormat, "fx4"))
+			else if (pStorageFormat && !_tcscmp(pStorageFormat, _T("fx4")))
 			{
 				if (FX4toBMP((BYTE*)pImageData, lImageLen, (BYTE**)&pBMP, &nLength) == 0)
 				{
 					return PackageAsHGLOBAL(pBMP, nLength);
 				}
 			}
-			else if (pStorageFormat && !strcmp(pStorageFormat, "jp2"))
+			else if (pStorageFormat && !_tcscmp(pStorageFormat, _T("jp2")))
 			{
 				if (JP2toBMP((BYTE*)pImageData, lImageLen, (BYTE**)&pBMP, &nLength) == 0)
 				{
@@ -1111,11 +1111,11 @@ HGLOBAL CIWNISTEditorDoc::GetThumbnail(int nType, int nPos)
 	return NULL;
 }
 
-HGLOBAL CIWNISTEditorDoc::PackageAsHGLOBAL(char* p, long n)
+HGLOBAL CIWNISTEditorDoc::PackageAsHGLOBAL(BYTE* p, long n)
 {
 	HGLOBAL hRet;
 	hRet = GlobalAlloc(GPTR, n);
-	char *ptr = (char*)GlobalLock(hRet);
+	BYTE *ptr = (BYTE*)GlobalLock(hRet);
 	memcpy(ptr, p, n);
 	GlobalUnlock(hRet);
 	MemFree((BYTE*)p);

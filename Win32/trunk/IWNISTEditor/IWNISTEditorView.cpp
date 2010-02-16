@@ -330,7 +330,7 @@ LRESULT CIWNISTEditorView::OnUpdateField(WPARAM wParam, LPARAM lParam)
 
 				Item.row = nSubfield + 1;
 				Item.col = 0;
-				Item.strText.Format("Subfield %d", nSubfield + 1);
+				Item.strText.Format(_T("Subfield %d"), nSubfield + 1);
 				m_pGridCtrl->SetItem(&Item);
 			}
 
@@ -341,7 +341,7 @@ LRESULT CIWNISTEditorView::OnUpdateField(WPARAM wParam, LPARAM lParam)
 					m_pGridCtrl->SetColumnCount(m_pGridCtrl->GetColumnCount() + 1);
 					Item.row = 0;
 					Item.col = nItem + 1;
-					Item.strText.Format("Item %d", nItem + 1);
+					Item.strText.Format(_T("Item %d"), nItem + 1);
 					m_pGridCtrl->SetItem(&Item);			
 					m_pGridCtrl->SetColumnWidth(Item.col, 144);
 				}

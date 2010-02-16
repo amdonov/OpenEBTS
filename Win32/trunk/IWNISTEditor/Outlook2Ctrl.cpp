@@ -58,7 +58,7 @@ COutlook2Ctrl::COutlook2Ctrl()
 	HFONT hf = (HFONT) GetStockObject(DEFAULT_GUI_FONT);
 	CFont * gf = CFont::FromHandle(hf);
 	gf->GetLogFont(&lf);
-	strcpy_s(lf.lfFaceName, _T("Tahoma"));
+	_tcscpy_s(lf.lfFaceName, _T("Tahoma"));
 	lf.lfUnderline = TRUE;
 	ftHotItems.CreateFontIndirect(&lf);
 	lf.lfUnderline = FALSE;

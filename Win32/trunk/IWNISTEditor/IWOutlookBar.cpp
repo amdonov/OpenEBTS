@@ -72,7 +72,7 @@ int CIWOutlookBar::AddRecord(int nType, CIWNistRecord* pRecord)
 				CIWNistField* pField = pRecord->m_arrFields.GetAt(nIndex);
 				
 				CString csString;
-				csString.Format("Field %d", pField->m_ID);
+				csString.Format(_T("Field %d"), pField->m_ID);
 				
 				pDlg->m_ctlList.InsertItem(nIndex, csString);
 				pDlg->m_ctlList.SetItemData(nIndex, (DWORD_PTR) pField);
@@ -114,11 +114,19 @@ int CIWOutlookBar::AddRecord(int nType, CIWNistRecord* pRecord)
 					case 13: csLabel = "Latent Prints"; break;
 					default: csLabel = "Fingerprints";  break;
 				}
+
+#ifdef UNICODE
+				char szLabel[80];
+				size_t ret;
+				wcstombs_s(&ret, szLabel, 80, csLabel, 80);
+				nFolder = COutlook2Ctrl::AddFolder(szLabel, IDI_FOLDER_CLOSED, nType);
+#else
 				nFolder = COutlook2Ctrl::AddFolder(csLabel, IDI_FOLDER_CLOSED, nType);
+#endif
 				AddFolderItem("", 0, nFolder);
 				AddSubItem(pDlg->GetSafeHwnd(), true, nFolder);
 			}
-			
+
 			int nIndex = pDlg->m_ctlList.GetItemCount();
 			pDlg->m_ctlList.InsertItem(nIndex, _T(""));
 			pDlg->m_ctlList.SetItemData(nIndex, (DWORD_PTR)pRecord);

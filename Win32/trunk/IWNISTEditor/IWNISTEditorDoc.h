@@ -140,10 +140,10 @@ public:
 	int ReadType99Records();
 
 	HGLOBAL GetThumbnail(int nType, int nPos);
-	int GetImageType(const char* szType);
+	int GetImageType(const TCHAR* szType);
 	int GetEncoderClsid(const WCHAR* format, CLSID* pClsid);
 
-	HGLOBAL PackageAsHGLOBAL(char* p, long n);
+	HGLOBAL PackageAsHGLOBAL(BYTE* p, long n);
 
 public:
 	CIWNistRecord* GetRecord(int nIndex);
