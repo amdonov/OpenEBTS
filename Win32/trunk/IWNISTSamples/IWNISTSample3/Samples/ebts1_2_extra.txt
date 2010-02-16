@@ -277,6 +277,28 @@ SRT O, ERRT O, ERRL O]
 	    implementation.  When the default value for T1_DOM_IMP is used (EBTS), the \
 	    default value for the field shall be 1.0.";
 
+[O]
+ 1.015:  T1_DCS      ANS   8-20 1-4 desc ="Directory of Character Sets"
+		sca="-"
+				long_desc="This optional field is a directory or list of character sets other than  \
+				7-bit ASCII that may appear  within this transaction.  This field shall contain \
+				one or more subfields, each with three information items.  The first information \
+				item is the three-character identifier for the character set index number that \
+				references an associated character set throughout the transaction file.  The second \
+				information item shall be the common name for the character set associated with that \
+				index number, the optional third information item is the specific version of the \
+				character set used.  In the case of the use of UTF-8, the third optional information \
+				item can be used to hold the specific version of the character set used with UTF-8, \
+				so that the display terminal can be switched to the correct font family.";
+
+ 1.015..1 T1_DCS_CSI   N   3   1  desc ="Character Set Index";
+ 
+ 1.015..2 T1_DCS_CSN  ANS 5-7  1 desc ="Character Set Name"
+		sca="-";
+
+ 1.015..3 T1_DCS_CSN   AN 1-10  1 desc ="Character Set Version"
+
+ 
 # Type Two Fields
   
 [M, VER, VRSP, EVER, CAR, FANC, MAP, MAPA, DEK, DEU, ERRT, SRE, 
@@ -2818,10 +2840,6 @@ mmap="A:Data Automatically read, encoded and recorded, no human editing|\
                   an ASCII '1'.";
 
 15.013    T15_PLP N  3    1 desc="Palmprint Position" 
-                 #mmap="0:Unknown Finger|\
-                 #      1:Right Thumb|\
-                 #      2:Right Index Finger|\
-                 #     14:Plain Left Four Fingers"
        long_desc="";
 
 [O, CAR, MAP, FANC, DEK, DEU]
