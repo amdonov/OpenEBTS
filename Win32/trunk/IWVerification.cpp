@@ -52,186 +52,194 @@ enum RuleStateEnum
 
 CIWVerification::CIWVerification()
 {
-	m_bVerificationLoaded = FALSE;
+	m_bVerificationLoaded = false;
 }
 
 CIWVerification::~CIWVerification()
 {
 }
 
-int CIWVerification::ReadVerificationFile(const char* Path, int MaxParseError, char* ParseError)
+int CIWVerification::ReadVerificationFile(CStdString sPath, CStdString& sParseError)
 {
 	int nRet = IW_ERR_READING_FILE;
-	CStdString sFilePath = Path;
-	CStdString sErr;
+	BYTE  *pFile = NULL;
+	FILE  *f;
 
-	m_bVerificationLoaded = FALSE;
+	m_bVerificationLoaded = false;
+	sParseError.Empty();
 
-	if ((nRet = LoadTOTDefinitions(sFilePath)) == IW_SUCCESS)
-	{
-		if ((nRet = LoadRules(sFilePath, sErr)) == IW_SUCCESS)
-		{
-			m_bVerificationLoaded = TRUE;
-		}
-		else
-		{
-			strncpy(ParseError, sErr, MaxParseError-1);
-			ParseError[MaxParseError-1] = '\0';
-		}
-	}
-
-	return nRet;
-}
-
-int CIWVerification::LoadRules(CStdString& sFilePath, CStdString& sErr)
-{
-	int nRet = IW_ERR_READING_FILE;
-	FILE *f;
-	char *pFileSave = NULL;
-
-	f = fopen(sFilePath, "rb");
+	f = _tfopen(sPath, _T("rb"));
 	if (f != NULL)
 	{
 		fseek(f, 0, SEEK_END);
 		long lSize = ftell(f);
 		fseek(f, 0, SEEK_SET);
-		char *pFile = new char[(UINT)lSize+2];
 
-		pFileSave = pFile;	// to be released at the end
-
-		memset(pFile,'\0',lSize+2);
+		pFile = new BYTE[lSize + 1];
 		fread(pFile, 1, lSize, f);
 		fclose(f);
+		pFile[lSize] = '\0';	// Null terminate file, treating is as a big string
 
-		char szDelimsLine[] = "\n";
-		CStdString sLine;
-		CStdString sTemp;
-		BOOL bFound = FALSE;
+#ifdef UNICODE
+		// In the UNICODE version of OpenEBTS, the Verification Files are in UTF-8,
+		// hence we convert the buffer in-place to wide chars so we can proceed
+		// with simple generic _T code.
+		wchar_t *pFileNew;
 
-		sLine = ReadLine(&pFile);
-
-		while (pFile != NULL)
+		if (!UTF8toUCS2((const char*)pFile, &pFileNew))
 		{
-			sLine.Trim();
-			sLine.MakeUpper();
-			
-			// find the start of the rules section
-			if (sLine.GetLength() >= 6 && !sLine.Left(12).CompareNoCase(STR_TRANSACTION_FIELD_TAG))
-			{
-				bFound = TRUE;
-				break;	// got it
-			}				
-			sLine = ReadLine(&pFile);
+			return IW_ERR_READING_FILE;	// Error deconding UTF-8
 		}
 
-		char szDelimsRule[] = ";";
-		char *pRule;
-		CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
-		CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sTags;
-		CStdString sTransactionList;
-		CStdString sMMap, sOMap;
-
-		if (bFound)
-		{
-			pRule = GetRule(&pFile);
-
-			while (pRule)
-			{
-				SkipComments(&pRule);
-
-				// kas, 17Nov2009
-				// the entire rule may be commented out, if
-				// nothing is left get next rule
-				if (strlen(pRule) == 0)
-				{
-					pRule = GetRule(&pFile);
-					continue;
-				}
-				sTemp = GetTransactionList(&pRule);
-				
-				if (sTemp != _T(""))
-					sTransactionList = sTemp;
-
-				if (pRule)
-				{
-					sLocationIndex = GetLocationIndex(&pRule);
-				}
-				if (pRule)
-				{
-					sMneumonic = GetMneumonic(&pRule);
-				}
-				if (pRule)
-				{
-					sCharType = GetCharType(&pRule);
-				}
-				if (pRule)
-				{
-					sFieldSize = GetFieldSize(&pRule);
-				}
-				if (pRule)
-				{
-					sOccurrence = GetOccurrences(&pRule);
-				}
-				if (pRule)
-				{
-					sDescription = GetOptionalDescription(&pRule);
-				}
-				if (pRule)
-				{
-					sSpecialChars = GetOptionalSpecialChars(&pRule);
-				}
-				if (pRule)
-				{
-					sDateFormat = GetOptionalDateFormat(&pRule);
-				}
-				if (pRule)
-				{
-					sMMap = GetOptionalMMap(&pRule);
-				}
-				if (pRule)
-				{
-					sOMap = GetOptionalOMap(&pRule);
-				}
-				if (pRule)
-				{
-					sLongDescription = GetOptionalLongDescription(&pRule);
-				}
-				if (pRule)
-				{
-					sTags = GetTags(&pRule);
-				}
-#ifdef _DEBUG
-				sTemp.Format("Loc: %s, MNU: %s, Type: %s, Size: %s, Occ: %s\n", sLocationIndex,
-							 sMneumonic, sCharType, sFieldSize, sOccurrence);
-				OutputDebugString(sTemp);
+		delete pFile;
+		pFile = (BYTE*)pFileNew;
 #endif
-				CRuleObj ruleObj;
 
-				if (ruleObj.SetData(sFilePath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
-									sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat,
-									sMMap, sOMap, sTags, sErr))
-				{
-					m_rulesAry.push_back(ruleObj);
-				}
-				else
-				{
-					return IW_ERR_LOADING_VERICATION;
-				}
-
-				pRule = GetRule(&pFile);
+		if ((nRet = LoadTOTDefinitions((TCHAR*)pFile, sPath)) == IW_SUCCESS)
+		{
+			if ((nRet = LoadRules((TCHAR*)pFile, sPath, sParseError)) == IW_SUCCESS)
+			{
+				m_bVerificationLoaded = true;
 			}
 		}
-		if (pFileSave) delete pFileSave;
 	}
 	else
+	{
 		nRet = IW_ERR_OPENING_FILE_FOR_READING;
+	}
+
+	if (pFile != NULL) delete pFile;
+
+	return nRet;
+}
+
+int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
+{
+	int nRet = IW_ERR_READING_FILE;
+	CStdString sLine;
+	CStdString sTemp;
+	bool bFound = false;
+
+	sErr.Empty();
+
+	sLine = ReadLine(&pFile);
+
+	while (pFile != NULL)
+	{
+		sLine.Trim();
+		sLine.MakeUpper();
+		
+		// find the start of the rules section
+		if (sLine.GetLength() >= 6 && !sLine.Left(12).CompareNoCase(STR_TRANSACTION_FIELD_TAG))
+		{
+			bFound = true;
+			break;	// got it
+		}				
+		sLine = ReadLine(&pFile);
+	}
+
+	TCHAR *pRule;
+	CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
+	CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sTags;
+	CStdString sTransactionList;
+	CStdString sMMap, sOMap;
+
+	if (bFound)
+	{
+		pRule = GetRule(&pFile);
+
+		while (pRule)
+		{
+			SkipComments(&pRule);
+
+			// kas, 17Nov2009
+			// the entire rule may be commented out, if
+			// nothing is left get next rule
+			if (_tcslen(pRule) == 0)
+			{
+				pRule = GetRule(&pFile);
+				continue;
+			}
+			sTemp = GetTransactionList(&pRule);
+			
+			if (sTemp != _T(""))
+				sTransactionList = sTemp;
+
+			if (pRule)
+			{
+				sLocationIndex = GetLocationIndex(&pRule);
+			}
+			if (pRule)
+			{
+				sMneumonic = GetMneumonic(&pRule);
+			}
+			if (pRule)
+			{
+				sCharType = GetCharType(&pRule);
+			}
+			if (pRule)
+			{
+				sFieldSize = GetFieldSize(&pRule);
+			}
+			if (pRule)
+			{
+				sOccurrence = GetOccurrences(&pRule);
+			}
+			if (pRule)
+			{
+				sDescription = GetOptionalDescription(&pRule);
+			}
+			if (pRule)
+			{
+				sSpecialChars = GetOptionalSpecialChars(&pRule);
+			}
+			if (pRule)
+			{
+				sDateFormat = GetOptionalDateFormat(&pRule);
+			}
+			if (pRule)
+			{
+				sMMap = GetOptionalMMap(&pRule);
+			}
+			if (pRule)
+			{
+				sOMap = GetOptionalOMap(&pRule);
+			}
+			if (pRule)
+			{
+				sLongDescription = GetOptionalLongDescription(&pRule);
+			}
+			if (pRule)
+			{
+				sTags = GetTags(&pRule);
+			}
+#ifdef _DEBUG
+			sTemp.Format(_T("Loc: %s, MNU: %s, Type: %s, Size: %s, Occ: %s\n"), sLocationIndex,
+						 sMneumonic, sCharType, sFieldSize, sOccurrence);
+			OutputDebugString(sTemp);
+#endif
+			CRuleObj ruleObj;
+			if (ruleObj.SetData(sPath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
+								sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat,
+								sMMap, sOMap, sTags, sErr))
+			{
+				m_rulesAry.push_back(ruleObj);
+			}
+			else
+			{
+				return IW_ERR_LOADING_VERICATION;
+			}
+
+			pRule = GetRule(&pFile);
+		}
+	}
 
 	return (m_rulesAry.size() > 0 ? IW_SUCCESS : IW_ERR_LOADING_VERICATION);
 }
 
-CStdString CIWVerification::ReadLine(char **ppFile)
+CStdString CIWVerification::ReadLine(TCHAR **ppFile)
 {
-	char *pTemp = *ppFile;
+	TCHAR *pTemp = *ppFile;
 	CStdString sRet;
 	CStdString sErr;
 
@@ -256,21 +264,21 @@ CStdString CIWVerification::ReadLine(char **ppFile)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::ReadLine] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::ReadLine] exception thrown"));
+		LogFile(sErr);
 	}
 
 	return sRet;
 }
 
-char *CIWVerification::GetRule(char **ppFile)
+TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 {
-	char *pRet = NULL;
-	char *pTemp = *ppFile;
-	char *pStart = pTemp;
+	TCHAR *pRet = NULL;
+	TCHAR *pTemp = *ppFile;
+	TCHAR *pStart = pTemp;
 	CStdString sRet;
 	int ch;
-	BOOL bInQuote = FALSE;
+	bool bInQuote = false;
 	CStdString sErr;
 
 	if (!pTemp)
@@ -288,9 +296,9 @@ char *CIWVerification::GetRule(char **ppFile)
 			if (ch == '"')
 			{
 				if (!bInQuote)
-					bInQuote = TRUE;
+					bInQuote = true;
 				else
-					bInQuote = FALSE;
+					bInQuote = false;
 			}
 			else if (ch == ';')
 			{
@@ -310,16 +318,16 @@ char *CIWVerification::GetRule(char **ppFile)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::GetRule] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::GetRule] exception thrown"));
+		LogFile(sErr);
 	}
 
 	return pRet;
 }
 
-void CIWVerification::SkipComments(char **ppRule)
+void CIWVerification::SkipComments(TCHAR **ppRule)
 {
-	char *pTemp = *ppRule;
+	TCHAR *pTemp = *ppRule;
 	CStdString sErr;
 
 	try
@@ -340,17 +348,17 @@ void CIWVerification::SkipComments(char **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::SkipComment] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::SkipComment] exception thrown"));
+		LogFile(sErr);
 	}
 
 	*ppRule = pTemp;
 }
 
-CStdString CIWVerification::GetTransactionList(char **ppRule)
+CStdString CIWVerification::GetTransactionList(TCHAR **ppRule)
 {
 	CStdString sRet;
-	char *pTemp = *ppRule;
+	TCHAR *pTemp = *ppRule;
 	CStdString sErr;
 
 	if (!pTemp)
@@ -363,20 +371,20 @@ CStdString CIWVerification::GetTransactionList(char **ppRule)
 
 		if (*pTemp)
 		{
-			BOOL bInComment = FALSE;
+			bool bInComment = false;
 			if (*pTemp == '[')
 			{
 				pTemp++;
 				while (pTemp && *pTemp != ']')
 				{
 					if (*pTemp == '#')
-						bInComment = TRUE;
+						bInComment = true;
 					
 					if (!bInComment)
 						sRet += *pTemp++;
 
 					if (*pTemp == '\n')
-						bInComment = FALSE;
+						bInComment = false;
 				}
 				if (*pTemp)
 					pTemp++; 
@@ -386,78 +394,78 @@ CStdString CIWVerification::GetTransactionList(char **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::GetTransactionList] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::GetTransactionList] exception thrown"));
+		LogFile(sErr);
 	}
 
 	return sRet;
 }
 
-CStdString CIWVerification::GetLocationIndex(char **ppRule)
+CStdString CIWVerification::GetLocationIndex(TCHAR **ppRule)
 {
 	return GetNextToken(ppRule);
 }
 
-CStdString CIWVerification::GetMneumonic(char **ppRule)
+CStdString CIWVerification::GetMneumonic(TCHAR **ppRule)
 {
 	return GetNextToken(ppRule);
 }
 
-CStdString CIWVerification::GetCharType(char **ppRule)
+CStdString CIWVerification::GetCharType(TCHAR **ppRule)
 {
 	return GetNextToken(ppRule);
 }
 
-CStdString CIWVerification::GetFieldSize(char **ppRule)
+CStdString CIWVerification::GetFieldSize(TCHAR **ppRule)
 {
 	return GetRangeToken(ppRule);
 }
 
-CStdString CIWVerification::GetOccurrences(char **ppRule)
+CStdString CIWVerification::GetOccurrences(TCHAR **ppRule)
 {
 	return GetRangeToken(ppRule);
 }
 
-CStdString CIWVerification::GetOptionalDescription(char **ppRule)
+CStdString CIWVerification::GetOptionalDescription(TCHAR **ppRule)
 // Look for 'desc="The Description"'
 {
-	return ExtractTagValue(ppRule, "desc");
+	return ExtractTagValue(ppRule, _T("desc"));
 }
 
-CStdString CIWVerification::GetOptionalSpecialChars(char **ppRule)
+CStdString CIWVerification::GetOptionalSpecialChars(TCHAR **ppRule)
 // Look for optional 'sca="-"'
 {
-	return ExtractTagValue(ppRule, "sca");
+	return ExtractTagValue(ppRule, _T("sca"));
 }
 
-CStdString CIWVerification::GetOptionalDateFormat(char **ppRule)
+CStdString CIWVerification::GetOptionalDateFormat(TCHAR **ppRule)
 // Look for optional 'date="CCYYMMDD"' date format tag
 {
-	return ExtractTagValue(ppRule, "date");
+	return ExtractTagValue(ppRule, _T("date"));
 }
 
-CStdString CIWVerification::GetOptionalMMap(char **ppRule)
+CStdString CIWVerification::GetOptionalMMap(TCHAR **ppRule)
 // Look for optional 'mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."' Mandatory Mapping tag
 {
-	return ExtractTagValue(ppRule, "mmap");
+	return ExtractTagValue(ppRule, _T("mmap"));
 }
 
-CStdString CIWVerification::GetOptionalOMap(char **ppRule)
+CStdString CIWVerification::GetOptionalOMap(TCHAR **ppRule)
 // Look for optional 'omap="<Value>[:<Desc>]|<Value>[:<Desc]|..."' Optional Mapping tag
 {
-	return ExtractTagValue(ppRule, "omap");
+	return ExtractTagValue(ppRule, _T("omap"));
 }
 
-CStdString CIWVerification::GetOptionalLongDescription(char **ppRule)
+CStdString CIWVerification::GetOptionalLongDescription(TCHAR **ppRule)
 // Look for optional 'long_desc="This field does blah blah blah"'
 {
 	CStdString sLongDesc;
 	CStdString sLongDescRet;
 	int		   iPosStart;
 	int		   iPosEnd;
-	char	   c;
+	TCHAR	   c;
 
-	sLongDesc = ExtractTagValue(ppRule, "long_desc");
+	sLongDesc = ExtractTagValue(ppRule, _T("long_desc"));
 
 	// Clean-up string by removing end-of-line backslashes. This means
 	// removing all back-slash + whitespace + CR + LF + whitespace sequences.
@@ -492,7 +500,7 @@ CStdString CIWVerification::GetOptionalLongDescription(char **ppRule)
 	return sLongDesc;
 }
 
-CStdString CIWVerification::ExtractTagValue(char **ppRule, const char *szTag)
+CStdString CIWVerification::ExtractTagValue(TCHAR **ppRule, const TCHAR *szTag)
 // Look for tag '[tagname]="[tagvalue]"'
 {
 	CStdString sFullTag;
@@ -513,7 +521,7 @@ CStdString CIWVerification::ExtractTagValue(char **ppRule, const char *szTag)
 	if (lPosStart != -1)
 	{
 		lPosStart += sFullTag.GetLength();							// Jump to actual tag value
-		lPosEnd = sString.Find("\"", lPosStart);					// Find closing double-quote
+		lPosEnd = sString.Find(_T("\""), lPosStart);					// Find closing double-quote
 		if (lPosEnd != -1)
 		{
 			sRet = sString.Mid(lPosStart, lPosEnd - lPosStart);		// Extract tag value
@@ -523,10 +531,10 @@ CStdString CIWVerification::ExtractTagValue(char **ppRule, const char *szTag)
 	return sRet;
 }
 
-CStdString CIWVerification::GetTags(char **ppRule)
+CStdString CIWVerification::GetTags(TCHAR **ppRule)
 {
 	CStdString sRet;
-	char *pTemp = *ppRule;
+	TCHAR *pTemp = *ppRule;
 	CStdString sErr;
 
 	if (!pTemp)
@@ -545,17 +553,17 @@ CStdString CIWVerification::GetTags(char **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::GetTransactionList] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::GetTransactionList] exception thrown"));
+		LogFile(sErr);
 	}
 
 	return sRet;
 }
 
-CStdString CIWVerification::GetRangeToken(char **ppRule)
+CStdString CIWVerification::GetRangeToken(TCHAR **ppRule)
 {
 	CStdString sRet;
-	char *pTemp = *ppRule;
+	TCHAR *pTemp = *ppRule;
 	CStdString sErr;
 
 	if (!pTemp)
@@ -580,8 +588,8 @@ CStdString CIWVerification::GetRangeToken(char **ppRule)
 			
 			if (sField1 != _T(""))
 			{
-				char *pTemp1 = pTemp;
-				BOOL bHyphen = FALSE;
+				TCHAR *pTemp1 = pTemp;
+				bool bHyphen = false;
 
 				while (pTemp1 && *pTemp1)
 				{
@@ -599,7 +607,7 @@ CStdString CIWVerification::GetRangeToken(char **ppRule)
 							while (isdigit(*pTemp1))
 								sField2 += *pTemp1++;
 
-							sRet = sField1+'-'+sField2;
+							sRet = sField1 + _T('-') + sField2;
 							*ppRule = pTemp1;
 							break;
 						}
@@ -608,7 +616,7 @@ CStdString CIWVerification::GetRangeToken(char **ppRule)
 					{
 						if (bHyphen)
 						{
-							sRet = sField1+'-'+*pTemp1;
+							sRet = sField1 + _T('-') + *pTemp1;
 							*ppRule = ++pTemp1;
 							break;
 						}						
@@ -621,7 +629,7 @@ CStdString CIWVerification::GetRangeToken(char **ppRule)
 						}
 					}
 					else if (*pTemp1 == '-')
-						bHyphen = TRUE;
+						bHyphen = true;
 					else if (isalpha(*pTemp1))
 					{
 						// ran into next field
@@ -637,17 +645,17 @@ CStdString CIWVerification::GetRangeToken(char **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::GetRangeToken] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::GetRangeToken] exception thrown"));
+		LogFile(sErr);
 	}
 
 	return sRet;
 }
 
-CStdString CIWVerification::GetNextToken(char **ppRule)
+CStdString CIWVerification::GetNextToken(TCHAR **ppRule)
 {
 	CStdString sRet;
-	char *pTemp = *ppRule;
+	TCHAR *pTemp = *ppRule;
 	CStdString sErr;
 
 	if (!pTemp)
@@ -682,224 +690,211 @@ CStdString CIWVerification::GetNextToken(char **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format("[CIWVerification::GetNextToken] exception thrown");
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CIWVerification::GetNextToken] exception thrown"));
+		LogFile(sErr);
 	}
 
 	return sRet;
 }
 
-int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
+int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 {
-	int nRet = IW_ERR_READING_FILE;
-	FILE *f;
 	CTransactionDefinition *pTransDef = NULL;
+	int			nRet = IW_ERR_READING_FILE;
+	CStdString	sLine;
+	CStdString	sTOT;
+	CStdString	sTOTDef;
+	CStdString	sComment;
+	int			nLen;
+	int			i;
+	TCHAR		ch;
+	bool		bInComment = false;
+	CStdString	sCategory;
 
-	f = fopen(sFilePath, "r+t");
-	if (f != NULL)
+	nRet = IW_SUCCESS;
+
+	// read the transaction types and requirements supported in this file
+	TOTStateEnum enState = enStPending;
+
+	while (pFile != NULL)
 	{
-		fseek(f, 0, SEEK_END);
-		long lSize = ftell(f);
-		fseek(f, 0, SEEK_SET);
+		sLine = ReadLine(&pFile);
+		if (pFile == NULL) break;
 
-		CStdString sTemp;
-		CStdString sTOT;
-		CStdString sTOTDef;
-		CStdString sComment;
-		int nLen;
-		int i;
-		_TCHAR ch;
-		BOOL bInComment = FALSE;
-		CStdString sCategory;
+		sLine.Trim();
+		sLine.MakeUpper();
 
-		nRet = IW_SUCCESS;
-
-		// read the transaction types and requirements supported in this file
-		TOTStateEnum enState = enStPending;
-
-		while (fgets(sTemp.GetBuffer(1024), 1024, f) && nRet == IW_SUCCESS)
+		// found a transaction definition, run it through the state machine
+		if (sLine.GetLength() >= 12 && !sLine.Left(12).CompareNoCase(STR_TRANSACTION_DEF_TAG))
 		{
-			sTemp.ReleaseBuffer();
-			sTemp.Trim();
-
-			// found a transaction definition, run it through the state machine
-			if (sTemp.GetLength() >= 12 && !sTemp.Left(12).CompareNoCase(STR_TRANSACTION_DEF_TAG))
+			// the last object may be empty
+			if (pTransDef)
 			{
-				// the last object may be empty
-				if (pTransDef)
+				if (!pTransDef->IsEmpty())
 				{
-					if (!pTransDef->IsEmpty())
+					if (!pTransDef->IsValid())
 					{
-						if (!pTransDef->IsValid())
-						{
-							delete pTransDef;
-							pTransDef = NULL;
+						delete pTransDef;
+						pTransDef = NULL;
 #ifdef FAIL_ON_ERROR
-							nRet = IW_ERR_LOADING_VERICATION;
-							continue;
+						nRet = IW_ERR_LOADING_VERICATION;
+						continue;
 #endif
-						}
 					}
 				}
-				if (pTransDef)
-				{
-					delete pTransDef;
-					pTransDef = NULL;
-				}
-				pTransDef = new CTransactionDefinition;
-
-				sCategory = sTemp.Mid(13);
-				sCategory.Replace('"',' ');
-				sCategory.Trim();
-				
-				pTransDef->m_sCategory = sCategory;
-
-				enState = enStClassify; 
-				continue; // start processing transaction beginning with next line
 			}
-			else if (!sTemp.CompareNoCase(STR_TRANSACTION_FIELD_TAG))
-				break; // hit the rules section
-			else if (enState == enStPending)
-				continue;
-			else if (sTemp.empty() || sTemp.Left(1) == _T("#"))
-				continue; // skip empty lines and comments
-
-			sTOT = _T("");
-			sTOTDef = _T("");
-			sComment = _T("");
-
-			nLen = sTemp.GetLength();
-			for (i = 0; i < nLen && enState != enStError && enState != enStComplete; i++)
+			if (pTransDef)
 			{
-				ch = sTemp.at(i);
-				
-				switch (enState)
-				{
-					case enStClassify:
+				delete pTransDef;
+				pTransDef = NULL;
+			}
+			pTransDef = new CTransactionDefinition;
+
+			sCategory = sLine.Mid(13);
+			sCategory.Replace('"',' ');
+			sCategory.Trim();
+			
+			pTransDef->m_sCategory = sCategory;
+
+			enState = enStClassify; 
+			continue; // start processing transaction beginning with next line
+		}
+		else if (!sLine.CompareNoCase(STR_TRANSACTION_FIELD_TAG))
+			break; // hit the rules section
+		else if (enState == enStPending)
+			continue;
+		else if (sLine.empty() || sLine.Left(1) == _T("#"))
+			continue; // skip empty lines and comments
+
+		sTOT = _T("");
+		sTOTDef = _T("");
+		sComment = _T("");
+
+		nLen = sLine.GetLength();
+		for (i = 0; i < nLen && enState != enStError && enState != enStComplete; i++)
+		{
+			ch = sLine.at(i);
+			
+			switch (enState)
+			{
+				case enStClassify:
+					{
+						if (isalpha(ch)) // TOT must begin with alpha char, can be alnum after 1st char
 						{
-							if (isalpha(ch)) // TOT must begin with alpha char, can be alnum after 1st char
-							{
-								enState = enStTOTCategory; // transition to reading the TOT, eg: CAR "This is a CAR transaction"
-								sTOT += ch;
-							}
-							else if (isdigit(ch))
-							{
-								enState = enStTOTDefinition; // transition to reading the TOT requirements, eg: 1:1 2:1 4:0-14 10:0-4
-								sTOTDef += ch;
-							}
+							enState = enStTOTCategory; // transition to reading the TOT, eg: CAR "This is a CAR transaction"
+							sTOT += ch;
 						}
-						break;
-
-					case enStTOTCategory:
+						else if (isdigit(ch))
 						{
-							if (isalnum(ch))
-								sTOT += ch;
-							else
-							{
-								pTransDef->m_TOTArray.push_back(sTOT);
-								enState = enStTOTComment;	// transition to comment which must follow TOT label
-							}
+							enState = enStTOTDefinition; // transition to reading the TOT requirements, eg: 1:1 2:1 4:0-14 10:0-4
+							sTOTDef += ch;
 						}
-						break;
+					}
+					break;
 
-					case enStTOTComment:
+				case enStTOTCategory:
+					{
+						if (isalnum(ch))
+							sTOT += ch;
+						else
 						{
-							if (ch == '"')
-							{
-								if (bInComment)
-								{
-									bInComment = FALSE;
-									enState = enStClassify; // end of comment, can't wait to see what's next!
-									sComment.Replace('"',' ');
-									sComment.Trim();
-									pTransDef->m_TOTLabelArray.push_back(sComment);
-									bInComment = FALSE;
-								}
-								else if (!bInComment)
-									bInComment = TRUE;
+							pTransDef->m_TOTArray.push_back(sTOT);
+							enState = enStTOTComment;	// transition to comment which must follow TOT label
+						}
+					}
+					break;
 
-								sComment += ch;
-							}
-							else if (isspace(ch))
+				case enStTOTComment:
+					{
+						if (ch == '"')
+						{
+							if (bInComment)
 							{
-								sComment += ch; // continue in enStTOTComment state
+								bInComment = false;
+								enState = enStClassify; // end of comment, can't wait to see what's next!
+								sComment.Replace('"',' ');
+								sComment.Trim();
+								pTransDef->m_TOTLabelArray.push_back(sComment);
+								bInComment = false;
 							}
 							else if (!bInComment)
-							{
-								enState = enStError; // shouldn't be here
+								bInComment = true;
 
-	#ifdef FAIL_ON_ERROR
-							nRet = IW_ERR_LOADING_VERICATION;
-	#endif
-							}
-							else
-								sComment += ch;
+							sComment += ch;
 						}
-						break;
-
-					case enStTOTDefinition:
+						else if (isspace(ch))
 						{
-							if (ch == ';')
+							sComment += ch; // continue in enStTOTComment state
+						}
+						else if (!bInComment)
+						{
+							enState = enStError; // shouldn't be here
+#ifdef FAIL_ON_ERROR
+							nRet = IW_ERR_LOADING_VERICATION;
+#endif
+						}
+						else
+							sComment += ch;
+					}
+					break;
+
+				case enStTOTDefinition:
+					{
+						if (ch == ';')
+						{
+							if (pTransDef->SetRuleString(sTOTDef))
 							{
-								if (pTransDef->SetRuleString(sTOTDef))
-								{
-									// we should have a complete definition
-									enState = enStComplete;
-								}
-								else
-								{
-									enState = enStError;
-								}
+								// we should have a complete definition
+								enState = enStComplete;
 							}
 							else
 							{
-								sTOTDef += ch;
+								enState = enStError;
 							}
 						}
-						break;
-				}
-			}
-
-			if (enState == enStComplete)
-			{
-				// add to the list
-				if (pTransDef->IsValid())
-				{
-					if (pTransDef->m_sCategory == _T(""))	
-						pTransDef->m_sCategory = sCategory; // use the same category as previous
-
-					m_transactionDefAry.push_back(*pTransDef);
-				}
-
-				delete pTransDef;
-				pTransDef = NULL;
-
-				// There may be multiple definitions with a TRANSACTIONS setion, create 
-				// a new object for the next TOT def, if there is only 1 definition 
-				// this object will be deleted 
-				pTransDef = new CTransactionDefinition; 
-				enState = enStClassify;
-			}
-			else if (enState == enStError)
-			{
-				CStdString sTraceMsg;
-				
-				sTraceMsg.Format("[CIWVerification::ReadVerificationFile] Error reading verification file %s", sFilePath);
-				LogFile(NULL,sTraceMsg);
-
-				delete pTransDef;
-				pTransDef = NULL;
-
-#ifdef FAIL_ON_ERROR
-				nRet = IW_ERR_LOADING_VERICATION;
-#endif
+						else
+						{
+							sTOTDef += ch;
+						}
+					}
+					break;
 			}
 		}
-		fclose(f);
-	}
-	else
-	{
-		nRet = IW_ERR_OPENING_FILE_FOR_READING;
+
+		if (enState == enStComplete)
+		{
+			// add to the list
+			if (pTransDef->IsValid())
+			{
+				if (pTransDef->m_sCategory == _T(""))	
+					pTransDef->m_sCategory = sCategory; // use the same category as previous
+
+				m_transactionDefAry.push_back(*pTransDef);
+			}
+
+			delete pTransDef;
+			pTransDef = NULL;
+
+			// There may be multiple definitions with a TRANSACTIONS setion, create 
+			// a new object for the next TOT def, if there is only 1 definition 
+			// this object will be deleted 
+			pTransDef = new CTransactionDefinition; 
+			enState = enStClassify;
+		}
+		else if (enState == enStError)
+		{
+			CStdString sTraceMsg;
+			
+			sTraceMsg.Format(_T("[CIWVerification::ReadVerificationFile] Error reading verification file %s"), sPath);
+			LogFile(sTraceMsg);
+
+			delete pTransDef;
+			pTransDef = NULL;
+
+#ifdef FAIL_ON_ERROR
+			nRet = IW_ERR_LOADING_VERICATION;
+#endif
+		}
 	}
 
 	if (pTransDef)
@@ -910,7 +905,7 @@ int CIWVerification::LoadTOTDefinitions(CStdString& sFilePath)
 
 	CStdString sTraceMsg;
 
-	sTraceMsg.Format("[CIWVerification::LoadTOTDefinitions] %ld TOT definitions in file", m_transactionDefAry.size());
+	sTraceMsg.Format(_T("[CIWVerification::LoadTOTDefinitions] %ld TOT definitions in file"), m_transactionDefAry.size());
 	TraceMsg(sTraceMsg);
 
 	/*
@@ -935,8 +930,8 @@ void CIWVerification::DebugOutputVerification()
 	CRuleObj *pRule;
 	long i;
 	long j;
-	char szMin[10];
-	char szMax[10];
+	CStdString sMin;
+	CStdString sMax;
 
 	sTraceMsg = _T("%%%%%%%%%%%%%%%%%%%%\n");
 	OutputDebugString(sTraceMsg);
@@ -951,7 +946,7 @@ void CIWVerification::DebugOutputVerification()
 		// Output all TOTs for this transation list
 		for (j = 0; j < (int)pTrans->m_TOTArray.size(); j++)
 		{
-			sTraceMsg.Format("%s", pTrans->m_TOTArray[j]);
+			sTraceMsg.Format(_T("%s"), pTrans->m_TOTArray[j]);
 			OutputDebugString(sTraceMsg);
 			if (j != pTrans->m_TOTArray.size()-1)
 			{
@@ -960,7 +955,7 @@ void CIWVerification::DebugOutputVerification()
 			}
 		}
 
-		OutputDebugString(" --> ");
+		OutputDebugString(_T(" --> "));
 
 		// Output record type counts for this transaction list
 		recTypeCountAry = pTrans->GetRecTypeCountAry();
@@ -969,23 +964,23 @@ void CIWVerification::DebugOutputVerification()
 			CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
 			if (pRecTypeCount)
 			{
-				if (pRecTypeCount->nMin == RANGE_NOTSPECIFIED) strcpy_s(szMin, 10, "X");
-				else _ltoa_s(pRecTypeCount->nMin, szMin, 10, 10);
-				if (pRecTypeCount->nMax == RANGE_NOTSPECIFIED) strcpy_s(szMax, 10, "X");
-				else _ltoa_s(pRecTypeCount->nMax, szMax, 10, 10);
+				if (pRecTypeCount->nMin == RANGE_NOTSPECIFIED) sMin = _T("X");
+				else sMin.Format(_T("%d"), pRecTypeCount->nMin);
+				if (pRecTypeCount->nMax == RANGE_NOTSPECIFIED) sMax = _T("X");
+				else sMax.Format(_T("%d"), pRecTypeCount->nMax);
 
 				if (pRecTypeCount->nMin == pRecTypeCount->nMax)
 				{
-					sTraceMsg.Format("%ld:%s ", pRecTypeCount->nRecordType, szMin);
+					sTraceMsg.Format(_T("%ld:%s "), pRecTypeCount->nRecordType, sMin);
 				}
 				else
 				{
-					sTraceMsg.Format("%ld:%s-%s ", pRecTypeCount->nRecordType, szMin, szMax);
+					sTraceMsg.Format(_T("%ld:%s-%s "), pRecTypeCount->nRecordType, sMin, sMax);
 				}
 				OutputDebugString(sTraceMsg);
 			}
 		}
-		OutputDebugString("\n");
+		OutputDebugString(_T("\n"));
 	}
 
 	sTraceMsg = _T("%%%%%%%%%%%%%%%%%%%%\n");
@@ -996,7 +991,7 @@ void CIWVerification::DebugOutputVerification()
 	for (i = 0; i < nCount; i++)
 	{
 		pRule = &m_rulesAry.at(i);
-		sTraceMsg.Format("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%s) sca(%s) date(%s) map(%s) Trans %s\n",
+		sTraceMsg.Format(_T("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%s) sca(%s) date(%s) map(%s) Trans %s\n"),
 						 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
 						 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(), pRule->GetMinOccurrences(),
 						 pRule->GetMaxOccurrences(), pRule->GetDescription(), pRule->GetSpecialChars(),
@@ -1030,19 +1025,18 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	CStdString						sTOT;
 	int								i;
 	int								j;
-	const char						*pData;
-	BOOL							bFound;
-	BOOL							bCountFound;
+	CStdString						sData;
+	bool							bFound;
+	bool							bCountFound;
 	std::vector<CRecordTypeCount>	recTypeCountAry;
 	CTransactionDefinition			*pTransDef;
 	int								iRecType;
 	int								nRecTypeCount;
-	char							szErr[512];
 	CStdString						sTraceMsg;
 	CRuleObj						*pRule;
-	BOOL							bFieldsOK;
-	BOOL							bMandatory;
-	BOOL							bOptional;
+	bool							bFieldsOK;
+	bool							bMandatory;
+	bool							bOptional;
 
 #ifdef _DEBUG
 	DebugOutputVerification();
@@ -1052,14 +1046,14 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	if (!pTrans->IsTransactionLoaded()) return IW_ERR_TRANSACTION_NOT_LOADED;
 	if (!pTrans->IsVerificationLoaded()) return IW_ERR_VERIFICATION_NOT_LOADED;
 
-	nRetTmp = pTrans->FindItem(RECORD_TYPE1, 1, TYPE1_TOT, 1, 1, &pData);
+	nRetTmp = pTrans->FindItem(RECORD_TYPE1, 1, TYPE1_TOT, 1, 1, sData);
 
 	if (nRetTmp == IW_SUCCESS)
 	{
-		sTOT = pData; // transaction type
+		sTOT = sData; // transaction type
 
 		// Locate transaction type in transaction definitions array
-		bFound = FALSE;
+		bFound = false;
 		for (i = 0; i < (int)m_transactionDefAry.size() && !bFound; i++)
 		{
 			pTransDef = &m_transactionDefAry.at(i);
@@ -1068,7 +1062,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 			{
 				if (!sTOT.CompareNoCase(pTransDef->m_TOTArray.at(j)))
 				{
-					bFound = TRUE;
+					bFound = true;
 					recTypeCountAry = pTransDef->GetRecTypeCountAry();
 				}
 			}
@@ -1082,14 +1076,14 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				nRecTypeCount = 0;
 				pTrans->GetRecordTypeCount(iRecType, &nRecTypeCount);
 
-				bCountFound = FALSE;
+				bCountFound = false;
 	
 				for (i=0; i<(int)recTypeCountAry.size(); i++)
 				{
 					CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(i);
 					if (pRecTypeCount && pRecTypeCount->nRecordType == iRecType)
 					{
-						bCountFound = TRUE;
+						bCountFound = true;
 
 						// Verify record type ranges
 						pTrans->GetRecordTypeCount(pRecTypeCount->nRecordType, &nRecTypeCount);
@@ -1098,9 +1092,9 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						{
 							if (nRecTypeCount < pRecTypeCount->nMin)
 							{
-								wsprintf(szErr, "Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.",
-										 sTOT.c_str(), pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
-								pTrans->AddError(szErr, 0);
+								sErr.Format(_T("Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld."),
+										    sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
+								pTrans->AddError(sErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
 						}
@@ -1108,9 +1102,9 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						{
 							if (nRecTypeCount > pRecTypeCount->nMax)
 							{
-								wsprintf(szErr, "Transaction Type %s may contain at most %ld Type %ld records: it contains %ld.",
-										 sTOT.c_str(), pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
-								pTrans->AddError(szErr, 0);
+								sErr.Format(_T("Transaction Type %s may contain at most %ld Type %ld records: it contains %ld."),
+											sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
+								pTrans->AddError(sErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
 						}
@@ -1120,9 +1114,9 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				if (nRecTypeCount != 0 && !bCountFound)
 				// We have a record of an unsupported Record-Type
 				{
-					wsprintf(szErr, "Transaction Type %s may not contain Type %ld records: it contains %ld of them.",
-							 sTOT.c_str(), iRecType, nRecTypeCount);
-					pTrans->AddError(szErr, 0);
+					sErr.Format(_T("Transaction Type %s may not contain Type %ld records: it contains %ld of them."),
+								sTOT, iRecType, nRecTypeCount);
+					pTrans->AddError(sErr, 0);
 					nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 				}
 			}
@@ -1133,7 +1127,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				pRule = &m_rulesAry.at(i);
 
 #ifdef _DEBUG
-				sTraceMsg.Format("applying %s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %s\n",
+				sTraceMsg.Format(_T("applying %s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %s\n"),
 								 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
 								 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(),
 								 pRule->GetMinOccurrences(), pRule->GetMaxOccurrences(),
@@ -1152,7 +1146,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 					case LOC_FORM_6: bFieldsOK = VerifyFieldsForm6(sTOT, pTrans, pRule); break;
 					case LOC_FORM_7: bFieldsOK = VerifyFieldsForm7(sTOT, pTrans, pRule); break;
 					default:		 sErr = _T("VerifyTransaction: invalid Location Form Type");
-									 LogFile(NULL,sErr);
+									 LogFile(sErr);
 				}
 				if (!bFieldsOK) nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 
@@ -1163,7 +1157,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				// Note: a field is only mandatory if we actually have a record of the same RecordType
 				if (nRecTypeCount > 0)
 				{
-					nRetTmp = pTrans->Get(pRule->GetMNU(), &pData, 1, 1);
+					nRetTmp = pTrans->Get(pRule->GetMNU(), sData, 1, 1);
 
 					// Here we have another limitation, and that is we can't accurately treat multiple
 					// rules per MNU with the current structure (e.g., ebts1_2.txt with T2_CIX, which
@@ -1176,14 +1170,14 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						// Check for missing mandatory field
 						if (nRetTmp == IW_ERR_RECORD_NOT_FOUND && bMandatory)
 						{
-							FlagFieldError(pTrans, pRule, IW_WARN_REQ_FIELD_MISSING, "Mandatory field not present");
+							FlagFieldError(pTrans, pRule, IW_WARN_REQ_FIELD_MISSING, _T("Mandatory field not present"));
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 
 						// Check for present non-mandatory/non-optional field
 						if (nRetTmp == IW_SUCCESS && !bMandatory && !bOptional)
 						{
-							FlagFieldError(pTrans, pRule, IW_WARN_UNSUPPORT_FIELD_PRESENT, "Unsupported field present");
+							FlagFieldError(pTrans, pRule, IW_WARN_UNSUPPORT_FIELD_PRESENT, _T("Unsupported field present"));
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 					}
@@ -1192,27 +1186,27 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 		}
 		else
 		{
-			wsprintf(szErr, "Verification file does not contain Transaction Type %s", sTOT.c_str());
-			pTrans->AddError(szErr, 0);
+			sErr.Format(_T("Verification file does not contain Transaction Type %s"), sTOT);
+			pTrans->AddError(sErr, 0);
 			nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 		}
 	}
 	else
 	{
-		pTrans->AddError("Failed to find TOT field in Record 1", 0);
+		pTrans->AddError(_T("Failed to find TOT field in Record 1"), 0);
 		nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 	}
 
 	return nRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER>
 // This means that the rule applies to item 1 of all the subfields in the field.
 // Each subfield can only have one item.
 // There can only be as many subfields as specified by the occurrences value.
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	int			nRet;
 	int			iRecType;
 	int			iRecord;
@@ -1222,7 +1216,7 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 	int			nSubfieldCount;
 	int			nRecTypeCount;
 	int			nItemCount;
-	const char	*pData;
+	CStdString	sData;
 
 	iRecType = pRule->GetRecordType();
 	iField = pRule->GetField();
@@ -1234,7 +1228,7 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 	{
 		if (CNISTRecord::IsDATField(iRecType, iField))
 		{
-			bRet &= VerifyfieldContents(pTrans, pRule, NULL);
+			// Nothing to do
 		}
 		else
 		{
@@ -1250,21 +1244,21 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 				if (nItemCount != 1)
 				{
 					// Only 1 item allowed per subfield for Location Form 1
-					FlagFieldError(pTrans, pRule, IW_WARN_INCORRECT_ITEM_COUNT, "Incorrect item count (%ld), must be 1", nItemCount);
-					bRet = FALSE;
+					FlagFieldError(pTrans, pRule, IW_WARN_INCORRECT_ITEM_COUNT, _T("Incorrect item count (%ld), must be 1"), nItemCount);
+					bRet = false;
 				}
 
 				// Check all items, even if there are more than 1
 				for (iItem = 1; iItem <= nItemCount; iItem++)	// 1-based
 				{
-					nRet = pTrans->FindItem(iRecType, iRecord, iField, iSubfield, iItem, &pData);
+					nRet = pTrans->FindItem(iRecType, iRecord, iField, iSubfield, iItem, sData);
 
 					if (nRet != IW_SUCCESS)
 					{
 						// TODO: this should be considered a bad problem (?)
 					}
 
-					bRet &= VerifyfieldContents(pTrans, pRule, pData);
+					bRet &= VerifyfieldContents(pTrans, pRule, sData);
 				}
 			}
 		}
@@ -1273,7 +1267,7 @@ BOOL CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm2(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm2(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER>.<SUBFIELD>
 // This means that the rule applies to all the items in the specified subfield.
 // There can only be as many items as specified by the occurrences value.
@@ -1281,28 +1275,28 @@ BOOL CIWVerification::VerifyFieldsForm2(CStdString& sTOT, CIWTransaction *pTrans
 // 
 //
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm3(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm3(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER>.<SUBFIELD NUMBER>.<ITEM NUMBER>
 // This means that rule applies to the specified item in the specified subfield.
 // The ‘occurrences’ value is meaningless in this context.
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm4(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm4(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER>:
 // This means that the rule applies to everything in the field.
 // There can only be as many subfields as specified by the occurrences value.
 // For each subfield, the sum of data lengths is checked against the field size value.
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	int			nRet;
 	int			iRecType;
 	int			iRecord;
@@ -1312,8 +1306,8 @@ BOOL CIWVerification::VerifyFieldsForm4(CStdString& sTOT, CIWTransaction *pTrans
 	int			nSubfieldCount;
 	int			nRecTypeCount;
 	int			nItemCount;
-	const char	*pData;
 	int			nTotalLength;
+	CStdString	sData;
 
 	iRecType = pRule->GetRecordType();
 	iField = pRule->GetField();
@@ -1358,12 +1352,12 @@ BOOL CIWVerification::VerifyFieldsForm4(CStdString& sTOT, CIWTransaction *pTrans
 
 				for (iItem = 1; iItem <= nItemCount; iItem++)	// 1-based
 				{
-					nRet = pTrans->FindItem(iRecType, iRecord, iField, iSubfield, iItem, &pData);
+					nRet = pTrans->FindItem(iRecType, iRecord, iField, iSubfield, iItem, sData);
 
 					if (nRet == IW_SUCCESS)
 					{
-						bRet &= VerifyFieldChars(pTrans, pRule, pData);
-						nTotalLength += strlen(pData);
+						bRet &= VerifyFieldChars(pTrans, pRule, sData);
+						nTotalLength += sData.GetLength();
 					}
 					else
 					{
@@ -1381,13 +1375,13 @@ BOOL CIWVerification::VerifyFieldsForm4(CStdString& sTOT, CIWTransaction *pTrans
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER >..<ITEM NUMBER>
 // This means that the rule applies to all items numbered by {ITEM NUMBER} in all the subfields.
 // The occurrence value is meaningless in this context.
 // This type of location index is usually used in conjunction with the location form type of 4
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 	int			nRet;
 	int			iRecType;
 	int			iRecord;
@@ -1396,7 +1390,7 @@ BOOL CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans
 	int			iItem;
 	int			nSubfieldCount;
 	int			nRecTypeCount;
-	const char	*pData;
+	CStdString	sData;
 
 	iRecType = pRule->GetRecordType();
 	iField = pRule->GetField();
@@ -1411,12 +1405,12 @@ BOOL CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans
 
 		for (iSubfield = 1; iSubfield <= nSubfieldCount; iSubfield++)	// 1-based
 		{
-			nRet = pTrans->FindItem(iRecType, iRecord, iField, iSubfield, iItem, &pData);
+			nRet = pTrans->FindItem(iRecType, iRecord, iField, iSubfield, iItem, sData);
 
 			if (nRet == IW_SUCCESS)
 			// Note that an error may occur, because it's not a given that item 'iItem' exists
 			{
-				bRet &= VerifyfieldContents(pTrans, pRule, pData);
+				bRet &= VerifyfieldContents(pTrans, pRule, sData);
 			}
 		}
 	}
@@ -1424,7 +1418,7 @@ BOOL CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER >...<OFFSET>
 // For binary records (Types 4, 7 and 8), the <OFFSET> value specifies where the item begins relative to the start of the record.
 // The size of the binary item is determined by the data type, 1, 2 and 4 byte unsigned integers are supported.
@@ -1433,7 +1427,7 @@ BOOL CIWVerification::VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans
 // The number of subfields is determined by the occurrence value.
 // The space reserved for the field is based on the maximum value in the occurrence range.
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	
 	// TODO
 
@@ -1477,7 +1471,7 @@ BOOL CIWVerification::VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans
 				{
 					// Only 1 item allowed per subfield for Location Form 1
 					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_ITEMS, "Too many items (%ld), must be 1", nItemCount);
-					bRet = FALSE;
+					bRet = false;
 				}
 
 				// Check all items, even if there are more than 1
@@ -1501,34 +1495,34 @@ BOOL CIWVerification::VerifyFieldsForm6(CStdString& sTOT, CIWTransaction *pTrans
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldsForm7(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
+bool CIWVerification::VerifyFieldsForm7(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUM>.<SUBFIELD>.<ITEM>.<OFFSET>
 // This format is similar to Form 6, except that it allows a specific subfield and item number to be associated with the rule.
 // It is useful for fields (or subfields) which contain different types of items.
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyfieldContents(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+bool CIWVerification::VerifyfieldContents(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData)
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 
-	bRet &= VerifyFieldLength(pTrans, pRule, pData);
-	bRet &= VerifyFieldChars(pTrans, pRule, pData);
-	bRet &= VerifyFieldDateFormat(pTrans, pRule, pData);
-	bRet &= VerifyFieldValue(pTrans, pRule, pData);
+	bRet &= VerifyFieldLength(pTrans, pRule, sData);
+	bRet &= VerifyFieldChars(pTrans, pRule, sData);
+	bRet &= VerifyFieldDateFormat(pTrans, pRule, sData);
+	bRet &= VerifyFieldValue(pTrans, pRule, sData);
 
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+bool CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData)
 //
 // Apply min/max field length rules
 //
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	int			iRecType;
 	int			iField;
 	int			nLen;
@@ -1541,7 +1535,7 @@ BOOL CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 	if (!CNISTRecord::IsDATField(iRecType, iField))
 	{
 		// Get length of field
-		nLen = strlen(pData);
+		nLen = sData.GetLength();
 
 		nMin = pRule->GetMinFieldSize();
 		nMax = pRule->GetMaxFieldSize();
@@ -1553,10 +1547,10 @@ BOOL CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 				if (nLen != nMin)
 				{
 					if (nLen > nMin)
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, "Invalid length of %ld, should be %ld", nLen, nMin);
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid length of %ld, should be %ld"), nLen, nMin);
 					else
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, "Invalid length of %ld, should be %ld", nLen, nMin);
-					bRet = FALSE;
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid length of %ld, should be %ld"), nLen, nMin);
+					bRet = false;
 				}
 			}
 		}
@@ -1566,16 +1560,16 @@ BOOL CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 			{
 				if (nLen < nMin)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, "Invalid length of %ld, minimum allowed is %ld", nLen, nMin);
-					bRet = FALSE;
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid length of %ld, minimum allowed is %ld"), nLen, nMin);
+					bRet = false;
 				}
 			}
 			if (nMax != RANGE_NOTSPECIFIED)	// Check Max
 			{
 				if (nLen > nMax)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, "Invalid length of %ld, maximum allowed is %ld", nLen, nMax);
-					bRet = FALSE;
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid length of %ld, maximum allowed is %ld"), nLen, nMax);
+					bRet = false;
 				}
 			}
 		}
@@ -1588,12 +1582,12 @@ BOOL CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *pRule, int nTotalLen)
+bool CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *pRule, int nTotalLen)
 //
 // Apply min/max field length rules, for total take across all items in a subfield
 //
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	int			iRecType;
 	int			iField;
 	int			nMin;
@@ -1614,10 +1608,10 @@ BOOL CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *p
 				if (nTotalLen != nMin)
 				{
 					if (nTotalLen > nMin)
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, "Invalid total subfield length of %ld, should be %ld", nTotalLen, nMin);
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid total subfield length of %ld, should be %ld"), nTotalLen, nMin);
 					else
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, "Invalid total subfield  length of %ld, should be %ld", nTotalLen, nMin);
-					bRet = FALSE;
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid total subfield  length of %ld, should be %ld"), nTotalLen, nMin);
+					bRet = false;
 				}
 			}
 		}
@@ -1627,16 +1621,16 @@ BOOL CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *p
 			{
 				if (nTotalLen < nMin)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, "Invalid total subfield length of %ld, minimum allowed is %ld", nTotalLen, nMin);
-					bRet = FALSE;
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid total subfield length of %ld, minimum allowed is %ld"), nTotalLen, nMin);
+					bRet = false;
 				}
 			}
 			if (nMax != RANGE_NOTSPECIFIED)	// Check Max
 			{
 				if (nTotalLen > nMax)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, "Invalid total subfield length of %ld, maximum allowed is %ld", nTotalLen, nMax);
-					bRet = FALSE;
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid total subfield length of %ld, maximum allowed is %ld"), nTotalLen, nMax);
+					bRet = false;
 				}
 			}
 		}
@@ -1645,69 +1639,67 @@ BOOL CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *p
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData)
 //
 // Apply char type rules
 //
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	CStdString	sCharType;
 	CStdString	sSpecialChars;
 	CStdString	sErr;
-	CStdString	sVal;
 	DWORD		dwVal;
 	DWORD		dwValMax;
 
 	sCharType = pRule->GetCharType();
 	sSpecialChars = pRule->GetSpecialChars();
-	sVal = pData;
 
 	if (!sCharType.CompareNoCase(_T("A")))
 	{
-		if (!IsAlpha(sVal))
+		if (!IsAlpha(sData))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, "Invalid value '%s' for CharType '%s'", sVal.c_str(), sCharType.c_str());
-			bRet = FALSE;
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, _T("Invalid value '%s' for CharType '%s'"), sData.c_str(), sCharType.c_str());
+			bRet = false;
 		}
 	}
 	else if (!sCharType.CompareNoCase(_T("N")))
 	{
-		if (!IsNumeric(sVal))
+		if (!IsNumeric(sData))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, "Invalid value '%s' for CharType '%s'", sVal.c_str(), sCharType.c_str());
-			bRet = FALSE;
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, _T("Invalid value '%s' for CharType '%s'"), sData.c_str(), sCharType.c_str());
+			bRet = false;
 		}
 	}
 	else if (!sCharType.CompareNoCase(_T("AN")))
 	{
-		if (!IsAlphaNumeric(sVal))
+		if (!IsAlphaNumeric(sData))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, "Invalid value '%s' for CharType '%s'", sVal.c_str(), sCharType.c_str());
-			bRet = FALSE;
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, _T("Invalid value '%s' for CharType '%s'"), sData.c_str(), sCharType.c_str());
+			bRet = false;
 		}
 	}
 	else if (!sCharType.CompareNoCase(_T("AS")))
 	{
-		if (!IsAlphaSpecial(sVal, sSpecialChars))
+		if (!IsAlphaSpecial(sData, sSpecialChars))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, "Invalid value '%s' for CharType '%s', Special Chars '%s'", sVal.c_str(), sCharType.c_str(), sSpecialChars.c_str());
-			bRet = FALSE;
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, _T("Invalid value '%s' for CharType '%s', Special Chars '%s'"), sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			bRet = false;
 		}
 	}
 	else if (!sCharType.CompareNoCase(_T("NS")))
 	{
-		if (!IsNumericSpecial(sVal, sSpecialChars))
+		if (!IsNumericSpecial(sData, sSpecialChars))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, "Invalid value '%s' for CharType '%s', Special Chars '%s'", sVal.c_str(), sCharType.c_str(), sSpecialChars.c_str());
-			bRet = FALSE;
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, _T("Invalid value '%s' for CharType '%s', Special Chars '%s'"), sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			bRet = false;
 		}
 	}
 	else if (!sCharType.CompareNoCase(_T("ANS")))
 	{
-		if (!IsAlphaNumericSpecial(sVal, sSpecialChars))
+		if (!IsAlphaNumericSpecial(sData, sSpecialChars))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL, "Invalid value '%s' for CharType '%s', Special Chars '%s'", sVal.c_str(), sCharType.c_str(), sSpecialChars.c_str());
-			bRet = FALSE;
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL, _T("Invalid value '%s' for CharType '%s', Special Chars '%s'"), sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			bRet = false;
 		}
 	}
 	else if (!sCharType.CompareNoCase(_T("B1"))  || !sCharType.CompareNoCase(_T("B2")) ||
@@ -1716,31 +1708,29 @@ BOOL CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (sCharType.GetAt(1) == _T('1')) dwValMax = 255;
 		if (sCharType.GetAt(1) == _T('2')) dwValMax = 65535;
 		if (sCharType.GetAt(1) == _T('4')) dwValMax = 4294967295;
-		if (pData != NULL)
+
+		dwVal = _ttol(sData);
+		if (dwVal > dwValMax)
 		{
-			dwVal = _ttol(pData);
-			if (dwVal > dwValMax)
-			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, "Invalid value %ld for CharType %s", dwVal, sCharType.c_str());
-				bRet = FALSE;
-			}
+			FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid value %ld for CharType %s"), dwVal, sCharType.c_str());
+			bRet = false;
 		}
 	}
 	else
 	{
 		// Unknown CharType code
 		sErr.Format(_T("[CIWVerification::VerifyField] %s, unknown CharType: %s\n"), pRule->GetMNU(), sCharType);
-		LogFile(NULL,sErr);
+		LogFile(sErr);
 		OutputDebugString(sErr);
 	}
 
 	return bRet;
 }
 
-BOOL CIWVerification::VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+bool CIWVerification::VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData)
 {
-	BOOL		bRet = TRUE;
-	BOOL		bAllowNil = FALSE;
+	bool		bRet = true;
+	bool		bAllowNil = false;
 	CStdString	sFmt;
 	CStdString	sVal;
 	CStdString	sY, sM, sD;
@@ -1748,60 +1738,59 @@ BOOL CIWVerification::VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pR
 	long		lY, lM, lD;
 
 	sFmt = pRule->GetDateFormat();
-	sVal = pData;
 
 	// If there is no date format specified there's nothing to check
-	if (sFmt == "") return TRUE;
+	if (sFmt == _T("")) return true;
 
 	// See if there's the "Z" prefix to indicate the whole date can be a string of '0's
-	if (sFmt.GetAt(0) == 'Z')
+	if (sFmt.GetAt(0) == _T('Z'))
 	{
-		if (sVal == "00000000") return TRUE;	// 8 0's is fine with the "Z" prefix
-		bAllowNil = TRUE;
+		if (sData == _T("00000000")) return true;	// 8 0's is fine with the "Z" prefix
+		bAllowNil = true;
 	}
 
 	// Get indexes of individual items. These have been checked when reading-in
 	// the verification file so none of them should be -1.
-	iY = sFmt.Find("CCYY");
+	iY = sFmt.Find(_T("CCYY"));
 	if (iY == -1)
 	{
-		iY = sFmt.Find("YYYY");
+		iY = sFmt.Find(_T("YYYY"));
 	}
-	iM = sFmt.Find("MM");
-	iD = sFmt.Find("DD");
+	iM = sFmt.Find(_T("MM"));
+	iD = sFmt.Find(_T("DD"));
 
 	if (bAllowNil)
 	{
 		iY--; iM--; iD--;	// Shift all index counters down 1
 	}
 
-	sY = sVal.Mid(iY, 4);	// extract year string
-	sM = sVal.Mid(iM, 2);	// extract month string
-	sD = sVal.Mid(iD, 2);	// extract day stting
+	sY = sData.Mid(iY, 4);	// extract year string
+	sM = sData.Mid(iM, 2);	// extract month string
+	sD = sData.Mid(iD, 2);	// extract day stting
 
-	lY = atol(sY.c_str());	// extract year number
-	lM = atol(sM.c_str());	// extract month number
-	lD = atol(sD.c_str());	// extract day number
+	lY = _ttol(sY.c_str());	// extract year number
+	lM = _ttol(sM.c_str());	// extract month number
+	lD = _ttol(sD.c_str());	// extract day number
 
 	// Year must be anywhere from 1900 to 2099
 	if (lY < 1900 || lY > 2099)
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, "Invalid year %ld", lY);
-		bRet = FALSE;
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, _T("Invalid year %ld"), lY);
+		bRet = false;
 	}
 
 	// Month between 1 and 12
 	if (lM < 1 || lM > 12) 
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, "Invalid month %ld", lM);
-		bRet = FALSE;
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, _T("Invalid month %ld"), lM);
+		bRet = false;
 	}
 
 	// Day between 1 and ...
 	if (lD < 1 || lD > DaysInMonth(lY, lM))
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, "Invalid day %ld", lD);
-		bRet = FALSE;
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, _T("Invalid day %ld"), lD);
+		bRet = false;
 	}
 
 	return bRet;
@@ -1832,44 +1821,44 @@ long CIWVerification::DaysInMonth(long y, long m)
 	return numberOfDays;
 }
 
-BOOL CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, const char *pData)
+bool CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData)
 // Check Mandatory Map contents, if applicable
 {
 	std::vector<CStdString> vals;
 	CStdString				sVal;
-	BOOL					bFound = false;
+	bool					bFound = false;
 
 	vals = pRule->GetMMapValNames();
 
-	if (vals.size() == 0) return TRUE; // nothing to check, no mandatory map exists
+	if (vals.size() == 0) return true; // nothing to check, no mandatory map exists
 
 	for (unsigned int i = 0; i < vals.size(); i++)
 	{
 		sVal = vals.at(i);
-		if (strcmp(sVal, pData) == 0)
+		if (sVal == sData)
 		{	
-			bFound = TRUE;
+			bFound = true;
 			break;
 		}
 	}
 
 	if (!bFound)
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, "'%s': invalid data from mandatory map", pData);
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, _T("'%s': invalid data from mandatory map"), sData.c_str());
 	}
 
 	return bFound;
 }
 
-BOOL CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount)
+bool CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj *pRule, int nSubfieldCount)
 // Given a rule, make sure the number of subfields falls in the legal range. Note that we never consider
 // 0 an error, since this just means the subfield is not present, and mandatory fields are checked elsewhere.
 {
-	BOOL		bRet = TRUE;
+	bool		bRet = true;
 	int			nMinOccurrences;
 	int			nMaxOccurrences;
 
-	if (nSubfieldCount == 0) return TRUE;
+	if (nSubfieldCount == 0) return true;
 
 	nMinOccurrences = pRule->GetMinOccurrences();
 	nMaxOccurrences = pRule->GetMaxOccurrences();
@@ -1881,10 +1870,10 @@ BOOL CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 			if (nSubfieldCount != nMinOccurrences)
 			{
 				if (nSubfieldCount < nMinOccurrences)
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, "Too few subfields (%ld), must be %ld", nSubfieldCount, nMinOccurrences);
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, _T("Too few subfields (%ld), must be %ld"), nSubfieldCount, nMinOccurrences);
 				else
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, "Too many subfields (%ld), must be %ld", nSubfieldCount, nMinOccurrences);
-				bRet = FALSE;
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, _T("Too many subfields (%ld), must be %ld"), nSubfieldCount, nMinOccurrences);
+				bRet = false;
 			}
 		}
 	}
@@ -1894,16 +1883,16 @@ BOOL CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 		{
 			if (nSubfieldCount < nMinOccurrences)
 			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, "Too few subfields (%ld), minimum allowed is %ld", nSubfieldCount, nMinOccurrences);
-				bRet = FALSE;
+				FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, _T("Too few subfields (%ld), minimum allowed is %ld"), nSubfieldCount, nMinOccurrences);
+				bRet = false;
 			}
 		}
 		if (nMaxOccurrences != RANGE_NOTSPECIFIED) // Check max
 		{
 			if (nSubfieldCount > nMaxOccurrences)
 			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, "Too many subfields (%ld), maximum allowed is %ld", nSubfieldCount, nMaxOccurrences);
-				bRet = FALSE;
+				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, _T("Too many subfields (%ld), maximum allowed is %ld"), nSubfieldCount, nMaxOccurrences);
+				bRet = false;
 			}
 		}
 	}
@@ -1911,16 +1900,16 @@ BOOL CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 	return bRet;
 }
 
-BOOL CIWVerification::IsAlpha(CStdString& s)
+bool CIWVerification::IsAlpha(CStdString& s)
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
 	{
 		if (!_istalpha(s.GetAt(i)))
 		{
-			bRet = FALSE;
+			bRet = false;
 			break;
 		}
 	}
@@ -1928,16 +1917,16 @@ BOOL CIWVerification::IsAlpha(CStdString& s)
 	return bRet;
 }
 
-BOOL CIWVerification::IsNumeric(CStdString& s)
+bool CIWVerification::IsNumeric(CStdString& s)
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
 	{
 		if (!_istdigit(s.GetAt(i)))
 		{
-			bRet = FALSE;
+			bRet = false;
 			break;
 		}
 	}
@@ -1945,16 +1934,16 @@ BOOL CIWVerification::IsNumeric(CStdString& s)
 	return bRet;
 }
 
-BOOL CIWVerification::IsAlphaNumeric(CStdString& s)
+bool CIWVerification::IsAlphaNumeric(CStdString& s)
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
 	{
 		if (!_istdigit(s.GetAt(i)) && !_istalpha(s.GetAt(i)))
 		{
-			bRet = FALSE;
+			bRet = false;
 			break;
 		}
 	}
@@ -1962,10 +1951,10 @@ BOOL CIWVerification::IsAlphaNumeric(CStdString& s)
 	return bRet;
 }
 
-BOOL CIWVerification::IsPrintable(CStdString& s, BOOL bAllowControlChars)
+bool CIWVerification::IsPrintable(CStdString& s, bool bAllowControlChars)
 {
-	BOOL bRet = TRUE;
-	char c;
+	bool bRet = true;
+	TCHAR c;
 	int  i;
 
 	for (i=0; i<s.GetLength(); i++)
@@ -1977,13 +1966,13 @@ BOOL CIWVerification::IsPrintable(CStdString& s, BOOL bAllowControlChars)
 			{
 				if  (c != 0x09 && c != 0x0A && c != 0x0D) // TAB, LF, CR
 				{
-					bRet = FALSE;
+					bRet = false;
 					break;
 				}
 			}
 			else
 			{
-				bRet = FALSE;
+				bRet = false;
 				break;
 			}
 		}
@@ -1992,19 +1981,19 @@ BOOL CIWVerification::IsPrintable(CStdString& s, BOOL bAllowControlChars)
 	return bRet;
 }
 
-BOOL CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
+bool CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
 // Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
 // means all printable characters + CR + LF + TAB.
 {
-	BOOL bRet = TRUE;
-	char c;
+	bool bRet = true;
+	TCHAR c;
 	int	 i;
 
-	if (!sSpecial.CompareNoCase("PRINT"))
+	if (!sSpecial.CompareNoCase(_T("PRINT")))
 	{
 		return IsPrintable(s, false);
 	}
-	else if (!sSpecial.CompareNoCase("PRINTCTRL"))
+	else if (!sSpecial.CompareNoCase(_T("PRINTCTRL")))
 	{
 		return IsPrintable(s, true);
 	}
@@ -2017,7 +2006,7 @@ BOOL CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
 			// Special Characters the string fails the test.
 			if (!_istalpha(c) && sSpecial.Find(c) == -1)
 			{
-				bRet = FALSE;
+				bRet = false;
 				break;
 			}
 		}
@@ -2026,19 +2015,19 @@ BOOL CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
 	}
 }
 
-BOOL CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
+bool CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
 // Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
 // means all printable characters + CR + LF + TAB.
 {
-	BOOL bRet = TRUE;
-	char c;
+	bool bRet = true;
+	TCHAR c;
 	int	 i;
 
-	if (!sSpecial.CompareNoCase("PRINT"))
+	if (!sSpecial.CompareNoCase(_T("PRINT")))
 	{
 		return IsPrintable(s, false);
 	}
-	else if (!sSpecial.CompareNoCase("PRINTCTRL"))
+	else if (!sSpecial.CompareNoCase(_T("PRINTCTRL")))
 	{
 		return IsPrintable(s, true);
 	}
@@ -2051,7 +2040,7 @@ BOOL CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
 			// Special Characters the string fails the test.
 			if (!_istdigit(c) && sSpecial.Find(c) == -1)
 			{
-				bRet = FALSE;
+				bRet = false;
 				break;
 			}
 		}
@@ -2060,19 +2049,19 @@ BOOL CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
 	}
 }
 
-BOOL CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
+bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 // Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
 // means all printable characters + CR + LF + TAB.
 {
-	BOOL bRet = TRUE;
-	char c;
+	bool bRet = true;
+	TCHAR c;
 	int	 i;
 
-	if (!sSpecial.CompareNoCase("PRINT"))
+	if (!sSpecial.CompareNoCase(_T("PRINT")))
 	{
 		return IsPrintable(s, false);
 	}
-	else if (!sSpecial.CompareNoCase("PRINTCTRL"))
+	else if (!sSpecial.CompareNoCase(_T("PRINTCTRL")))
 	{
 		return IsPrintable(s, true);
 	}
@@ -2085,7 +2074,7 @@ BOOL CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 			// Special Characters the string fails the test.
 			if (!_istalpha(c) && !_istdigit(c) && sSpecial.Find(c) == -1)
 			{
-				bRet = FALSE;
+				bRet = false;
 				break;
 			}
 		}
@@ -2096,47 +2085,46 @@ BOOL CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 
 void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, const TCHAR *szFormat, ...)
 {
-	#define cchErrMax (MAXERRORLEN - 256)
-	TCHAR szErr[cchErrMax];
-	TCHAR szMsg[MAXERRORLEN];
+	TCHAR szErr[1024];
+	CStdString sMsg;
 
 	va_list args;
 	va_start(args, szFormat);
-	_vsntprintf_s(szErr, cchErrMax, cchErrMax, szFormat, args);
+	_vsntprintf_s(szErr, 1024, 1024, szFormat, args);
 	va_end(args);
 
-	_stprintf_s(szMsg, MAXERRORLEN, _T("Field %s (%s): %s"), pRule->GetMNU().c_str(), pRule->GetLocation().c_str(), szErr);
+	sMsg.Format(_T("Field %s (%s): %s"), pRule->GetMNU().c_str(), pRule->GetLocation().c_str(), szErr);
 
-	pTrans->AddError(szMsg, nErrCode);
-	OutputDebugString(szMsg);
+	pTrans->AddError(sMsg, nErrCode);
+	OutputDebugString(sMsg);
 }
 
-CRuleObj *CIWVerification::GetRule(const char *pMNU)
+CRuleObj *CIWVerification::GetRule(CStdString sMNU)
 {
 	CRuleObj *pRet = NULL;
 	int nCount = m_rulesAry.size();
 	CRuleObj *pTemp;
-	CStdString stMNU;
 
 	for (int i = 0; i < nCount; i++)
 	{
 		pTemp = &m_rulesAry.at(i);
-
-		stMNU = pTemp->GetMNU();
-		if (!stMNU.CompareNoCase(pMNU))
+		if (pTemp)
 		{
-			pRet = pTemp;
-			break;
+			if (!sMNU.CompareNoCase(pTemp->GetMNU()))
+			{
+				pRet = pTemp;
+				break;
+			}
 		}
 	}
 	
 	return pRet;
 }
 
-int CIWVerification::GetMNULocation(const char *pMNU, int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item)
+int CIWVerification::GetMNULocation(CStdString sMNU, int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item)
 {
 	int nRet = IW_ERR_MNEMONIC_NOT_FOUND;
-	CRuleObj *pRule = GetRule(pMNU);
+	CRuleObj *pRule = GetRule(sMNU);
 
 	if (pRule)
 	{
@@ -2147,7 +2135,7 @@ int CIWVerification::GetMNULocation(const char *pMNU, int inputIndex, int inputR
 	return nRet;
 }
 
-int CIWVerification::GetTransactionCategories(int DataArraySize, const char **ppDataArray, int *pEntries)
+int CIWVerification::GetTransactionCategories(int DataArraySize, const TCHAR **ppDataArray, int *pEntries)
 {
 	int nRet = IW_SUCCESS;
 	int nSize = m_transactionDefAry.size();
@@ -2155,22 +2143,23 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const char **pp
 
 	DebugOutputVerification();
 	
-	const char *pCat = ppDataArray ? *ppDataArray : NULL;
+	const TCHAR *pCat = ppDataArray ? *ppDataArray : NULL;
 	int nPos = 0;
-	BOOL bCopy = DataArraySize > 0;
+	bool bCopy = DataArraySize > 0;
 	std::vector<CStdString> sCategoryAry; // hack to workaround poor logic in parsing
 	int nCount, j;
-	BOOL bFound = FALSE;
+	bool bFound = false;
+
 	for (int i = 0; i < nSize; i++)
 	{
 		pTransDef = &m_transactionDefAry.at(i);
 
 		nCount = sCategoryAry.size();
-		bFound = FALSE;
+		bFound = false;
 		for (j = 0; j < nCount && !bFound; j++)
 		{
 			if (!sCategoryAry.at(j).CompareNoCase(pTransDef->m_sCategory))
-				bFound = TRUE; // we've already counted this category
+				bFound = true; // we've already counted this category
 		}
 
 		if (!bFound)
@@ -2179,7 +2168,7 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const char **pp
 			{
 				if (nPos < DataArraySize)
 				{
-					ppDataArray[nPos] = (LPCSTR)pTransDef->m_sCategory;
+					ppDataArray[nPos] = pTransDef->m_sCategory;
 					sCategoryAry.push_back(pTransDef->m_sCategory);
 				}
 				else
@@ -2191,21 +2180,21 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const char **pp
 			nPos++;
 		}
 	}
-			
+
 	*pEntries = nPos;
-		
+
 	return nRet;
 }
 
-int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataArray, 
-										 const char **ppDescArray, int *pEntries, const char *pCategory)
+int CIWVerification::GetTransactionTypes(int DataArraySize, const TCHAR **ppDataArray, 
+										 const TCHAR **ppDescArray, int *pEntries, const TCHAR *pCategory)
 {
 	int						nRet = IW_SUCCESS;
 	int						nSize = m_transactionDefAry.size();
 	CTransactionDefinition	*pTransDef = NULL; 
 	CStdString				sCategory(pCategory);
 	int						nPos = 0;
-	BOOL					bCopy = DataArraySize > 0;
+	bool					bCopy = DataArraySize > 0;
 
 	for (int i = 0; i < nSize; i++)
 	{
@@ -2219,9 +2208,9 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataA
 				{
 					if (nPos < DataArraySize)
 					{
-						ppDataArray[nPos] = (LPCSTR)pTransDef->m_TOTArray.at(j);
+						ppDataArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTArray.at(j));
 						if (ppDescArray)
-							ppDescArray[nPos] = (LPCSTR)pTransDef->m_TOTLabelArray.at(j);
+							ppDescArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTLabelArray.at(j));
 					}
 					else
 						break;
@@ -2239,9 +2228,9 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataA
 					{
 						if (nPos < DataArraySize)
 						{
-							ppDataArray[nPos] = (LPCSTR)pTransDef->m_TOTArray.at(j);
+							ppDataArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTArray.at(j));
 							if (ppDescArray)
-								ppDescArray[nPos] = (LPCSTR)pTransDef->m_TOTLabelArray.at(j);
+								ppDescArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTLabelArray.at(j));
 						}
 						else
 							break;
@@ -2251,20 +2240,20 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const char **ppDataA
 			}
 		}
 	}
-			
+
 	*pEntries = nPos;
-		
+
 	return nRet;
 }
 
 int CIWVerification::GetRecordTypeOccurrences(int DataArraySize, int *piRecordType, int *piMinOccurrences, int *piMaxOccurrences,
-											 int *pEntries, const char *pTOT)
+											 int *pEntries, const TCHAR *pTOT)
 {
 	int								nRet = IW_SUCCESS;
 	int								nSize = m_transactionDefAry.size();
 	CTransactionDefinition			*pTransDef = NULL; 
 	std::vector<CRecordTypeCount>	recTypeCountAry;
-	BOOL							bCopy = DataArraySize > 0;
+	bool							bCopy = DataArraySize > 0;
 	CStdString						sTOT(pTOT);
 
 	if (!pEntries) return IW_ERR_NULL_POINTER;
@@ -2308,27 +2297,13 @@ int CIWVerification::GetRecordTypeOccurrences(int DataArraySize, int *piRecordTy
 	return nRet;
 }
 
-#define MAXLEN_MNU			32
-#define	MAXLEN_DESC			1024
-#define	MAXLEN_LONGDESC		2048
-#define MAXLEN_CHARTYPE		64
-#define MAXLEN_DATEFORMAT	64
-#define MAXLEN_ALLOWEDCHARS 257
-#define MAXLEN_VALUENAME	64
-#define MAXLEN_VALUEDESC	1024
-#define MAXSLOTS			1000
-
-int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize, const char** ppDataArray, const char** ppDescArray, int* pEntries)
+int CIWVerification::GetMnemonics(const TCHAR* TransactionType, int DataArraySize, const TCHAR** ppDataArray, const TCHAR** ppDescArray, int* pEntries)
 {
 	int			nRet = IW_SUCCESS;
 	CRuleObj	*pRule;
 	int			nPos = 0;
-	BOOL		bCopy = DataArraySize > 0;
+	bool		bCopy = DataArraySize > 0;
 	CStdString	sTOT(TransactionType);
-	// Kludge: We follow the same interface where strings get passed back as pre-allocated memory
-	// hence we keep 500 static slots on hand.
-	static char szMNU[MAXSLOTS][MAXLEN_MNU];
-	static char szMNUDescription[MAXSLOTS][1024];
 
 	for (int i=0; i < (int)m_rulesAry.size(); i++)
 	{
@@ -2338,13 +2313,10 @@ int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize
 		{
 			if (bCopy)
 			{
-				if (nPos < min(DataArraySize, MAXSLOTS))
+				if (nPos < DataArraySize)
 				{
-					strncpy(szMNU[nPos], pRule->GetMNU(), MAXLEN_MNU); szMNU[nPos][MAXLEN_MNU-1] = '\0';
-					ppDataArray[nPos] = szMNU[nPos];
-
-					strncpy(szMNUDescription[nPos], pRule->GetDescription(), MAXLEN_DESC); szMNUDescription[nPos][MAXLEN_DESC-1] = '\0';
-					ppDescArray[nPos] = szMNUDescription[nPos];
+					ppDataArray[nPos] = CreateNewStringSlot(pRule->GetMNU());
+					ppDescArray[nPos] = CreateNewStringSlot(pRule->GetDescription());
 				}
 				else
 				{
@@ -2360,36 +2332,29 @@ int CIWVerification::GetMnemonics(const char* TransactionType, int DataArraySize
 	return nRet;
 }
 
-static const char s_rgszAutomaticMNU[][10] =
+static const TCHAR s_rgszAutomaticMNU[][10] =
 {
-	 "T1_LEN",  "T1_VER",  "T1_CNT",  "T1_TOT",
-	 "T2_LEN",  "T2_IDC",
-	 "T4_LEN",  "T4_IDC",  "T4_HLL",  "T4_VLL",  "T4_GCA",  "T4_DAT",
-	 "T7_LEN",  "T7_IDC",  "T7_HLL",  "T7_VLL",  "T7_GCA",  "T7_DAT",
-	 "T9_LEN",  "T9_IDC",
-	"T10_LEN", "T10_IDC", "T10_HLL", "T10_VLL", "T10_SLC", "T10_HPS", "T10_VPS", "T10_CGA", "T10_DAT",
-	"T14_LEN", "T14_IDC", "T14_HLL", "T14_VLL", "T14_SLC", "T14_HPS", "T14_VPS", "T10_CGA", "T14_BPX", "T10_DAT",
-	"T16_LEN", "T16_IDC", "T16_HLL", "T16_VLL", "T16_SLC", "T16_HPS", "T16_VPS", "T16_CGA", "T16_BPX", "T16_DAT"
+	 _T("T1_LEN"),  _T("T1_VER"),  _T("T1_CNT"),  _T("T1_TOT"), _T("T1_DCS"),
+	 _T("T2_LEN"),  _T("T2_IDC"),
+	 _T("T4_LEN"),  _T("T4_IDC"),  _T("T4_HLL"),  _T("T4_VLL"),  _T("T4_GCA"),  _T("T4_DAT"),
+	 _T("T7_LEN"),  _T("T7_IDC"),  _T("T7_HLL"),  _T("T7_VLL"),  _T("T7_GCA"),  _T("T7_DAT"),
+	 _T("T9_LEN"),  _T("T9_IDC"),
+	_T("T10_LEN"), _T("T10_IDC"), _T("T10_HLL"), _T("T10_VLL"), _T("T10_SLC"), _T("T10_HPS"), _T("T10_VPS"), _T("T10_CGA"), _T("T10_DAT"),
+	_T("T14_LEN"), _T("T14_IDC"), _T("T14_HLL"), _T("T14_VLL"), _T("T14_SLC"), _T("T14_HPS"), _T("T14_VPS"), _T("T10_CGA"), _T("T14_BPX"), _T("T10_DAT"),
+	_T("T16_LEN"), _T("T16_IDC"), _T("T16_HLL"), _T("T16_VLL"), _T("T16_SLC"), _T("T16_HPS"), _T("T16_VPS"), _T("T16_CGA"), _T("T16_BPX"), _T("T16_DAT")
 };
 
-static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticMNU[0]);;
-  
-int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
-										 int* pItem, const char** ppDesc, const char** ppLongDesc, const char** ppCharType, const char** ppAllowedChars,
-										 const char** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
+static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticMNU[0]);
+
+int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCHAR* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
+										 int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType, const TCHAR** ppAllowedChars,
+										 const TCHAR** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
 										 bool* pAutomaticallySet, bool* pMandatory)
 {
 	int			nRet = IW_ERR_MNEMONIC_NOT_FOUND;
 	CRuleObj	*pRule;
 	CStdString	sTOT(TransactionType);
 	bool		bAuto;
-	// We follow the same interface where strings get passed back as pre-allocated memory
-	// hence we keep static slots on hand.
-	static char szMNUDescription[MAXLEN_DESC];
-	static char szMNULongDescription[MAXLEN_LONGDESC];
-	static char szMNUCharType[MAXLEN_CHARTYPE];
-	static char szMNUAllowedChars[MAXLEN_ALLOWEDCHARS];
-	static char szMNUDateFormat[MAXLEN_DATEFORMAT];
 
 	if (TransactionType == NULL) return IW_ERR_NULL_POINTER;
 	if (pMnemonic == NULL) return IW_ERR_NULL_POINTER;
@@ -2430,16 +2395,11 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 				*pMandatory = pRule->IsMandatory(sTOT) ? true : false;
 
 				// string parameters
-				strncpy(szMNUDescription, pRule->GetDescription(), MAXLEN_DESC); szMNUDescription[MAXLEN_DESC-1] = '\0';
-				*ppDesc = szMNUDescription;
-				strncpy(szMNULongDescription, pRule->GetLongDescription(), MAXLEN_LONGDESC); szMNULongDescription[MAXLEN_LONGDESC-1] = '\0';
-				*ppLongDesc = szMNULongDescription;
-				strncpy(szMNUCharType, pRule->GetCharType(), MAXLEN_CHARTYPE); szMNUCharType[MAXLEN_CHARTYPE-1] = '\0';
-				*ppCharType = szMNUCharType;
-				strncpy(szMNUAllowedChars, pRule->GetAllowedChars(), MAXLEN_ALLOWEDCHARS); szMNUAllowedChars[MAXLEN_ALLOWEDCHARS-1] = '\0';
-				*ppAllowedChars = szMNUAllowedChars;
-				strncpy(szMNUDateFormat, pRule->GetDateFormat(), MAXLEN_DATEFORMAT); szMNUDateFormat[MAXLEN_DATEFORMAT-1] = '\0';
-				*ppDateFormat = szMNUDateFormat;
+				*ppDesc = CreateNewStringSlot(pRule->GetDescription());
+				*ppLongDesc = CreateNewStringSlot(pRule->GetLongDescription());
+				*ppCharType = CreateNewStringSlot(pRule->GetCharType());
+				*ppAllowedChars = CreateNewStringSlot(pRule->GetAllowedChars());
+				*ppDateFormat = CreateNewStringSlot(pRule->GetDateFormat());
 
 				// Is field automatically managed by OpenEBTS? Scan array.
 				bAuto = false;
@@ -2447,7 +2407,7 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 				{
 					if (pRule->GetMNU().CompareNoCase(s_rgszAutomaticMNU[j]) == 0)
 					{
-						bAuto = TRUE;
+						bAuto = true;
 						break;
 					}
 				}
@@ -2461,8 +2421,8 @@ int CIWVerification::GetRuleRestrictions(const char* TransactionType, const char
 	return nRet;
 }
 
-int CIWVerification::GetValueList(const char* TransactionType, const char* pMnemonic, int *pMandatory,
-								  int DataArraySize, const char** ppDataArray, const char** ppDescArray, int *pEntries)
+int CIWVerification::GetValueList(const TCHAR* TransactionType, const TCHAR* pMnemonic, bool *pMandatory,
+								  int DataArraySize, const TCHAR** ppDataArray, const TCHAR** ppDescArray, int *pEntries)
 {
 	int						nRet = IW_ERR_MNEMONIC_NOT_FOUND;
 	CRuleObj				*pRule;
@@ -2470,11 +2430,7 @@ int CIWVerification::GetValueList(const char* TransactionType, const char* pMnem
 	std::vector<CStdString> names;
 	std::vector<CStdString> descriptions;
 	CStdString				sVal;
-	BOOL					bCopy = DataArraySize > 0;
-	// We follow the same interface where strings get passed back as pre-allocated memory
-	// hence we keep static slots on hand.
-	static char szValueName[MAXSLOTS][MAXLEN_VALUENAME];
-	static char szValueDesc[MAXSLOTS][MAXLEN_VALUEDESC];
+	bool					bCopy = DataArraySize > 0;
 
 	if (TransactionType == NULL) return IW_ERR_NULL_POINTER;
 	if (pMnemonic == NULL) return IW_ERR_NULL_POINTER;
@@ -2509,13 +2465,10 @@ int CIWVerification::GetValueList(const char* TransactionType, const char* pMnem
 				{
 					for (int j = 0; j < *pEntries; j++)
 					{
-						if (j < min(DataArraySize, MAXSLOTS))
+						if (j < DataArraySize)
 						{
-							strncpy(szValueName[j], names.at(j), MAXLEN_VALUENAME); szValueName[j][MAXLEN_VALUENAME-1] = '\0';
-							ppDataArray[j] = szValueName[j];
-
-							strncpy(szValueDesc[j], descriptions.at(j), MAXLEN_VALUEDESC); szValueDesc[j][MAXLEN_VALUEDESC-1] = '\0';
-							ppDescArray[j] = szValueDesc[j];
+							ppDataArray[j] = CreateNewStringSlot(names.at(j));
+							ppDescArray[j] = CreateNewStringSlot(descriptions.at(j));
 						}
 						else
 							break;

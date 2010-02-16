@@ -21,13 +21,13 @@ CRuleObj::~CRuleObj()
 {
 }
 
-BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
+bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
 					   CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
 					   CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sOMap,
 					   CStdString& sTags, CStdString& sErr)
 {
 	CStdString sTemp;
-	BOOL bRet = FALSE;
+	bool bRet = false;
 
 	sErr.Empty();
 
@@ -39,71 +39,71 @@ BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 	}
 	if (!SetLocation(sLocation))
 	{
-		sErr.Format("Invalid location: %s", sLocation);
+		sErr.Format(_T("Invalid location: %s"), sLocation);
 		goto done;
 	}
 	if (!SetMNU(sMNU))
 	{
-		sErr.Format("Invalid MNU: %s", sMNU);
+		sErr.Format(_T("Invalid MNU: %s"), sMNU);
 		goto done;
 	}
 	if (!SetCharType(sCharType))
 	{
-		sErr.Format("%s, invalid char type: %s", m_sMNU, sCharType);
+		sErr.Format(_T("%s, invalid char type: %s"), m_sMNU, sCharType);
 		goto done;
 	}
 	if (!SetFieldSize(sFieldSize))
 	{
-		sErr.Format("%s, invalid field size: %s", m_sMNU, sFieldSize);
+		sErr.Format(_T("%s, invalid field size: %s"), m_sMNU, sFieldSize);
 		goto done;
 	}
 	if (!SetOccurrences(sOccurrences))
 	{
-		sErr.Format("%s, invalid occurrence value: %s", m_sMNU, sOccurrences);
+		sErr.Format(_T("%s, invalid occurrence value: %s"), m_sMNU, sOccurrences);
 		goto done;
 	}
 	if (!SetOptionalDescription(sDescription))
 	{
-		sErr.Format("%s, invalid description value: %s", m_sMNU, sDescription);
+		sErr.Format(_T("%s, invalid description value: %s"), m_sMNU, sDescription);
 		goto done;
 	}
 	if (!SetOptionalLongDescription(sLongDescription))
 	{
-		sErr.Format("%s, invalid long description value: %s", m_sMNU, sDescription);
+		sErr.Format(_T("%s, invalid long description value: %s"), m_sMNU, sDescription);
 		goto done;
 	}
 	if (!SetOptionalSpecialChars(sSpecialChars))
 	{
-		sErr.Format("%s, invalid sca value: %s", m_sMNU, sSpecialChars);
+		sErr.Format(_T("%s, invalid sca value: %s"), m_sMNU, sSpecialChars);
 		goto done;
 	}
 	if (!SetOptionalDateFormat(sDateFormat))
 	{
-		sErr.Format("%s, invalid date format value: %s", m_sMNU, sDateFormat);
+		sErr.Format(_T("%s, invalid date format value: %s"), m_sMNU, sDateFormat);
 		goto done;
 	}
 	if (!SetOptionalMMap(sMMap, sFilePath))
 	{
-		sErr.Format("%s, invalid mmap value: %s", m_sMNU, sMMap);
+		sErr.Format(_T("%s, invalid mmap value: %s"), m_sMNU, sMMap);
 		goto done;
 	}
 	if (!SetOptionalOMap(sOMap, sFilePath))
 	{
-		sErr.Format("%s, invalid omap value: %s", m_sMNU, sMMap);
+		sErr.Format(_T("%s, invalid omap value: %s"), m_sMNU, sMMap);
 		goto done;
 	}
 	if (!SetTags(sTags))
 	{
-		sErr.Format("%s, invalid tag value: %s", m_sMNU, sTags.Left(60));
+		sErr.Format(_T("%s, invalid tag value: %s"), m_sMNU, sTags.Left(60));
 		goto done;
 	}
 
 	// Sets m_sAllowedChars based on m_sCharType and m_sSpecialChars
 	SetAllowedChars();
 	OutputDebugString(GetAllowedChars());
-	OutputDebugString("\n");
+	OutputDebugString(_T("\n"));
 
-	bRet = TRUE;
+	bRet = true;
 
 #ifdef _DEBUG
 	DumpObject();
@@ -112,7 +112,7 @@ BOOL CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 done:
 	if (!sErr.IsEmpty())
 	{
-		LogFile(NULL, sErr);
+		LogFile(sErr);
 	}
 
 	return bRet;
@@ -122,10 +122,10 @@ void CRuleObj::DumpObject()
 {
 	CStdString sMsg;
 
-	sMsg.Format("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld desc(%s) sca(%s) date(%s) map(%s)",
+	sMsg.Format(_T("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld desc(%s) sca(%s) date(%s) map(%s)"),
 				m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
 				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMMap());
-	LogFile(NULL ,sMsg);
+	LogFile(sMsg);
 
 	UINT							nKey;
 	CStdString						sTemp, sMNU;
@@ -143,8 +143,8 @@ void CRuleObj::DumpObject()
 			break;
 	}
 
-	sMsg.Format("[DumpObject] %s, TOT's: %s", m_sMNU, sTemp);
-	LogFile(NULL, sMsg);
+	sMsg.Format(_T("[DumpObject] %s, TOT's: %s"), m_sMNU, sTemp);
+	LogFile(sMsg);
 }
 
 CStdString CRuleObj::GetTransactionListString()
@@ -176,32 +176,32 @@ CStdString CRuleObj::GetTransactionListString()
 	return sTemp;
 }
 
-BOOL CRuleObj::SetOptionalDescription(CStdString& sDescription)
+bool CRuleObj::SetOptionalDescription(CStdString& sDescription)
 {
 	m_sDescription = sDescription;
 
-	return TRUE;
+	return true;
 }
 
-BOOL CRuleObj::SetOptionalLongDescription(CStdString& sLongDescription)
+bool CRuleObj::SetOptionalLongDescription(CStdString& sLongDescription)
 {
 	m_sLongDescription = sLongDescription;
 
-	return TRUE;
+	return true;
 }
 
-BOOL CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
+bool CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
 {
 	m_sSpecialChars = sSpecialChars;
 
-	return TRUE;
+	return true;
 }
 
-BOOL CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
+bool CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 // Do a brief format verification. For now we support the "Z" prefix and the abbreviations "CCYY" (or "YYYY"),
 // "MM" and "DD.
 {
-	char		c;
+	TCHAR		c;
 	CStdString	sAllowed = "CYMD";
 
 	for (int i = 0; i < sDateFormat.GetLength(); i++)
@@ -213,41 +213,41 @@ BOOL CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 			// Invalid char found, unless it's the first char and it's a "Z"
 			if (!(i == 0 && c == 'Z'))
 			{
-				return FALSE;
+				return false;
 			}
 		}
 	}
 
-	if (sDateFormat != "")
+	if (!sDateFormat.IsEmpty())
 	{
 		// Make sure we have a year, month and day, otherwise the date can't be valid
-		if (sDateFormat.Find("YYYY") == -1 && sDateFormat.Find("CCYY") == -1) return FALSE;
-		if (sDateFormat.Find("MM") == -1) return FALSE;
-		if (sDateFormat.Find("DD") == -1) return FALSE;
+		if (sDateFormat.Find(_T("YYYY")) == -1 && sDateFormat.Find(_T("CCYY")) == -1) return false;
+		if (sDateFormat.Find(_T("MM")) == -1) return false;
+		if (sDateFormat.Find(_T("DD")) == -1) return false;
 	}
 
 	m_sDateFormat = sDateFormat;
 
-	return TRUE;
+	return true;
 }
 
-BOOL CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath)
+bool CRuleObj::SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath)
 {
 	return SetOptionalMap(sMMap, sFilePath, m_mmapName, m_mmapDesc);
 }
 
-BOOL CRuleObj::SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath)
+bool CRuleObj::SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath)
 {
 	return SetOptionalMap(sOMap, sFilePath, m_omapName, m_omapDesc);
 }
 
-BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
+bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 							  std::vector<CStdString>& mapValNames,
 							  std::vector<CStdString>& mapValDescriptions)
 // Populate map from the values inside mmap or omap tag, such as mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."
 // Support external file as well, as in mmap="file://<Path to external file>"
 {
-	char		c;
+	TCHAR		c;
 	bool		bInsideValue;
 	CStdString	sName;
 	CStdString	sDesc;
@@ -256,7 +256,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 	int			i;
 	int			j;
 
-	if (sMap.IsEmpty()) return TRUE;	// no map, nothing to copy
+	if (sMap.IsEmpty()) return true;	// no map, nothing to copy
 
 	/*
 	// We no longer do this verficiation because many lines in the original verification files
@@ -273,52 +273,66 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 		if (c == ':') ncolons++;
 		else if (c == '|') npipes++;
 	}
-	if (ncolons != npipes+1) return FALSE;
+	if (ncolons != npipes+1) return false;
 	*/
 
 	// First check if the info is in a file
 	if (sMap.Find(sFilePrefix) == 0) // (starts at position 0)
 	{
-		char		szDrive[_MAX_DRIVE];
-		char		szDir[_MAX_DIR];
-		char		szPath[_MAX_DIR];
+		TCHAR		szDrive[_MAX_DRIVE];
+		TCHAR		szDir[_MAX_DIR];
+		TCHAR		szPath[_MAX_DIR];
 		FILE		*f;
-		char		*pFile;
-		char		*pFileSave;
+		BYTE		*pFile;
 		long		lSize;
+		TCHAR		*szFile;
 
 		// Open file in same folder as main verification file and read-in contents
 
 		sFilename = sMap.Right(sMap.GetLength() - sFilePrefix.GetLength());
 
-		_splitpath(sFilePath, szDrive, szDir, NULL, NULL);
-		strcpy(szPath, szDrive);
-		strcat(szPath, szDir);
-		strcat(szPath, sFilename);
+		_tsplitpath(sFilePath, szDrive, szDir, NULL, NULL);
+		_tcscpy(szPath, szDrive);
+		_tcscat(szPath, szDir);
+		_tcscat(szPath, sFilename);
 
-		f = fopen(szPath, "rb");
+		f = _tfopen(szPath, _T("rb"));
 		if (f != NULL)
 		{
 			fseek(f, 0, SEEK_END);
 			lSize = ftell(f);
 			fseek(f, 0, SEEK_SET);
 
-			pFile = new char [lSize+2];
-			memset(pFile, '\0', lSize+2);
-			pFileSave = pFile;
+			pFile = new BYTE[lSize + 2];
+			memset(pFile, '\0', lSize + 2);
 			fread(pFile, 1, lSize, f);
+			pFile[lSize] =  0x0A; // end file with carriage return so parser can include last element easily
+			pFile[lSize+1] = '\0';
 			fclose(f);
 
-			pFile[lSize] =  0x0A; // end file with carriage return so parser can include last element easily
+#ifdef UNICODE
+			// In the UNICODE version of OpenEBTS, the Verification Files are in UTF-8
+			// (as are any external map files) hence we convert the buffer in-place to
+			// wide chars so we can proceed with simple generic _T code.
+
+			if (!UTF8toUCS2((const char*)pFile, &szFile))
+			{
+				return false;	// Error deconding UTF-8
+			}
+
+			delete pFile;
+#else
+			szFile = (char*)pFile;
+#endif
 
 			bInsideValue = true; // the first char of the string is the first char of the first value
 
-			for (i = 0; i < lSize+1; i++)
+			for (i = 0; i < (int)_tcslen(szFile); i++)
 			{
-				c = pFile[i];
+				c = szFile[i];
 				if (c == 0x09)
 				{
-					bInsideValue = FALSE;	// end of value, about to enter description
+					bInsideValue = false;	// end of value, about to enter description
 
 					// Save current value name in array and reset it
 					sName.Trim();
@@ -327,7 +341,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 				}
 				else if (c == 0x0A)
 				{
-					bInsideValue = TRUE;	// end of description, about to enter value
+					bInsideValue = true;	// end of description, about to enter value
 
 					// save current value descriptions is array and reset it
 					sDesc.Trim();
@@ -347,11 +361,11 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 				}
 			}
 
-			delete [] pFileSave;
+			delete szFile;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
@@ -368,7 +382,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 
 			if (c == ':')
 			{
-				bInsideValue = FALSE;	// end of value, about to enter description
+				bInsideValue = false;	// end of value, about to enter description
 
 				// Save current name value in array and reset it
 				sName.Trim();
@@ -388,7 +402,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 				}
 				i = j-1;	// skip to new position, backtracking to just before
 
-				bInsideValue = TRUE;	// end of description, about to enter value
+				bInsideValue = true;	// end of description, about to enter value
 
 				// save current value descriptions is array and reset it
 				sDesc.Trim();
@@ -409,7 +423,7 @@ BOOL CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 CStdString CRuleObj::GetMMap()
@@ -426,15 +440,15 @@ CStdString CRuleObj::GetMMap()
 	return sRet;
 }
 
-BOOL CRuleObj::SetTags(CStdString& sTags)
+bool CRuleObj::SetTags(CStdString& sTags)
 {
 #pragma message(" ===> CRuleObj, Tag support not implemented")
-	return TRUE;
+	return true;
 }
 
-BOOL CRuleObj::SetFieldSize(CStdString& sFieldSize)
+bool CRuleObj::SetFieldSize(CStdString& sFieldSize)
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 
 	int nMin = RANGE_INVALID, nMax = RANGE_INVALID;
 
@@ -442,15 +456,15 @@ BOOL CRuleObj::SetFieldSize(CStdString& sFieldSize)
 	{
 		m_nMinFieldSize = nMin;
 		m_nMaxFieldSize = nMax;
-		bRet = TRUE;
+		bRet = true;
 	}
 
 	return bRet;
 }
 
-BOOL CRuleObj::SetOccurrences(CStdString& sOccurence)
+bool CRuleObj::SetOccurrences(CStdString& sOccurence)
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 
 	int nMin = RANGE_INVALID, nMax = RANGE_INVALID;
 
@@ -458,15 +472,15 @@ BOOL CRuleObj::SetOccurrences(CStdString& sOccurence)
 	{
 		m_nMinOccurrences = nMin;
 		m_nMaxOccurrences = nMax;
-		bRet = TRUE;
+		bRet = true;
 	}
 
 	return bRet;
 }
 
-BOOL CRuleObj::SetRange(CStdString& sRange, int *pMin, int *pMax)
+bool CRuleObj::SetRange(CStdString& sRange, int *pMin, int *pMax)
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 	CStdString sErr;
 	int nMin = RANGE_INVALID, nMax = RANGE_INVALID;
 
@@ -488,7 +502,7 @@ BOOL CRuleObj::SetRange(CStdString& sRange, int *pMin, int *pMax)
 				{
 					*pMin = nMin;
 					*pMax = nMax;
-					bRet = TRUE;
+					bRet = true;
 				}
 			}
 		}
@@ -497,7 +511,7 @@ BOOL CRuleObj::SetRange(CStdString& sRange, int *pMin, int *pMax)
 			if (GetRangeValue(sTemp,&nMin))
 			{
 				*pMin = *pMax = nMin;
-				bRet = TRUE;
+				bRet = true;
 			}
 		}
 	}
@@ -507,13 +521,13 @@ BOOL CRuleObj::SetRange(CStdString& sRange, int *pMin, int *pMax)
 	return bRet;
 }
 
-BOOL CRuleObj::GetRangeValue(CStdString& sToken, int *pValue)
+bool CRuleObj::GetRangeValue(CStdString& sToken, int *pValue)
 {
-	BOOL bRet = FALSE;
-	CStdString sTemp(sToken);
-	BOOL bErr = FALSE;
-	char ch;
-	BOOL bNotSpecified = FALSE;
+	bool		bRet = false;
+	CStdString	sTemp(sToken);
+	bool		bErr = false;
+	TCHAR		ch;
+	bool		bNotSpecified = false;
 
 	sTemp.TrimLeft();
 	sTemp.TrimRight();
@@ -527,15 +541,15 @@ BOOL CRuleObj::GetRangeValue(CStdString& sToken, int *pValue)
 		{
 			case 0:
 				if (ch == 'X')
-					bNotSpecified = TRUE;
+					bNotSpecified = true;
 				else if (!isdigit(ch))
-					bErr = TRUE;
+					bErr = true;
 				break;
 			default:
 				if (bNotSpecified)
-					bErr = TRUE; // shouldn't be here
+					bErr = true; // shouldn't be here
 				else if (!isdigit(ch))
-					bErr = TRUE; // or here
+					bErr = true; // or here
 				break;
 		}
 	}
@@ -545,25 +559,25 @@ BOOL CRuleObj::GetRangeValue(CStdString& sToken, int *pValue)
 		if (bNotSpecified)
 			*pValue = RANGE_NOTSPECIFIED;
 		else
-			*pValue = atol(sTemp);
-		bRet = TRUE;
+			*pValue = _ttol(sTemp);
+		bRet = true;
 	}
 
 	return bRet;
 }
 
-BOOL CRuleObj::SetCharType(CStdString& sCharType)
+bool CRuleObj::SetCharType(CStdString& sCharType)
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 	CStdString sErr;
 
 	if (sCharType != _T(""))
 	{
 		int nPos = 0;
 		int nLen = sCharType.GetLength();
-		BOOL bErr = FALSE;
+		bool bErr = false;
 		CStdString sTemp(sCharType);
-		char ch, prevChar;
+		TCHAR ch, prevChar;
 
 		sTemp.MakeUpper();
 		for (int i = 0; i < nLen && !bErr; i++)
@@ -575,29 +589,29 @@ BOOL CRuleObj::SetCharType(CStdString& sCharType)
 					if (ch == 'A' || ch == 'N' || ch == 'B')
 						prevChar = ch;
 					else
-						bErr = TRUE;
+						bErr = true;
 					break;
 				case 1:
 					if (ch == 'N' || ch == 'S')
 					{
 						if (prevChar == 'B')
-							bErr = TRUE;
+							bErr = true;
 						else
 							prevChar = ch;
 					}
 					else if ((ch == '1' || ch == '2' || ch == '4') && prevChar != 'B')
-						bErr = TRUE;
+						bErr = true;
 					break;
 				case 2:
 					if (ch != 'S')
-						bErr = TRUE;
+						bErr = true;
 					break;
 
 				default:
-					bErr = TRUE; // too many chars
+					bErr = true; // too many chars
 			}
 		}
-		bRet = (bErr == FALSE);
+		bRet = (bErr == false);
 	}
 
 	if (bRet)
@@ -611,13 +625,13 @@ void CRuleObj::SetAllowedChars()
 // It's just a list of all alowed characters.
 {
 	char c;
-	BOOL bA;		// Alpha
-	BOOL bN;		// Numeric
-	BOOL bS;		// Special
-	BOOL bB;		// Binary
-	BOOL bP;		// Printable
-	BOOL bC;		// Control Chars
-	BOOL bCharOK;
+	bool bA;		// Alpha
+	bool bN;		// Numeric
+	bool bS;		// Special
+	bool bB;		// Binary
+	bool bP;		// Printable
+	bool bC;		// Control Chars
+	bool bCharOK;
 
 	m_sAllowedChars.Empty();
 
@@ -628,8 +642,8 @@ void CRuleObj::SetAllowedChars()
 	bB = (m_sCharType.Find('B') != -1);
 
 	// Simplify m_sSpecialChars into 2 bools
-	bC = !m_sSpecialChars.CompareNoCase("PRINTCTRL");
-	bP = bC || (!m_sSpecialChars.CompareNoCase("PRINT"));
+	bC = !m_sSpecialChars.CompareNoCase(_T("PRINTCTRL"));
+	bP = bC || (!m_sSpecialChars.CompareNoCase(_T("PRINT")));
 
 	// Check all ASCII chars for conformance
 	for (int i = 1; i < 256; i++)
@@ -676,24 +690,24 @@ void CRuleObj::SetAllowedChars()
 	}
 }
 
-BOOL CRuleObj::SetMNU(CStdString& sMNU)
+bool CRuleObj::SetMNU(CStdString& sMNU)
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 
 	if (sMNU != _T(""))
 	{
 		if (isalpha(sMNU.GetAt(0)))
 		{
 			int nLen = sMNU.GetLength();
-			BOOL bErr = FALSE;
+			bool bErr = false;
 
 			for (int i = 0; i < nLen && !bErr; i++)
 			{
 				if (!isalnum(sMNU.GetAt(i)) && !(sMNU.GetAt(i) == '_'))
-					bErr = TRUE;
+					bErr = true;
 			}
 
-			bRet = (bErr == FALSE);
+			bRet = (bErr == false);
 		}
 	}
 
@@ -703,11 +717,11 @@ BOOL CRuleObj::SetMNU(CStdString& sMNU)
 	return bRet;
 }
 
-BOOL CRuleObj::SetLocation(CStdString& sLocation)
+bool CRuleObj::SetLocation(CStdString& sLocation)
 {
 	CStdString sTemp(sLocation);
 	CStdString sErr;
-	BOOL bRet = TRUE;
+	bool bRet = true;
 
 	sTemp.TrimLeft();
 	sTemp.TrimRight();
@@ -748,11 +762,11 @@ BOOL CRuleObj::SetLocation(CStdString& sLocation)
 			m_nLocFormType = formAry[i].nForm;
 			
 			if (m_nLocFormType == LOC_FORM_4)
-				sTemp.Replace(':',' ');
+				sTemp.Replace(_T(':'), _T(' '));
 			else if (m_nLocFormType == LOC_FORM_5)
-				sTemp.Replace("..",".");
+				sTemp.Replace(_T(".."), _T("."));
 			else if (m_nLocFormType == LOC_FORM_6)
-				sTemp.Replace("...",".");
+				sTemp.Replace(_T("..."), _T("."));
 
 			break;
 		}
@@ -787,10 +801,11 @@ BOOL CRuleObj::SetLocation(CStdString& sLocation)
 			m_nSubField = nCount > 2 ? numAry.at(2) : 1;
 		}
 
-		bRet = TRUE;
+		bRet = true;
 	}
 
-	sErr.Format("Loc: %s (form %d), rec: %ld, field: %ld, subfield: %ld, item: %ld, offset: %ld\n",sLocation,m_nLocFormType,m_nRecordType,m_nField,m_nSubField,m_nItem,m_nOffset);
+	sErr.Format(_T("Loc: %s (form %d), rec: %ld, field: %ld, subfield: %ld, item: %ld, offset: %ld\n"),
+				sLocation, m_nLocFormType, m_nRecordType, m_nField, m_nSubField, m_nItem, m_nOffset);
 	OutputDebugString(sErr);
 
 	if (bRet)
@@ -799,11 +814,11 @@ BOOL CRuleObj::SetLocation(CStdString& sLocation)
 	return bRet;
 }
 
-BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
+bool CRuleObj::SetTransactions(CStdString& sTransactionList)
 {
 	CStdString sTemp;
 	CStdString sErr;
-	BOOL bRet = TRUE;
+	bool bRet = true;
 
 	sTemp = sTransactionList;
 	sTemp.Replace('\n',' ');
@@ -827,8 +842,8 @@ BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
 		CStdString sMandatory;
 		UINT nMandatoryOverride = 1;
 		int nPos1;
-		BOOL bCheckFirst = TRUE;
-		BOOL bSkipField = FALSE;
+		bool bCheckFirst = true;
+		bool bSkipField = false;
 		int nPos = sCopy.Find(',');
 		
 		while (nPos != -1)
@@ -840,18 +855,18 @@ BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
 			
 			if (sToken != _T(""))
 			{
-				bSkipField = FALSE;
+				bSkipField = false;
 				// the first entry can be a 'O' or an 'M' to set the requirement for all following
 				if (bCheckFirst)
 				{
-					bCheckFirst = FALSE;
+					bCheckFirst = false;
 					if (sToken.GetLength() == 1)
 					{
-						if (!sToken.Compare("O"))
+						if (!sToken.Compare(_T("O")))
 							m_transactionDefault = nMandatory = TRANS_OPTIONAL;
-						else if (!sToken.Compare("M"))
+						else if (!sToken.Compare(_T("M")))
 							m_transactionDefault = nMandatory = TRANS_MANDATORY;
-						bSkipField = TRUE;
+						bSkipField = true;
 					}
 				}
 
@@ -866,7 +881,7 @@ BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
 						sMNU.TrimRight();
 						sMandatory.TrimLeft();
 						sMandatory.TrimRight();
-						nMandatoryOverride = sMandatory.Compare("O") ? TRANS_MANDATORY : TRANS_OPTIONAL;
+						nMandatoryOverride = sMandatory.Compare(_T("O")) ? TRANS_MANDATORY : TRANS_OPTIONAL;
 					}
 					else
 					{
@@ -879,9 +894,9 @@ BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
 						m_transactionList[sMNU]= nMandatoryOverride;
 					else
 					{
-						sErr.Format("[CRuleObj::SetTransactions] Invalid MNU: %s", sMNU);
-						LogFile(NULL,sErr);
-						bRet = FALSE;
+						sErr.Format(_T("[CRuleObj::SetTransactions] Invalid MNU: %s"), sMNU);
+						LogFile(sErr);
+						bRet = false;
 					}
 				}
 			}
@@ -912,33 +927,39 @@ BOOL CRuleObj::SetTransactions(CStdString& sTransactionList)
 	return bRet;
 }
 
-BOOL CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
+bool CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
 {
-	boost::regex e;
-	std::string input;
-	CStdString sErr;
-	BOOL bRet = FALSE;
+#ifdef UNICODE
+	typedef	std::wstring stdstring;
+	boost::wregex	e;
+#else
+	typedef	std::string stdstring;
+	boost::regex	e;
+#endif
+	CStdString		sErr;
+	stdstring		input;
+	bool			bRet = false;
 
-	input = sInput;
-	
+	input = sInput.c_str();
+
 	try
 	{
-		e = sRegEx; // m_sRegEx;
+		e = sRegEx.c_str();
 	}
 	catch (...)
 	{
-		sErr.Format("[CRuleObj::TestRegEx] Exception thrown. %s. Maybe an invalid mask defined.",sRegEx);
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CRuleObj::TestRegEx] Exception thrown. %s. Maybe an invalid mask defined."), sRegEx);
+		LogFile(sErr);
 	}
 
 	try
 	{
 		// return false for partial match, true for full match, or throw for
 		// impossible match based on what we have so far...
-		boost::match_results<std::string::const_iterator> what;
+		boost::match_results<stdstring::const_iterator> what;
 		if(0 == boost::regex_match(input, what, e, boost::match_default | boost::match_partial))
 		{
-			bRet = FALSE;
+			bRet = false;
 			// the input so far could not possibly be valid so reject it:
 	//		throw std::runtime_error("Invalid data entered - this could not possibly be a valid card number");
 		}
@@ -947,21 +968,21 @@ BOOL CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
 		{
 			// excellent, we have a result:
 			// return true;
-			bRet = TRUE; // so far, so good
+			bRet = true; // so far, so good
 		}
 	}
 	catch (...)
 	{
-		sErr.Format("[CRuleObj::TestRegEx] Exception thrown 2. %s. Maybe an invalid mask defined.",sRegEx);
-		LogFile(NULL,sErr);
+		sErr.Format(_T("[CRuleObj::TestRegEx] Exception thrown 2. %s. Maybe an invalid mask defined."), sRegEx);
+		LogFile(sErr);
 	}
 
 	return bRet;
 }
 
-BOOL CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
+bool CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 {
-	BOOL bRet = TRUE;
+	bool bRet = true;
 	CStdString sTemp(sLocation);
 
 	if (sTemp != _T(""))
@@ -976,8 +997,8 @@ BOOL CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 		while (nPos != -1)
 		{
 			sToken = sCopy.Left(nPos);
-			
-			nVal = atol(sToken);			
+
+			nVal = _ttol(sToken);
 			pNumAry->push_back(nVal);
 
 			if (nPos+1 == sCopy.GetLength())
@@ -986,20 +1007,12 @@ BOOL CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 			sCopy = sCopy.Mid(nPos+1);
 			nPos = sCopy.Find('.');
 		}
-	}		
+	}
 
 	return bRet;
 }
 
-BOOL CRuleObj::IsValid()
-//TODO?
-{
-	BOOL bRet = FALSE;
-
-	return bRet;
-}
-
-BOOL CRuleObj::IsMandatory(CStdString& sTOT)
+bool CRuleObj::IsMandatory(CStdString& sTOT)
 // Given the Type Of Transaction, return is the field the rule refers to is mandatory for this type
 // of record. Currently we ignore Location Form Type 5 rules, such as "2.051..2" for example, because
 // these may be tagged as mandatory, but they are only mandatory if the associated field actually
@@ -1008,7 +1021,7 @@ BOOL CRuleObj::IsMandatory(CStdString& sTOT)
 // perhaps by having a smarter rule structure than just a flat array, i.e., a list of rules each
 // containing related subrules.
 {
-	BOOL bRet = false;
+	bool bRet = false;
 	UINT nMandatory;
 	CStdString sTemp;
 	CStdString sMNU;
@@ -1038,9 +1051,9 @@ BOOL CRuleObj::IsMandatory(CStdString& sTOT)
 	return bRet;
 }
 
-BOOL CRuleObj::IsOptional(CStdString& sTOT)
+bool CRuleObj::IsOptional(CStdString& sTOT)
 {
-	BOOL bRet = false;
+	bool bRet = false;
 	UINT nMandatory;
 	CStdString sTemp;
 	CStdString sMNU;
@@ -1076,10 +1089,10 @@ BOOL CRuleObj::IsOptional(CStdString& sTOT)
 	return bRet;
 }
 
-BOOL CRuleObj::AppliesTo(int iRecType, int iRecord, int iField, int iSubfield, int iItem)
+bool CRuleObj::AppliesTo(int iRecType, int iRecord, int iField, int iSubfield, int iItem)
 // TODO: study and support all Location Form Types (m_nLocFormType)
 {
-	BOOL	bRet = FALSE;
+	bool	bRet = false;
 	int		iRecTypeRule;
 	int		iRecordRule;
 	int		iFieldRule;
@@ -1091,16 +1104,16 @@ BOOL CRuleObj::AppliesTo(int iRecType, int iRecord, int iField, int iSubfield, i
 		if (iRecTypeRule == iRecType && iRecordRule == iRecord && iFieldRule == iField &&
 			iSubfieldRule == iSubfield && iItemRule == iItem)
 		{
-			bRet = TRUE;
+			bRet = true;
 		}
 	}
 
 	return bRet;
 }
 
-BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item)
+bool CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item)
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 
 	switch (m_nLocFormType)
 	{
@@ -1124,7 +1137,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = inputIndex;
 				*item = 1; 
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 
@@ -1146,7 +1159,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = m_nSubField;
 				*item = inputIndex;
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 
@@ -1168,7 +1181,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = m_nSubField;
 				*item = m_nItem;
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 
@@ -1187,7 +1200,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = m_nSubField;
 				*item = m_nItem;
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 
@@ -1212,7 +1225,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = inputIndex;
 				*item = m_nItem;
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 
@@ -1243,7 +1256,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = inputIndex;
 				*item = m_nItem;
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 
@@ -1274,7 +1287,7 @@ BOOL CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				*field = m_nField;
 				*subField = m_nSubField;
 				*item = m_nItem;
-				bRet = TRUE;
+				bRet = true;
 			}
 			break;
 	}

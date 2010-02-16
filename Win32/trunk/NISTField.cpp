@@ -19,50 +19,55 @@ void CSubFieldItem::CopyObj(const CSubFieldItem& obj)
 {
 	this->m_nSubField = obj.m_nSubField;
 	this->m_nSubFieldItem = obj.m_nSubFieldItem;
-
-	if (obj.m_pszData == NULL)
-	{
-		this->m_pszData = NULL;
-	}
-	else
-	{
-		int nLen = strlen(obj.m_pszData);
-		this->m_pszData = new char[nLen+1];
-		strcpy_s(this->m_pszData, nLen+1, obj.m_pszData);
-	}
+	this->m_sData = obj.m_sData;
 }
 
-int CSubFieldItem::SetItemData(int nSubField, int nSubFieldItem, const char *pszData)
+int CSubFieldItem::SetItemData(int nSubField, int nSubFieldItem, CStdString sData)
 {
 	int nRet = IW_ERR_OUT_OF_MEMORY;
 
-	if (m_pszData)
-	{
-		delete [] m_pszData;
-		m_pszData = 0;
-	}
+	IWS_BEGIN_EXCEPTION_METHOD("CSubFieldItem::SetItemData")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	m_nSubField = nSubField;
 	m_nSubFieldItem = nSubFieldItem;
-
-	IWS_BEGIN_EXCEPTION_METHOD("CSubFieldItem::SetItemData")
-
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (pszData)
-	{
-		int nLen = strlen(pszData);
-
-		m_pszData = new char[nLen+1];
-
-		strcpy_s(m_pszData, nLen+1, pszData);
-	}
+	m_sData = sData;
 
 	nRet = IW_SUCCESS;
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
+}
+
+int CSubFieldItem::GetLength()
+// Get *byte* length of field, used to populate LEN record fields
+{
+#ifdef UNICODE
+	// Since the field will be stored in UTF-8, we have to temporarily convert it
+	// to get to know its size. TODO: this can be made more efficient by limiting
+	// the number of conversions performed. As it stands we do it once to get the
+	// total byte count to allow setting the LEN field, and again when it comes to
+	// to write out the data.
+	int nLen = 0;
+	char *szOut;
+	if (UCS2toUTF8(m_sData, &szOut, &nLen))
+	{
+		delete szOut;
+		// Returned lenght is allocated byte-length, so we don't include the null-terminator
+		return nLen - 1;
+	}
+	else
+	{
+		// In the rare possibility of a conversion error, we don;t do anything
+		// here but return 0. The error will eventually get caught when writing
+		// the file contents.
+		return 0;
+	}
+#else
+	// Just the number of characters
+	return m_sData.GetLength();
+#endif
 }
 
 /************************************************************/
@@ -113,7 +118,7 @@ void CNISTField::InitVars()
 	m_ImageFormat = fmtUNK;
 	m_nRecordLen = 0;
 	m_nRecordType = 0;
-	m_bWriteRecordSeperator = FALSE;
+	m_bWriteRecordSeperator = false;
 }
 
 CNISTField::~CNISTField() 
@@ -136,11 +141,11 @@ CNISTField::~CNISTField()
 	}
 }
 
-int CNISTField::SetSubField(int nSubField, int nSubFieldItem, const char *pData)
+int CNISTField::SetSubField(int nSubField, int nSubFieldItem, CStdString sData)
 {
 	int nCount = m_SubFieldAry.size();
 	int nRet = IW_SUCCESS;
-	BOOL bFound = FALSE;
+	bool bFound = false;
 	CSubFieldItem* pItem;
 
 	for (int i = 0; i < nCount && !bFound; i++)
@@ -149,15 +154,15 @@ int CNISTField::SetSubField(int nSubField, int nSubFieldItem, const char *pData)
 		
 		if (pItem->m_nSubField == nSubField &&  pItem->m_nSubFieldItem == nSubFieldItem)
 		{
-			nRet = pItem->SetItemData(nSubField, nSubFieldItem, pData);
-			bFound = TRUE;
+			nRet = pItem->SetItemData(nSubField, nSubFieldItem, sData);
+			bFound = true;
 		}
 	}
 
 	if (!bFound)
 	{
 		pItem = new CSubFieldItem;
-		nRet = pItem->SetItemData(nSubField, nSubFieldItem, pData);
+		nRet = pItem->SetItemData(nSubField, nSubFieldItem, sData);
 		m_SubFieldAry.push_back(pItem);
 	}
 
@@ -168,7 +173,7 @@ int CNISTField::RemoveSubField(int nSubField)
 {
 	int nCount = m_SubFieldAry.size();
 	int nRet = IW_SUCCESS;
-	BOOL bFound = FALSE;
+	bool bFound = false;
 	CSubFieldItem *pItem;
 	std::vector<WORD> wSubFieldIndex;
 	WORD wLastIndexDeleted;
@@ -183,7 +188,7 @@ int CNISTField::RemoveSubField(int nSubField)
 		if (pItem->m_nSubField == nSubField)
 		{
 			wSubFieldIndex.push_back(i);
-			bFound = TRUE;
+			bFound = true;
 		}
 	}
 
@@ -243,15 +248,14 @@ int CNISTField::GetNumSubfields()
 	return nRet;
 }
 
-int CNISTField::AddItem(int RecordType, int Field, int Subfield, 
-														int Item, const char *pData)
+int CNISTField::AddItem(int RecordType, int Field, int Subfield, int Item, CStdString sData)
 {
 	int nRet = IW_SUCCESS;
 
 	m_nRecordType = RecordType;
 	m_nField = Field;
 
-	nRet = SetSubField(Subfield, Item, pData);
+	nRet = SetSubField(Subfield, Item, sData);
 
 	return nRet;
 }
@@ -300,11 +304,12 @@ int CNISTField::SetImageData(unsigned char *pImage, int nImageLen)
 	return nRet;
 }
 
-int CNISTField::FindItem(int Subfield, int Item, const char** ppData)
+int CNISTField::FindItem(int nSubfield, int nItem, CStdString& sData)
 {
 	int nRet = IW_SUCCESS;
-	
-	*ppData = NULL;
+	bool bFound = false;
+
+	sData.Empty();
 
 	int nCount = m_SubFieldAry.size();
 	CSubFieldItem *pSubfield;
@@ -313,52 +318,43 @@ int CNISTField::FindItem(int Subfield, int Item, const char** ppData)
 	{
 		pSubfield = m_SubFieldAry.at(i);
 
-		if (pSubfield->m_nSubField == Subfield && 
-					pSubfield->m_nSubFieldItem == Item)
+		if (pSubfield->m_nSubField == nSubfield && pSubfield->m_nSubFieldItem == nItem)
 		{
-			*ppData = pSubfield->m_pszData;
+			sData = pSubfield->m_sData;
+			bFound = true;
 			break;
 		}
 	}
 
-	if (*ppData == NULL)
-		nRet = IW_ERR_RECORD_NOT_FOUND;
+	if (!bFound) nRet = IW_ERR_RECORD_NOT_FOUND;
 
 	return nRet;
 }
 
-const char* CNISTField::ImageExtFromImageFormat(IWImageFormat fmt)
+CStdString CNISTField::ImageExtFromImageFormat(IWImageFormat fmt)
 {
-	static char *szRAW = "raw";
-	static char *szBMP = "bmp";
-	static char *szJPG = "jpg";
-	static char *szWSQ = "wsq";
-	static char *szJP2 = "jp2";
-	static char *szFX4 = "fx4";
-	static char *szCBEFF = "cbeff";
-
 	switch (fmt)
 	{
-		case fmtRAW: return szRAW; break;
-		case fmtBMP: return szBMP; break;
-		case fmtJPG: return szJPG; break;
-		case fmtWSQ: return szWSQ; break;
-		case fmtJP2: return szJP2; break;
-		case fmtFX4: return szFX4; break;
-		case fmtCBEFF: return szCBEFF; break;
-		default: return szRAW;
+		case fmtRAW: return _T("raw"); break;
+		case fmtBMP: return _T("bmp"); break;
+		case fmtJPG: return _T("jpg"); break;
+		case fmtWSQ: return _T("wsq"); break;
+		case fmtJP2: return _T("jp2"); break;
+		case fmtFX4: return _T("fx4"); break;
+		case fmtCBEFF: return _T("cbeff"); break;
+		default: return _T("raw");
 	}
 }
 
-IWImageFormat CNISTField::ImageFormatFromImageExt(const char *szFormat)
+IWImageFormat CNISTField::ImageFormatFromImageExt(CStdString sFormat)
 {
-	if (!_stricmp(szFormat, "raw")) return fmtRAW;
-	if (!_stricmp(szFormat, "bmp")) return fmtBMP;
-	if (!_stricmp(szFormat, "jpg")) return fmtJPG;
-	if (!_stricmp(szFormat, "wsq")) return fmtWSQ;
-	if (!_stricmp(szFormat, "jp2")) return fmtJP2;
-	if (!_stricmp(szFormat, "fx4")) return fmtFX4;
-	if (!_stricmp(szFormat, "cbeff")) return fmtCBEFF;
+	if (sFormat == _T("raw")) return fmtRAW;
+	if (sFormat == _T("bmp")) return fmtBMP;
+	if (sFormat == _T("jpg")) return fmtJPG;
+	if (sFormat == _T("wsq")) return fmtWSQ;
+	if (sFormat == _T("jp2")) return fmtJP2;
+	if (sFormat == _T("fx4")) return fmtFX4;
+	if (sFormat == _T("cbeff")) return fmtCBEFF;
 	return fmtUNK; // Format unknown
 }
 
@@ -439,16 +435,17 @@ int CNISTField::GetWriteLen()
 	char szFieldLabel[20];
 	char nLabelLen = 0;
 
+	// Note: these ALWAYS get written in ASCII, so we use good'ole char functions
 	if (m_nRecordType == 1)
-		wsprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
+		sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
 	else
-		wsprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
+		sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
 	nLabelLen = strlen(szFieldLabel);
 
 	if (nCount)
 	{
 		CSubFieldItem *pSubField;
-		
+
 		for (int i = 0; i < nCount; i++)
 		{
 			pSubField = m_SubFieldAry.at(i);
@@ -459,11 +456,12 @@ int CNISTField::GetWriteLen()
 				nLen++; // sub field seperator
 			}
 		}
-		if (nLen)
-			nLen--; // remove last sub field seperator
+		if (nLen) nLen--; // remove last sub field seperator
 	}
 	else if (m_pImageData)
-		nLen = m_nImageLen+1; // zero based to one's based
+	{
+		nLen = m_nImageLen + 1; // zero based to one's based
+	}
 
 	nLen += nLabelLen;
 	nLen++; // for GS field seperator
@@ -472,8 +470,8 @@ int CNISTField::GetWriteLen()
 	{
 		CStdString sTraceFrom("CNISTField::GetWriteLen");
 		CStdString sTraceMsg;
-		
-		sTraceMsg.Format("[%s] RecordType %d, Field %d, Len %ld", sTraceFrom, m_nRecordType, m_nField, nLen);
+
+		sTraceMsg.Format(_T("[%s] RecordType %d, Field %d, Len %ld"), sTraceFrom, m_nRecordType, m_nField, nLen);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -489,7 +487,7 @@ int CNISTField::Write(FILE *pFile)
 		CStdString sTraceFrom("CNISTField::Write");
 		CStdString sTraceMsg;
 		
-		sTraceMsg.Format("[%s] RecordType %d, Field %d", sTraceFrom, m_nRecordType, m_nField);
+		sTraceMsg.Format(_T("[%s] RecordType %d, Field %d"), sTraceFrom, m_nRecordType, m_nField);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -503,11 +501,11 @@ int CNISTField::Write(FILE *pFile)
 	if (m_nField == 1) // handle LEN field seperately
 	{
 		if (m_nRecordType == 1) // dont need this, only for testing
-			wsprintf(szFieldLabel, "%d.%02d:%d", m_nRecordType, m_nField, m_nRecordLen);
+			sprintf(szFieldLabel, "%d.%02d:%d", m_nRecordType, m_nField, m_nRecordLen);
 		else
-			wsprintf(szFieldLabel, "%d.%03d:%d", m_nRecordType, m_nField, m_nRecordLen);
+			sprintf(szFieldLabel, "%d.%03d:%d", m_nRecordType, m_nField, m_nRecordLen);
 
-		fwrite(szFieldLabel, 1, strlen(szFieldLabel), pFile);
+		fwrite(szFieldLabel, 1, strlen(szFieldLabel), pFile);	// Field tag is ALWAYS in regular ASCII
 	}
 	else
 	{
@@ -515,11 +513,11 @@ int CNISTField::Write(FILE *pFile)
 
 		// add the field descriptor
 		if (m_nRecordType == 1) // dont need this, only for testing
-			wsprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
+			sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
 		else
-			wsprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
+			sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
 
-		fwrite(szFieldLabel, 1, strlen(szFieldLabel), pFile);
+		fwrite(szFieldLabel, 1, strlen(szFieldLabel), pFile);	// Field tag is ALWAYS in regular ASCII
 
 		if (nCount)
 		{
@@ -535,9 +533,38 @@ int CNISTField::Write(FILE *pFile)
 
 				if (pSubField)
 				{
-					if (pSubField->m_pszData)
-						fwrite(pSubField->m_pszData, 1, strlen(pSubField->m_pszData), pFile);
+					// Write textual field data. If in UNICODE, write it in UTF-8, otherwise
+					// we write it in regular ASCII.
+					if (!pSubField->m_sData.IsEmpty())
+					{
+#ifdef UNICODE
+						// In the UNICODE version of OpenEBTS, we write out UNICODE strings as UTF-8.
+						char *p = NULL;
+						int  nLength;
 
+						if (UCS2toUTF8(pSubField->m_sData, &p, &nLength))
+						{
+							if (p)
+							{
+								fwrite(p, 1, nLength-1, pFile);	// write string without NULL terminator
+								delete p;
+							}
+							else
+							{
+								goto done;		// critical error
+							}
+						}
+						else
+						{
+							goto done;	// failed encoding to UTF-8
+						}
+#else
+						// Write it as regular ASCII
+						fwrite(pSubField->m_sData.c_str(), 1, pSubField->m_sData.GetLength(), pFile);
+#endif
+					}
+
+					// Separators get written as regular ASCII
 					if (pNextSubField)
 					{
 						if (pSubField->m_nSubField == pNextSubField->m_nSubField)
@@ -549,9 +576,13 @@ int CNISTField::Write(FILE *pFile)
 			}
 		}
 		else if (m_pImageData)
+		{
+			// Image data also get written as regular ASCII
 			fwrite(m_pImageData, 1, m_nImageLen, pFile);
+		}
 	}
 
+	// Separators get written as regular ASCII
 	if (m_bWriteRecordSeperator)
 		fwrite(g_szFS, 1, strlen(g_szFS), pFile);	// add Record seperator
 	else
@@ -561,5 +592,8 @@ int CNISTField::Write(FILE *pFile)
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
+#ifdef UNICODE
+done:
+#endif
 	return nRet;
 }

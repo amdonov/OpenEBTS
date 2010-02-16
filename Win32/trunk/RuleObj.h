@@ -27,27 +27,27 @@
 class CRuleObj
 {
 private:
-	BOOL SetTransactions(CStdString& sTransactionList);
-	BOOL SetLocation(CStdString& sLocation);
-	BOOL SetMNU(CStdString& sMNU);
-	BOOL SetCharType(CStdString& sCharType);
-	BOOL SetFieldSize(CStdString& sFieldSize);
-	BOOL SetOccurrences(CStdString& sOccurence);
-	BOOL SetOptionalDescription(CStdString& sDescription);
-	BOOL SetOptionalLongDescription(CStdString& sLongDescription);
-	BOOL SetOptionalSpecialChars(CStdString& sSpecialChars);
-	BOOL SetOptionalDateFormat(CStdString& sDateFormat);
-	BOOL SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath);
-	BOOL SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath);
-	BOOL SetOptionalMap(CStdString& sMap, CStdString& sFilePath, std::vector<CStdString>& mapValNames, std::vector<CStdString>& mapValDescriptions);
-	BOOL SetTags(CStdString& sTags);
+	bool SetTransactions(CStdString& sTransactionList);
+	bool SetLocation(CStdString& sLocation);
+	bool SetMNU(CStdString& sMNU);
+	bool SetCharType(CStdString& sCharType);
+	bool SetFieldSize(CStdString& sFieldSize);
+	bool SetOccurrences(CStdString& sOccurence);
+	bool SetOptionalDescription(CStdString& sDescription);
+	bool SetOptionalLongDescription(CStdString& sLongDescription);
+	bool SetOptionalSpecialChars(CStdString& sSpecialChars);
+	bool SetOptionalDateFormat(CStdString& sDateFormat);
+	bool SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath);
+	bool SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath);
+	bool SetOptionalMap(CStdString& sMap, CStdString& sFilePath, std::vector<CStdString>& mapValNames, std::vector<CStdString>& mapValDescriptions);
+	bool SetTags(CStdString& sTags);
 
 	void SetAllowedChars();
 
-	BOOL GetRangeValue(CStdString& sToken, int *pValue);
+	bool GetRangeValue(CStdString& sToken, int *pValue);
 
-	BOOL TestRegEx(CStdString& sInput, CStdString& sRegEx);
-	BOOL ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry);
+	bool TestRegEx(CStdString& sInput, CStdString& sRegEx);
+	bool ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry);
 
 	void DumpObject();
 
@@ -84,14 +84,13 @@ public:
 	virtual ~CRuleObj();
 
 	// This function is also used by other classes since it's so useful, so we keep it public
-	BOOL SetRange(CStdString& sRange, int *pMin, int *pMax);
+	bool SetRange(CStdString& sRange, int *pMin, int *pMax);
 
-	BOOL SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
+	bool SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
 				 CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
 				 CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sOMap, CStdString& sTags,
 				 CStdString& sErr);
-	BOOL IsValid();
-	BOOL GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
+	bool GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
 
 	CStdString GetMNU() { return m_sMNU; }
 	CStdString GetLocation() { return m_sLocation; }
@@ -119,9 +118,9 @@ public:
 	CStdString GetTransactionListString();
 	CStdString GetAllowedChars()  { return m_sAllowedChars; }
 
-	BOOL IsMandatory(CStdString& sTOT);
-	BOOL IsOptional(CStdString& sTOT);
-	BOOL AppliesTo(int iRecType, int iRecord, int iField, int iSubfield, int iItem);
+	bool IsMandatory(CStdString& sTOT);
+	bool IsOptional(CStdString& sTOT);
+	bool AppliesTo(int iRecType, int iRecord, int iField, int iSubfield, int iItem);
 };
 
 #endif // _RULE_OBJ_

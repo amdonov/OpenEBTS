@@ -15,29 +15,29 @@ protected:
 	int m_nRecordOffset;
 	double m_dNativeResolutionPPMM;
 
-	BOOL m_bGetImage;
+	bool m_bGetImage;
 
-	char *IWStrTok(char *pInStr, char cDelim, BOOL *pbEndofRecord = NULL);
+	char* IWStrTok(char* pInStr, char cDelim, bool *pbEndofRecord = NULL);
 	CNISTField *GetNISTField(int nField);
 
 	void AddField(CNISTField *pField);
-	int AddSubItems(CNISTField *pNISTField, char *pszFieldData);
+	int AddSubItems(CNISTField *pNISTField, char* szFieldData);
 
-	int GetInfoFromImage(BYTE *pImage, long lImageLength, const char* szFmt, IWNISTImageInfo *pInfo);
+	int GetInfoFromImage(BYTE *pImage, long lImageLength, CStdString sFmt, IWNISTImageInfo *pInfo);
 	void SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInfo& info, long lRecordIndex, long lFieldLength);
 
-	int GetFingerprintInfo(int nRecordType, char *pTransactionData);
-	int GetSignatureInfo(char *pTransactionData);
+	int GetFingerprintInfo(int nRecordType, BYTE* pTransactionData);
+	int GetSignatureInfo(BYTE* pTransactionData);
 
 	// binary record helper routines
-	long GetDecimalValue(char *pInStr, int nStrLen);
+	int GetDecimalValue(BYTE* pInStr, int nStrLen);
 	char *BytetoHexString(BYTE lDecimalValue, char *pszHexString);
 
 public:
 	CNISTRecord();
 	virtual ~CNISTRecord();
 
-	int ReadLogicalRecordLen(char *pTransactionData, int nRecordType, int nRecordIndex = 1);
+	int ReadLogicalRecordLen(BYTE* pTransactionData, int nRecordType, int nRecordIndex = 1);
 	int GetLogicalRecordLen() { return m_nRecordLen; }
 
 	void InitializeNewRecord(int nRecordType);
@@ -53,31 +53,29 @@ public:
 	int GetNumSubfields(int nField, int *pCount);
 	int GetNextField(int nField, int *pNextField);
 	int GetNumItems(int Field, int Subfield, int* Count); //  { *Count = 0; return IW_SUCCESS; }
-	int FindItem(int Field, int Subfield, int Item, const char** ppData);
+	int FindItem(int Field, int Subfield, int Item, CStdString& sData);
 	int DeleteSubfield(int Field, int Subfield);
-	int SetItem(const char *pData, int Field, int Subfield, int Item);
+	int SetItem(CStdString sData, int Field, int Subfield, int Item);
 
-	int ReadRecord(char *pTransactionData, int nRecordType);
-	int ReadBinaryRecord(char *pTransactionData, int nRecordType);
+	int ReadRecord(BYTE *pTransactionData, int nRecordType);
+	int ReadBinaryRecord(BYTE *pTransactionData, int nRecordType);
 	int Validate() { return IW_ERR_RECORD_NOT_FOUND; }
 
-	int GetImage(const char **ppStorageFormat, long *pLength, const void **ppData);
-	int SetImage(const char *pInputFormat, int RecordIndex, long Length, 
-		void *pData, const char *pStorageFormat, float Compression);
-	int GetImageInfo(const char **ppStorageFormat, long *pLength, long *phll, long *pvll,
-		int *pBitsPerPixel);
+	int GetImage(CStdString& sStorageFormat, long *pLength, const BYTE **ppData);
+	int SetImage(CStdString sInputFormat, int nRecordIndex, long nLength, BYTE *pData, CStdString sStorageFormat, float fCompression);
+	int GetImageInfo(CStdString& spStorageFormat, long *pnLength, long *pnHLL, long *pnVLL, int *pnBitsPerPixel);
 	int GetImageResolution(double *pfPPM);
 
 	int Write(FILE *pFile);
 	int WriteBinary(FILE *pFile);
 
-	static float CompressionToRate(float Compression);
-	static BOOL FormatSupportedInOut(const char *pFormat);
-	static BOOL FormatSupportedEBTS(const char *pFormat);
+	static float CompressionToRate(float fCompression);
+	static bool FormatSupportedInOut(CStdString sFormat);
+	static bool FormatSupportedEBTS(CStdString sFormat);
 	static int GetDATField(int nRecordType);
-	static BOOL IsDATField(int nRecordType, int nField);
-	static BOOL IsBinaryFingerType(int nRecordType);
-	static BOOL IsBinaryType(int nRecordType);
+	static bool IsDATField(int nRecordType, int nField);
+	static bool IsBinaryFingerType(int nRecordType);
+	static bool IsBinaryType(int nRecordType);
 
 	int GetRecordLen();
 };

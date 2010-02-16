@@ -7,19 +7,17 @@
 #include "OpenEBTSErrors.h"
 #include "Common.h"
 
+//************************************************************/
+//                                                            /
+//                  Transaction Management                    /
+//                                                            /
+//************************************************************//
 
-/************************************************************/
-/*                                                          */
-/*               Transaction Management                     */
-/*                                                          */
-/************************************************************/
-
-IWNIST_API int WINAPI IWRead(const char *pszPath, 
-					  CIWVerification *pIWVer, CIWTransaction **ppIWTrans)    
+OPENEBTS_API int WINAPI IWRead(const TCHAR *szPath, CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
 {
 	SetLogFlags();
 
-	if (!pszPath)
+	if (!szPath)
 		return IW_ERR_READING_FILE;
 
 	if (ppIWTrans == NULL)
@@ -28,14 +26,13 @@ IWNIST_API int WINAPI IWRead(const char *pszPath,
 	int nErrCode = IW_ERR_READING_FILE;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWRead")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	CIWTransaction *pTrans = new CIWTransaction;
 
 	if (pTrans)
 	{
-		if ((nErrCode = pTrans->ReadTransactionFile(pszPath)) == IW_SUCCESS)
+		if ((nErrCode = pTrans->ReadTransactionFile(CStdString(szPath))) == IW_SUCCESS)
 		{
 			nErrCode = pTrans->GetRecords();
 
@@ -58,8 +55,7 @@ IWNIST_API int WINAPI IWRead(const char *pszPath,
 	return nErrCode;
 }
 
-IWNIST_API int WINAPI IWReadMem(unsigned char *pBuffer, int BufferSize, 
-																	CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
+OPENEBTS_API int WINAPI IWReadMem(BYTE *pBuffer, int nBufferSize, CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
 {
 	SetLogFlags();
 
@@ -72,14 +68,13 @@ IWNIST_API int WINAPI IWReadMem(unsigned char *pBuffer, int BufferSize,
 	int nErrCode = IW_ERR_READING_FILE;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWReadMem")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	CIWTransaction *pTrans = new CIWTransaction;
 
 	if (pTrans)
 	{
-		if ((nErrCode = pTrans->ReadTransactionFileMem((const unsigned char *)pBuffer,BufferSize)) == IW_SUCCESS)
+		if ((nErrCode = pTrans->ReadTransactionFileMem((const BYTE*)pBuffer, nBufferSize)) == IW_SUCCESS)
 		{
 			nErrCode = pTrans->GetRecords();
 
@@ -102,11 +97,11 @@ IWNIST_API int WINAPI IWReadMem(unsigned char *pBuffer, int BufferSize,
 	return nErrCode;
 }
 
-IWNIST_API int WINAPI IWReadVerification(const char* pszPath, CIWVerification** ppIWVer, int MaxParseError, char* ParseError)
+OPENEBTS_API int WINAPI IWReadVerification(const TCHAR* szPath, CIWVerification** ppIWVer, int nMaxParseError, TCHAR* szParseError)
 {
 	SetLogFlags();
 
-	if (!pszPath)
+	if (!szPath)
 		return IW_ERR_OPENING_FILE_FOR_READING;
 
 	if (ppIWVer == NULL)
@@ -115,30 +110,45 @@ IWNIST_API int WINAPI IWReadVerification(const char* pszPath, CIWVerification** 
 	int nErrCode = IW_ERR_OPENING_FILE_FOR_READING;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWReadVerification")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	CIWVerification *pVerification = new CIWVerification;
 
+	if (nMaxParseError > 0)
+	{
+		szParseError[0] = '\0';
+	}
+
 	if (pVerification)
 	{
-		if ((nErrCode = pVerification->ReadVerificationFile(pszPath, MaxParseError, ParseError)) == IW_SUCCESS)
+		CStdString sParseError;
+
+		nErrCode = pVerification->ReadVerificationFile(CStdString(szPath), sParseError);
+		if (nErrCode == IW_SUCCESS)
 		{
-			if (nErrCode == IW_SUCCESS)
-				*ppIWVer = pVerification;
-			else
-				delete pVerification;
+			*ppIWVer = pVerification;
+		}
+		else
+		{
+			delete pVerification;
+			if (!sParseError.IsEmpty())
+			{
+				_tcsncpy(szParseError, sParseError, nMaxParseError-1);
+				szParseError[nMaxParseError-1] = '\0';
+			}
 		}
 	}
 	else
+	{
 		nErrCode = IW_ERR_OUT_OF_MEMORY;
+	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nErrCode;
 }
 
-IWNIST_API int WINAPI IWSetVerification(CIWTransaction *pIWTrans, CIWVerification *pIWVer)
+OPENEBTS_API int WINAPI IWSetVerification(CIWTransaction *pIWTrans, CIWVerification *pIWVer)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -148,7 +158,7 @@ IWNIST_API int WINAPI IWSetVerification(CIWTransaction *pIWTrans, CIWVerificatio
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWClose(CIWTransaction **ppIWTrans)
+OPENEBTS_API int WINAPI IWClose(CIWTransaction **ppIWTrans)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -159,7 +169,6 @@ IWNIST_API int WINAPI IWClose(CIWTransaction **ppIWTrans)
 		if (pIWTrans)
 		{
 			IWS_BEGIN_EXCEPTION_METHOD("IWClose")
-			
 			IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 			delete pIWTrans;
@@ -173,7 +182,7 @@ IWNIST_API int WINAPI IWClose(CIWTransaction **ppIWTrans)
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWCloseVerification(CIWVerification **ppIWVer)
+OPENEBTS_API int WINAPI IWCloseVerification(CIWVerification **ppIWVer)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
@@ -183,7 +192,6 @@ IWNIST_API int WINAPI IWCloseVerification(CIWVerification **ppIWVer)
 		if (pIWVer)
 		{
 			IWS_BEGIN_EXCEPTION_METHOD("IWCloseVerification")
-			
 			IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 			delete pIWVer;
@@ -197,19 +205,19 @@ IWNIST_API int WINAPI IWCloseVerification(CIWVerification **ppIWVer)
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGet(CIWTransaction* IWTrans, const char* Mnemonic, const char** Data, 
-															int Index, int RecordIndex)
+OPENEBTS_API int WINAPI IWGet(CIWTransaction* pIWTrans, const TCHAR* szMnemonic, const TCHAR** pszData, 
+							  int nIndex, int nRecordIndex)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWGet")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
-		nRet = pIWTrans->Get(Mnemonic, Data, Index, RecordIndex);
+		CStdString sData;
+		nRet = pIWTrans->Get(CStdString(szMnemonic), sData, nIndex, nRecordIndex);
+		*pszData = pIWTrans->CreateNewStringSlot(sData);
 	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
@@ -217,18 +225,17 @@ IWNIST_API int WINAPI IWGet(CIWTransaction* IWTrans, const char* Mnemonic, const
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWSet(CIWTransaction* IWTrans, const char* Mnemonic, const char* Data, int StartIndex, int RecordIndex)
+OPENEBTS_API int WINAPI IWSet(CIWTransaction* pIWTrans, const TCHAR* szMnemonic, const TCHAR* szData,
+							  int nStartIndex, int nRecordIndex)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWSet")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
-		nRet = pIWTrans->Set(Mnemonic, Data, StartIndex, RecordIndex);
+		nRet = pIWTrans->Set(CStdString(szMnemonic), CStdString(szData), nStartIndex, nRecordIndex);
 	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
@@ -236,18 +243,16 @@ IWNIST_API int WINAPI IWSet(CIWTransaction* IWTrans, const char* Mnemonic, const
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWOccurrences(CIWTransaction* IWTrans, const char* Mnemonic, int* Occurrences, int RecordIndex)
+OPENEBTS_API int WINAPI IWOccurrences(CIWTransaction* pIWTrans, const TCHAR* szMnemonic, int* pnOccurrences, int nRecordIndex)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWOccurrencesEx")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
-		nRet = pIWTrans->Occurrences(Mnemonic, Occurrences, RecordIndex);
+		nRet = pIWTrans->Occurrences(szMnemonic, pnOccurrences, nRecordIndex);
 	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
@@ -255,13 +260,11 @@ IWNIST_API int WINAPI IWOccurrences(CIWTransaction* IWTrans, const char* Mnemoni
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWVerify(CIWTransaction* IWTrans)
+OPENEBTS_API int WINAPI IWVerify(CIWTransaction* pIWTrans)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWVerify")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
@@ -274,7 +277,7 @@ IWNIST_API int WINAPI IWVerify(CIWTransaction* IWTrans)
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWAddRecord(CIWTransaction* IWTrans, int RecordType, int* RecordIndex)
+OPENEBTS_API int WINAPI IWAddRecord(CIWTransaction* pIWTrans, int nRecordType, int* pnRecordIndex)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -283,22 +286,19 @@ IWNIST_API int WINAPI IWAddRecord(CIWTransaction* IWTrans, int RecordType, int* 
 	// accepted by the FBI", from EBTS Specification, April 1 2008, Appendix B.
 	// (Type 1 gets added on creation because it always has to be there)
 	// Also supports Type-8, by request from DH.
-	if (RecordType == RECORD_TYPE2  || RecordType == RECORD_TYPE4  ||
-		RecordType == RECORD_TYPE7  || RecordType == RECORD_TYPE8  ||
-		RecordType == RECORD_TYPE9  || RecordType == RECORD_TYPE10 ||
-		RecordType == RECORD_TYPE13 || RecordType == RECORD_TYPE14 ||
-		RecordType == RECORD_TYPE15 || RecordType == RECORD_TYPE16 ||
-		RecordType == RECORD_TYPE17 || RecordType == RECORD_TYPE99)
+	if (nRecordType == RECORD_TYPE2  || nRecordType == RECORD_TYPE4  ||
+		nRecordType == RECORD_TYPE7  || nRecordType == RECORD_TYPE8  ||
+		nRecordType == RECORD_TYPE9  || nRecordType == RECORD_TYPE10 ||
+		nRecordType == RECORD_TYPE13 || nRecordType == RECORD_TYPE14 ||
+		nRecordType == RECORD_TYPE15 || nRecordType == RECORD_TYPE16 ||
+		nRecordType == RECORD_TYPE17 || nRecordType == RECORD_TYPE99)
 	{
-		CIWTransaction *pIWTrans = IWTrans;
-
 		if (pIWTrans)
 		{
 			IWS_BEGIN_EXCEPTION_METHOD("IWAddRecord")
-			
 			IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-			nRet = pIWTrans->AddRecord(RecordType, RecordIndex);
+			nRet = pIWTrans->AddRecord(nRecordType, pnRecordIndex);
 
 			IWS_END_CATCHEXCEPTION_BLOCK()
 		}
@@ -309,19 +309,16 @@ IWNIST_API int WINAPI IWAddRecord(CIWTransaction* IWTrans, int RecordType, int* 
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetRecordTypeCount(CIWTransaction* IWTrans, 
-									int RecordType, int* RecordTypeCount)
+OPENEBTS_API int WINAPI IWGetRecordTypeCount(CIWTransaction* pIWTrans, int nRecordType, int* pnRecordTypeCount)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetRecordTypeCount")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		pIWTrans->GetRecordTypeCount(RecordType, RecordTypeCount);
+		pIWTrans->GetRecordTypeCount(nRecordType, pnRecordTypeCount);
 		nRet = IW_SUCCESS;
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
@@ -330,18 +327,16 @@ IWNIST_API int WINAPI IWGetRecordTypeCount(CIWTransaction* IWTrans,
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWWrite(CIWTransaction* IWTrans, const char* Path)
+OPENEBTS_API int WINAPI IWWrite(CIWTransaction* pIWTrans, const TCHAR* szPath)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWWrite")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWTrans->Write(Path);
+		nRet = pIWTrans->Write(szPath);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -349,18 +344,16 @@ IWNIST_API int WINAPI IWWrite(CIWTransaction* IWTrans, const char* Path)
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWWriteXML(CIWTransaction* IWTrans, const char* Path, bool bValidate)
+OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHAR* szPath, bool bValidate)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWWriteXML")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWTrans->WriteXML(Path, bValidate);
+		nRet = pIWTrans->WriteXML(szPath, bValidate);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -369,18 +362,16 @@ IWNIST_API int WINAPI IWWriteXML(CIWTransaction* IWTrans, const char* Path, bool
 }
 
 // following fns not required, but may be simple to implement
-IWNIST_API int WINAPI IWGetNumRecords(CIWTransaction* IWTrans, int* Records)
+OPENEBTS_API int WINAPI IWGetNumRecords(CIWTransaction* pIWTrans, int* pnRecords)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetNumRecords")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		pIWTrans->GetNumRecords(Records);
+		pIWTrans->GetNumRecords(pnRecords);
 		nRet = IW_SUCCESS;
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
@@ -389,25 +380,23 @@ IWNIST_API int WINAPI IWGetNumRecords(CIWTransaction* IWTrans, int* Records)
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWNew(const char* TransactionType, 
-					 CIWVerification* IWVer, CIWTransaction** IWTrans)
+OPENEBTS_API int WINAPI IWNew(const TCHAR* szTransactionType, CIWVerification* pIWVer, CIWTransaction** ppIWTrans)
 {
 	SetLogFlags();
 
-	if (IWTrans == NULL)
+	if (ppIWTrans == NULL)
 		return IW_ERR_NULL_TRANSACTION_POINTER;
 
 	int nRet = IW_ERR_OUT_OF_MEMORY;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWNew")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-	CIWTransaction *pTrans = new CIWTransaction;
+	CIWTransaction *pIWTrans = new CIWTransaction;
 
-	nRet = pTrans->New(TransactionType, IWVer);
+	nRet = pIWTrans->New(szTransactionType, pIWVer);
 
-	*IWTrans = pTrans;
+	*ppIWTrans = pIWTrans;
 
 	nRet = IW_SUCCESS;
 
@@ -416,113 +405,104 @@ IWNIST_API int WINAPI IWNew(const char* TransactionType,
 	return nRet;
 }
 
-/************************************************************/
-/*                                                          */
-/*                   NIST Data Access                       */
-/*                                                          */
-/************************************************************/
+//************************************************************/
+//                                                            /
+//						Data Access                           /
+//                                                            /
+//************************************************************/
 
-IWNIST_API int WINAPI IWNumSubfields(CIWTransaction* IWTrans, int RecordType, 
-							  int RecordIndex, int Field, int* Count)
+OPENEBTS_API int WINAPI IWNumSubfields(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, int nField, int* pnCount)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWNumSubfields")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->GetNumSubfields(RecordType, RecordIndex, Field, Count);
+		nRet = pIWTrans->GetNumSubfields(nRecordType, nRecordIndex, nField, pnCount);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWNumItems(CIWTransaction* IWTrans, int RecordType, 
-						  int RecordIndex, int Field, int Subfield, int* Count)
+OPENEBTS_API int WINAPI IWNumItems(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
+								   int nField, int nSubfield, int* pnCount)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWNumItems")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->GetNumItems(RecordType, RecordIndex, Field, Subfield, Count);
+		nRet = pIWTrans->GetNumItems(nRecordType, nRecordIndex, nField, nSubfield, pnCount);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWFindItem(CIWTransaction* IWTrans, int RecordType, int RecordIndex, 
-						  int Field, int Subfield, int Item, const char** Data)
+OPENEBTS_API int WINAPI IWFindItem(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
+								   int nField, int nSubfield, int nItem, const TCHAR** pszData)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWFindItem")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->FindItem(RecordType, RecordIndex, Field, Subfield, Item, Data);
+	{
+		CStdString sData;
+		nRet = pIWTrans->FindItem(nRecordType, nRecordIndex, nField, nSubfield, nItem, sData);
+		*pszData = pIWTrans->CreateNewStringSlot(sData);
+	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWSetItem(CIWTransaction* IWTrans, const char* Data, int RecordType, 
-						 int RecordIndex, int Field, int Subfield, int Item)
+OPENEBTS_API int WINAPI IWSetItem(CIWTransaction* pIWTrans, const TCHAR* szData, int nRecordType, 
+								  int nRecordIndex, int nField, int nSubfield, int nItem)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWSetItem")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->SetItem(Data, RecordType, RecordIndex, Field, Subfield, Item);
+		nRet = pIWTrans->SetItem(CStdString(szData), nRecordType, nRecordIndex, nField, nSubfield, nItem);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetNextField(CIWTransaction* IWTrans, int RecordType, 
-							  int RecordIndex, int Field, int* NextField)
+OPENEBTS_API int WINAPI IWGetNextField(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, int nField, int* pnNextField)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWGetNextField")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->GetNextField(RecordType, RecordIndex, Field, NextField);
+		nRet = pIWTrans->GetNextField(nRecordType, nRecordIndex, nField, pnNextField);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;	
 } 
 
-IWNIST_API int WINAPI IWGetTransactionCategories(CIWVerification *pIWVer, int DataArraySize, const char **ppDataArray, int *Entries)
+OPENEBTS_API int WINAPI IWGetTransactionCategories(CIWVerification *pIWVer, int nDataArraySize, const TCHAR** rgszDataArray, int *pnEntries)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetTransactionCategories")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetTransactionCategories(DataArraySize, ppDataArray, Entries);
+		nRet = pIWVer->GetTransactionCategories(nDataArraySize, rgszDataArray, pnEntries);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -530,18 +510,17 @@ IWNIST_API int WINAPI IWGetTransactionCategories(CIWVerification *pIWVer, int Da
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetTransactionTypes(CIWVerification* pIWVer, int DataArraySize, const char **ppDataArray, 
-											const char **ppDescArray, int *pEntries, const char *pCategory)
+OPENEBTS_API int WINAPI IWGetTransactionTypes(CIWVerification* pIWVer, int nDataArraySize, const TCHAR** rgszDataArray, 
+											  const TCHAR** rgszDescArray, int *pnEntries, const TCHAR *szCategory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetTransactionTypes")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetTransactionTypes(DataArraySize, ppDataArray, ppDescArray, pEntries, pCategory);
+		nRet = pIWVer->GetTransactionTypes(nDataArraySize, rgszDataArray, rgszDescArray, pnEntries, szCategory);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -549,18 +528,17 @@ IWNIST_API int WINAPI IWGetTransactionTypes(CIWVerification* pIWVer, int DataArr
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetRecordTypeOccurrences(CIWVerification* pIWVer, int DataArraySize, int *piRecordType,
-												int *piMinOccurrences, int *piMaxOccurrences, int *pEntries, const char *pTOT)
+OPENEBTS_API int WINAPI IWGetRecordTypeOccurrences(CIWVerification* pIWVer, int nDataArraySize, int *pnRecordType,
+												   int *pnMinOccurrences, int *pnMaxOccurrences, int *pnEntries, const TCHAR *szTOT)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetRecordTypeOccurrences")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetRecordTypeOccurrences(DataArraySize, piRecordType, piMinOccurrences, piMaxOccurrences, pEntries, pTOT);
+		nRet = pIWVer->GetRecordTypeOccurrences(nDataArraySize, pnRecordType, pnMinOccurrences, pnMaxOccurrences, pnEntries, szTOT);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -569,18 +547,17 @@ IWNIST_API int WINAPI IWGetRecordTypeOccurrences(CIWVerification* pIWVer, int Da
 }
 
 
-IWNIST_API int WINAPI IWGetMnemonics(CIWVerification* pIWVer, const char* TransactionType, int DataArraySize,
-									 const char** DataArray, const char** DescArray, int* pEntries)
+OPENEBTS_API int WINAPI IWGetMnemonics(CIWVerification* pIWVer, const TCHAR* szTransactionType, int nDataArraySize,
+									   const TCHAR** rgszDataArray, const TCHAR** rgszDescArray, int* pnEntries)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetMnemonics")
-		
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetMnemonics(TransactionType, DataArraySize, DataArray, DescArray, pEntries);
+		nRet = pIWVer->GetMnemonics(szTransactionType, nDataArraySize, rgszDataArray, rgszDescArray, pnEntries);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -588,21 +565,22 @@ IWNIST_API int WINAPI IWGetMnemonics(CIWVerification* pIWVer, const char* Transa
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const char* TransactionType, const char* Mnemonic, int* RecordType,
-											int* Field, int* Subfield, int* Item, const char** Desc, const char** LongDesc, const char** CharType,
-											const char** AllowedChars, const char** DateFormat, int* SizeMin, int* SizeMax, int* OccMin, int* OccMax,
-											int* Offset, bool* AutomaticallySet, bool* Mandatory)
+OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic,
+											  int* pnRecordType, int* pnField, int* pnSubfield, int* pnItem, const TCHAR** pszDesc,
+											  const TCHAR** pszLongDesc, const TCHAR** pszCharType, const TCHAR** pszAllowedChars,
+											  const TCHAR** pszDateFormat, int* pnSizeMin, int* pnSizeMax, int* pnOccMin, int* pnOccMax,
+											  int* pnOffset, bool* pbAutomaticallySet, bool* pbMandatory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetRuleRestrictions")
-
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetRuleRestrictions(TransactionType, Mnemonic, RecordType, Field, Subfield, Item, Desc, LongDesc, CharType,
-										   AllowedChars, DateFormat, SizeMin, SizeMax, OccMin, OccMax, Offset, AutomaticallySet, Mandatory);
+		nRet = pIWVer->GetRuleRestrictions(szTransactionType, szMnemonic, pnRecordType, pnField, pnSubfield, pnItem, pszDesc, pszLongDesc,
+										   pszCharType, pszAllowedChars, pszDateFormat, pnSizeMin, pnSizeMax, pnOccMin, pnOccMax, pnOffset,
+										   pbAutomaticallySet, pbMandatory);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -610,18 +588,17 @@ IWNIST_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const char*
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const char* TransactionType, const char* Mnemonic, int *Mandatory,
-									 int DataArraySize, const char** DataArray, const char** DescArray, int *Entries)
+OPENEBTS_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic, bool *pbMandatory,
+									   int nDataArraySize, const TCHAR** rgszDataArray, const TCHAR** rgszDescArray, int *pnEntries)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
 	if (pIWVer && pIWVer->IsLoaded())
 	{
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetValueList")
-
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetValueList(TransactionType, Mnemonic, Mandatory, DataArraySize, DataArray, DescArray, Entries);
+		nRet = pIWVer->GetValueList(szTransactionType, szMnemonic, pbMandatory, nDataArraySize, rgszDataArray, rgszDescArray, pnEntries);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -629,123 +606,122 @@ IWNIST_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const char* Transa
 	return nRet;
 }
 
-/************************************************************/
-/*                                                          */
-/*                        Images                            */
-/*                                                          */
-/************************************************************/
+//************************************************************/
+//                                                            /
+//                        Images                              /
+//                                                            /
+//************************************************************/
 
-IWNIST_API int WINAPI IWGetImage(CIWTransaction* IWTrans, int RecordType, int RecordIndex, 
-						  const char** StorageFormat, long* Length, const void** Data)
+OPENEBTS_API int WINAPI IWGetImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, 
+								   const TCHAR** pszStorageFormat, long* pnLength, const void** pData)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWGetImage")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->GetImage(RecordType, RecordIndex, StorageFormat, Length, Data);
+	{
+		CStdString sStorageFormat;
+		nRet = pIWTrans->GetImage(nRecordType, nRecordIndex, sStorageFormat, pnLength, (const BYTE**)pData);
+		*pszStorageFormat = pIWTrans->CreateNewStringSlot(sStorageFormat);
+	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;	
 }
 
-IWNIST_API int WINAPI IWSetImage(CIWTransaction* IWTrans, int RecordType, int RecordIndex, const char* InputFormat, 
-						  long Length, void* Data, const char* StorageFormat, float Compression)
+OPENEBTS_API int WINAPI IWSetImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, const TCHAR* szInputFormat,
+								   long nLength, void* pData, const TCHAR* szStorageFormat, float fCompression)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWSetImage")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->SetImage(RecordType, RecordIndex, InputFormat, 
-																Length, Data, StorageFormat, Compression);
+		nRet = pIWTrans->SetImage(nRecordType, nRecordIndex, CStdString(szInputFormat), nLength, (BYTE*)pData, CStdString(szStorageFormat), fCompression);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;	
 }
 
-IWNIST_API int WINAPI IWImportImage(CIWTransaction* IWTrans, int RecordType, int RecordIndex, 
-							const char* Path, const char* StorageFormat, float Compression, 
-							const char* InputFormat)
+OPENEBTS_API int WINAPI IWImportImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, const TCHAR* szPath,
+									  const TCHAR* szStorageFormat, float fCompression, const TCHAR* szInputFormat)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWImportImage")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->ImportImage(RecordType, RecordIndex, Path, StorageFormat, Compression, InputFormat);
+		nRet = pIWTrans->ImportImage(nRecordType, nRecordIndex, CStdString(szPath), CStdString(szStorageFormat), fCompression, szInputFormat);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;	
 }
 
-IWNIST_API int WINAPI IWExportImage(CIWTransaction* IWTrans, int RecordType, int RecordIndex, 
-							const char* Path, const char* OutputFormat)
+OPENEBTS_API int WINAPI IWExportImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
+									  const TCHAR* szPath, const TCHAR* szOutputFormat)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWExportImage")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->ExportImage(RecordType, RecordIndex, Path, OutputFormat);
+		nRet = pIWTrans->ExportImage(nRecordType, nRecordIndex, szPath, szOutputFormat);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;	
 }
 
-IWNIST_API int WINAPI IWGetImageInfo(CIWTransaction* IWTrans, int RecordType, int RecordIndex, const char** StorageFormat, 
-									 long* Length, long* hll, long* vll, int* BitsPerPixel)
+OPENEBTS_API int WINAPI IWGetImageInfo(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
+									   const TCHAR** pszStorageFormat, long* pnLength, long* pnHLL, long* pnVLL, int* pnBitsPerPixel)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWGetImageInfo")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->GetImageInfo(RecordType, RecordIndex, StorageFormat, 
-									  Length, hll, vll, BitsPerPixel);
+	{
+		CStdString sStorageFormat;
+		nRet = pIWTrans->GetImageInfo(nRecordType, nRecordIndex, sStorageFormat, pnLength, pnHLL, pnVLL, pnBitsPerPixel);
+		*pszStorageFormat = pIWTrans->CreateNewStringSlot(sStorageFormat);
+	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWDeleteRecord(CIWTransaction* IWTrans, int RecordType, int RecordIndex)
+OPENEBTS_API int WINAPI IWDeleteRecord(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWDeleteRecord")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->DeleteRecord(RecordType, RecordIndex);
+		nRet = pIWTrans->DeleteRecord(nRecordType, nRecordIndex);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	return nRet;
 }
 
-IWNIST_API int WINAPI RAWtoWSQ(BYTE* pImageIn, long lWidth, long lHeight, long lDPI, float fRate, BYTE** ppImageOut, long *plLengthOut)
+//************************************************************/
+//                                                            /
+//                   Image format conversion			      /
+//                                                            /
+//************************************************************/
+
+OPENEBTS_API int WINAPI RAWtoWSQ(BYTE* pImageIn, long lWidth, long lHeight, long lDPI, float fRate, BYTE** ppImageOut, long *plLengthOut)
 // Input assumed to be 8 bpp
 {
 	int ret = IW_ERR_WSQ_COMPRESS;
@@ -753,7 +729,6 @@ IWNIST_API int WINAPI RAWtoWSQ(BYTE* pImageIn, long lWidth, long lHeight, long l
 	BYTE *pWSQ;
 
 	IWS_BEGIN_EXCEPTION_METHOD("RAWtoWSQ")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (NISTRAWtoWSQ((char*)pImageIn, lWidth, lHeight, lDPI, &hWSQ, fRate))
@@ -776,7 +751,7 @@ IWNIST_API int WINAPI RAWtoWSQ(BYTE* pImageIn, long lWidth, long lHeight, long l
 	return ret;
 }
 
-IWNIST_API int WINAPI BMPtoWSQ(BYTE* pImageIn, long lLengthIn, float fRate, BYTE** ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, long lLengthIn, float fRate, BYTE** ppImageOut, long *plLengthOut)
 // Input assumed to be 8 bpp (NISTBMPtoWSQ will return 0 otherwise and IW_ERR_WSQ_COMPRESS gets returned here)
 {
 	int ret = IW_ERR_WSQ_COMPRESS;
@@ -784,7 +759,6 @@ IWNIST_API int WINAPI BMPtoWSQ(BYTE* pImageIn, long lLengthIn, float fRate, BYTE
 	BYTE *pWSQ;
 
 	IWS_BEGIN_EXCEPTION_METHOD("BMPtoWSQ")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (NISTBMPtoWSQ((char*)pImageIn, lLengthIn, &hWSQ, fRate))
@@ -807,14 +781,13 @@ IWNIST_API int WINAPI BMPtoWSQ(BYTE* pImageIn, long lLengthIn, float fRate, BYTE
 	return ret;
 }
 
-IWNIST_API int WINAPI WSQtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
+OPENEBTS_API int WINAPI WSQtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
 {
 	int ret = IW_ERR_WSQ_DECOMPRESS;
 	HGLOBAL hRAW;
 	BYTE *pRAW;
 
 	IWS_BEGIN_EXCEPTION_METHOD("WSQtoRAW")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (NISTWSQtoRAW((char*)pImageIn, lLengthIn, &hRAW, plWidth, plHeight, plDPI))
@@ -837,7 +810,7 @@ IWNIST_API int WINAPI WSQtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut
 	return ret;
 }
 
-IWNIST_API int WINAPI WSQtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI WSQtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
 {
 	int ret = IW_ERR_WSQ_DECOMPRESS;
 	HGLOBAL hBMP;
@@ -867,7 +840,7 @@ IWNIST_API int WINAPI WSQtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut
 	return ret;
 }
 
-IWNIST_API int WINAPI RAWtoBMP(int nWidth, int nHeight, int nDPI, int nDepth, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI RAWtoBMP(int nWidth, int nHeight, int nDPI, int nDepth, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut)
 // Supports 1bpp, 8bpp and 24bpp
 {
 	int		ret = IW_ERR_IMAGE_CONVERSION;
@@ -992,7 +965,7 @@ done:
 	return ret;
 }
 
-IWNIST_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
+OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
 //
 // Supports 1bpp, 8bpp and 24bpp BMP inputs.
 //
@@ -1062,7 +1035,7 @@ done:
 	return ret;
 }
 
-IWNIST_API int WINAPI JPGtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
 {
 	int		ret = IW_ERR_IMAGE_CONVERSION;
 	HGLOBAL	hIn = NULL;
@@ -1101,7 +1074,7 @@ done:
 	return ret;
 }
 
-IWNIST_API int WINAPI BMPtoJPG(BYTE* pImageIn, long lLengthIn, long nCompression, BYTE **ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, long lLengthIn, long nCompression, BYTE **ppImageOut, long *plLengthOut)
 {
 	int		ret = IW_ERR_IMAGE_CONVERSION;
 	HGLOBAL	hIn = NULL;
@@ -1323,13 +1296,11 @@ int WINAPI MemFree(BYTE* pImage)
 /*                                                          */
 /************************************************************/
 
-IWNIST_API int WINAPI IWGetErrorCount(CIWTransaction* IWTrans)
+OPENEBTS_API int WINAPI IWGetErrorCount(CIWTransaction* pIWTrans)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = 0;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWGetErrorCount")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
@@ -1340,17 +1311,19 @@ IWNIST_API int WINAPI IWGetErrorCount(CIWTransaction* IWTrans)
 	return nRet;
 }
 
-IWNIST_API int WINAPI IWGetError(CIWTransaction* IWTrans, int Index, int* Code, const char** Desc)
+OPENEBTS_API int WINAPI IWGetError(CIWTransaction* pIWTrans, int nIndex, int* pnCode, const TCHAR** pszDesc)
 {
-	CIWTransaction *pIWTrans = IWTrans;
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
 	IWS_BEGIN_EXCEPTION_METHOD("IWGetError")
-	
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
-		nRet = pIWTrans->GetError(Index, Code, Desc);
+	{
+		CStdString sDesc;
+		nRet = pIWTrans->GetError(nIndex, pnCode, sDesc);
+		*pszDesc = pIWTrans->CreateNewStringSlot(sDesc);
+	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 

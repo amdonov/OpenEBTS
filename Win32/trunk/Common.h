@@ -216,18 +216,21 @@
 	} \
 	catch (...) \
 	{ \
-		sException.Format("[%s] Unknown exception occured.",sFrom); \
-		LogFile(LF_OPENEBTS,sException); \
+		sException.Format(_T("[%s] Unknown exception occured."), sFrom); \
+		LogFile(sException); \
 	}
 
-#define LF_OPENEBTS	"OpenEBTS.log"
+#define LF_OPENEBTS	_T("OpenEBTS.log")
 
-extern BOOL g_bTraceOn; 
-extern BOOL g_bLogErrors; 
+extern bool g_bTraceOn; 
+extern bool g_bLogErrors; 
 
-void LogFile(char *pLogFile, CStdString& sException);
+void LogFile(CStdString& sException);
 void TraceMsg(CStdString& sTraceMsg);
 
 void SetLogFlags();
+
+bool UTF8toUCS2(const char *pIn, wchar_t **ppOut);
+bool UCS2toUTF8(const wchar_t *wIn, char **ppOut, int *pnLength);
 
 #endif // _COMMON_H

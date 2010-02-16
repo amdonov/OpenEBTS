@@ -28,17 +28,16 @@ class CSubFieldItem
 public:
 	int m_nSubField;
 	int m_nSubFieldItem;
-	char *m_pszData;
+	CStdString m_sData;
 
-	int GetLength() { int nLen = 0; if (m_pszData) { nLen = strlen(m_pszData); }  return nLen;  }
-	int SetItemData(int nSubField, int nSubFieldItem, const char *pszData);
+	int GetLength();
+	int SetItemData(int nSubField, int nSubFieldItem, CStdString sData);
 
 public:
 	CSubFieldItem::CSubFieldItem(const CSubFieldItem& obj)  { CopyObj(obj); }
 	CSubFieldItem& CSubFieldItem::operator=(const CSubFieldItem& rhs) { CopyObj(rhs); return *this; }
 
-	CSubFieldItem() { m_nSubField = m_nSubFieldItem = 0; m_pszData = 0; }
-	virtual ~CSubFieldItem() { if (m_pszData) { delete [] m_pszData; m_pszData = 0; } }
+	CSubFieldItem() { m_nSubField = m_nSubFieldItem = 0; m_sData.Empty(); }
 
 	void CopyObj(const CSubFieldItem& obj);
 };
@@ -62,33 +61,33 @@ public:
 	std::vector<CSubFieldItem*> m_SubFieldAry; // field data, subfields, etc
 
 	int m_nRecordLen; // set at write time
-	BOOL m_bWriteRecordSeperator;
+	bool m_bWriteRecordSeperator;
 
-	unsigned char *m_pImageData;
+	BYTE* m_pImageData;
 
 	int m_nImageLen;
 	IWImageFormat m_ImageFormat;
 
-	int SetSubField(int nSubField, int nSubFieldItem, const char *pData);
+	int SetSubField(int nSubField, int nSubFieldItem, CStdString sData);
 	int RemoveSubField(int nSubField);
 
 	int GetNumSubfields();
 
 	// AddItem() does both add and edit
-	int AddItem(int RecordType, int Field, int Subfield, int Item, const char *pData);
+	int AddItem(int RecordType, int Field, int Subfield, int Item, CStdString sData);
 
-	int SetImageData(unsigned char *pImage, int nImageLen);
+	int SetImageData(BYTE* pImage, int nImageLen);
 
 	int GetSubfieldCount() { return m_SubFieldAry.size(); }
 	CSubFieldItem *GetSubfieldItem(int nSubfield, int nItem);
-	int FindItem(int Subfield, int Item, const char** ppData);
-	int GetNumItems(int Subfield, int* Count);
+	int FindItem(int nSubfield, int Item, CStdString& sData);
+	int GetNumItems(int nSubfield, int* pnCount);
 
 	int GetWriteLen();
 	int Write(FILE *pFile);
 
-	static const char*   ImageExtFromImageFormat(IWImageFormat fmt);
-	static IWImageFormat ImageFormatFromImageExt(const char *szFormat);
+	static CStdString ImageExtFromImageFormat(IWImageFormat fmt);
+	static IWImageFormat ImageFormatFromImageExt(CStdString sFormat);
 
 	IWImageFormat GetImageFormatFromHeader(int nRecordType, const BYTE* pImage);
 };

@@ -11,10 +11,10 @@ CTransactionDefinition::~CTransactionDefinition()
 {
 }
 
-BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
+bool CTransactionDefinition::SetRuleString(CStdString& sRule)
 // Parse out array of ranges, e.g., "1:1 2:1 4:0-99 9:0-14 10:0-5 14:0-14 16:0-6"
 {
-	BOOL bRet = FALSE;
+	bool bRet = false;
 	CRuleObj rule; // We use this class just for SetRange
 	int nMin;
 	int nMax;
@@ -54,7 +54,7 @@ BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
 		}
 
 		CRecordTypeCount recTypeCount;
-		recTypeCount.nRecordType = atol(sRecType);
+		recTypeCount.nRecordType = _ttol(sRecType);
 		recTypeCount.nMin = nMin;
 		recTypeCount.nMax = nMax;
 		m_recTypeCountAry.push_back(recTypeCount);
@@ -63,7 +63,7 @@ BOOL CTransactionDefinition::SetRuleString(CStdString& sRule)
 	// Make sure each ':' created a CRecordTypeCount
 	if (m_recTypeCountAry.size() == nCounts)
 	{
-		bRet = TRUE;
+		bRet = true;
 	}
 
 	return bRet;

@@ -11,6 +11,10 @@
 
 #include "windows.h"
 
+#include <vector>
+#include <memory>
+#include <map>
+using namespace std;
 
 // WSQ support
 #include "iwswsq.h"
@@ -20,13 +24,11 @@
 #include "iwsjpeg.h"
 // TIFF support for Group 4 Fax
 #include "iwstiff.h"
+// UTF8 from SourceForge
+#include "utf8.h"
 
-#include "StdString.h"
-
-#include <vector>
-#include <memory>
-#include <map>
-using namespace std;
+#include "StdString.h"		// smart CStdString type used throughout
+#include "StringSlots.h"	// Self-destructing string allocation to rsepect string-returning interface
 
 /*
 For future use: XML support

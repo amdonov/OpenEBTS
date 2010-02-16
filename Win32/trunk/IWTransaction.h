@@ -1,32 +1,28 @@
 
-
 #ifndef _IWTRANSACTION_H_
 #define _IWTRANSACTION_H_
 
 class CNISTRecord;
 class CIWVerification;
 
-#define MAXERRORLEN 4096
-
 class CNISTErr
 {
 public:
-	char m_szErr[MAXERRORLEN];
-	int  m_nCode;
+	CStdString	m_sErr;
+	int			m_nCode;
 };
 
 class CIWTransaction
 {
 private:
-	char *m_pTransactionData;
-	CStdString m_sFilePath;
-	int m_nIDCDigits;
-	double m_dNativeResolutionPPMM;
-
+	BYTE			*m_pTransactionData;
+	CStdString		m_sFilePath;
+	int				m_nIDCDigits;
+	double			m_dNativeResolutionPPMM;
 	CIWVerification *m_pVerification;
+	bool			m_bTransactionLoaded;		// Indicates the transaction file was successfully read
 
-	// Indicates the transaction file was successfully read
-	BOOL m_bTransactionLoaded; 
+	CStringSlots	m_stringSlots;
 
 	// Array of records contained by transaction
 	std::vector<CNISTRecord*> m_RecordAry;
@@ -38,18 +34,20 @@ private:
 	int Type1AddRecordIDC(CNISTRecord *pRecord, int nRecordType, int nIDC);
 	int Type1UpdateIDC(CNISTRecord *pRecord, int nIDC);
 	int Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC);
-	int DebugOutRecords(const char *szContext);
+	int DebugOutRecords(CStdString sContext);
 	int SetRecordLengths();
 
 public:
 	CIWTransaction();
 	virtual ~CIWTransaction();
 
-	int ReadTransactionFile(const char *pFilePath);
-	int ReadTransactionFileMem(const unsigned char *pMemFile, int MemFileSize);
+	TCHAR* CreateNewStringSlot(CStdString s) { return m_stringSlots.AddNew(s); };
+
+	int ReadTransactionFile(CStdString sFilePath);
+	int ReadTransactionFileMem(const BYTE* pMemFile, int MemFileSize);
 	int GetRecords();
-	BOOL IsTransactionLoaded() { return m_bTransactionLoaded; } 
-	BOOL IsVerificationLoaded(); 
+	bool IsTransactionLoaded() { return m_bTransactionLoaded; } 
+	bool IsVerificationLoaded(); 
 
 	/************************************************************/
 	/*                                                          */
@@ -60,19 +58,19 @@ public:
 	int GetNumRecords(int *pRecords);
 	int GetRecordTypeCount(int RecordType, int *pRecordTypeCount);
 	int GetRecordTypeMaxIndex(int RecordType, int *pIndex);
-	int New(const char *pszTransactionType, CIWVerification *pIWVer);
+	int New(CStdString sTransactionType, CIWVerification *pIWVer);
 	int AddRecord(int RecordType, int *pRecordIndex);
 	int DeleteRecord(int RecordType, int RecordIndex);
 
-	int Write(const char *pPath);
-	int WriteBinary(const char *pPath);
-	int WriteXML(const char *pPath, BOOL bValidate);
-	
+	int Write(CStdString sPath);
+	int WriteBinary(CStdString sPath);
+	int WriteXML(CStdString sPath, bool bValidate);
+
 	/************************************************************/
 	/*                   XML Specific (2-2008)                  */
 	/************************************************************/
 
-	int  GetXML(BYTE **ppXML, BOOL bValidate, long *plLengthXML, char **pErr);
+	int  GetXML(BYTE **ppXML, bool bValidate, long *plLengthXML, CStdString& sErr);
 	/*
 
 	For future use
@@ -90,18 +88,18 @@ public:
 	void SerializeDOMtoXMLFormatTarget(xercesc::XMLFormatTarget& target, const xercesc::DOMDocument& doc, const std::string& encoding = "UTF-8");
 	void RemoveEmptyElementsFromDOM(DOMElement* e);
 	void SetProperPackageImageRecordSubstitutions(::xercesc::DOMDocument& d, DOMElement* e);
-	BOOL HandleXMLSchemaException(char **pErr);
+	bool HandleXMLSchemaException(char **pErr);
 
-	BOOL DecomposeYYYYMMDD(const char *szDate, int *py, unsigned short *pm, unsigned short *pd);
-	BOOL DecomposeT1_GMT(const char *szDate, int *py, unsigned short *pm, unsigned short *pd,
+	bool DecomposeYYYYMMDD(const char *szDate, int *py, unsigned short *pm, unsigned short *pd);
+	bool DecomposeT1_GMT(const char *szDate, int *py, unsigned short *pm, unsigned short *pd,
 						 unsigned short *pgh, unsigned short *pgm, unsigned short *pgs);
-	BOOL DecomposeNAME(const char *szFullName, char szGivenName[256], char szMiddleName[256], char szSurName[256]);
-	BOOL DecomposeXXYY(const char *szAgeRange, int *pmin, int *pmax);
-	BOOL DecomposeXXXYYY(const char *szHeightRange, int *pmin, int *pmax);
-	BOOL DecomposeTABSEP3(const char *sz, char sz1[256], char sz2[256], char sz3[256]);
+	bool DecomposeNAME(const char *szFullName, char szGivenName[256], char szMiddleName[256], char szSurName[256]);
+	bool DecomposeXXYY(const char *szAgeRange, int *pmin, int *pmax);
+	bool DecomposeXXXYYY(const char *szHeightRange, int *pmin, int *pmax);
+	bool DecomposeTABSEP3(const char *sz, char sz1[256], char sz2[256], char sz3[256]);
 
 	int	 ReturnError(const char *szErr, char **pErr);
-	BOOL GetSchemaPath(char szSchema[_MAX_PATH]);
+	bool GetSchemaPath(char szSchema[_MAX_PATH]);
 	*/
 
 	/************************************************************/
@@ -110,27 +108,24 @@ public:
 
 	int GetNextField(int RecordType, int RecordIndex, int Field, int *pNextField);
 	int GetNumSubfields(int RecordType, int RecordIndex, int Field, int *pCount);
-	int GetNumItems(int RecordType, int RecordIndex, int Field, 
-										int Subfield, int *pCount);
-	int FindItem(int RecordType, int RecordIndex, int Field, 
-									int Subfield, int Item, const char **ppData);
-	int SetItem(const char* Data, int RecordType, int RecordIndex,
-									int Field, int Subfield, int Item);
+	int GetNumItems(int RecordType, int RecordIndex, int Field, int Subfield, int *pCount);
+	int FindItem(int RecordType, int RecordIndex, int Field, int Subfield, int Item, CStdString& sData);
+	int SetItem(CStdString sData, int RecordType, int RecordIndex, int Field, int Subfield, int Item);
 
 	/************************************************************/
 	/*        Verification based NIST Data Access               */
 	/************************************************************/
 
 	int SetVerification(CIWVerification *pIWVer);
-	int Get(const char *pMnemonic, const char **ppData, int Index, int RecordIndex);
-	int Set(const char *pMnemonic, const char *pData, int StartIndex, int RecordIndex);
-	int Occurrences(const char *pMnemonic, int *pOccurrences, int RecordIndex);
+	int Get(CStdString sMnemonic, CStdString& sData, int Index, int RecordIndex);
+	int Set(CStdString sMnemonic, CStdString sData, int StartIndex, int RecordIndex);
+	int Occurrences(CStdString sMnemonic, int *pnOccurrences, int RecordIndex);
 	int Verify();
 	int GetErrorCount();
-	int GetError(int Index, int* Code, const char** Desc);
+	int GetError(int Index, int* Code, CStdString& sDesc);
 
 	void FreeErrors();
-	void AddError(char* szErr, int nCode);
+	void AddError(CStdString sErr, int nCode);
 
 	/************************************************************/
 	/*                                                          */
@@ -138,20 +133,11 @@ public:
 	/*                                                          */
 	/************************************************************/
 
-	int GetImage(int RecordType,int RecordIndex, const char **ppStorageFormat,
-								long *pLength, const void **ppData);
-
-	int SetImage(int RecordType, int RecordIndex, const char *pInputFormat, 
-											long Length, void *pData, const char *pStorageFormat,
-														float Compression);
-	int	ImportImage(int RecordType, int RecordIndex, const char* Path,
-								const char* StorageFormat, float Compression,
-								const char* InputFormat);
-	int ExportImage(int RecordType, int RecordIndex,
-								const char* Path, const char* OutputFormat);
-
-	int GetImageInfo(int RecordType, int RecordIndex, const char **ppStorageFormat,
-								long *pLength, long *phll, long *pvll, int *pBitsPerPixel);
+	int GetImage(int RecordType,int RecordIndex, CStdString& sStorageFormat, long *pLength, const BYTE **ppData);
+	int SetImage(int RecordType, int RecordIndex, CStdString sInputFormat, long Length, BYTE *pData, CStdString sStorageFormat, float Compression);
+	int	ImportImage(int RecordType, int RecordIndex, CStdString sPath, CStdString sStorageFormat, float Compression, CStdString sInputFormat);
+	int ExportImage(int RecordType, int RecordIndex, CStdString sPath, CStdString sOutputFormat);
+	int GetImageInfo(int RecordType, int RecordIndex, CStdString& sStorageFormat, long *pnLength, long *pnHLL, long *pnVLL, int *pnBitsPerPixel);
 };
 
 #endif // _IWTRANSACTION_H_
