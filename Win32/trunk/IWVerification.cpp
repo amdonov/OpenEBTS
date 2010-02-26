@@ -722,7 +722,6 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 		if (pFile == NULL) break;
 
 		sLine.Trim();
-		sLine.MakeUpper();
 
 		// found a transaction definition, run it through the state machine
 		if (sLine.GetLength() >= 12 && !sLine.Left(12).CompareNoCase(STR_TRANSACTION_DEF_TAG))
