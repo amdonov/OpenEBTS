@@ -98,11 +98,6 @@ bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 		goto done;
 	}
 
-	// Sets m_sAllowedChars based on m_sCharType and m_sSpecialChars
-	SetAllowedChars();
-	OutputDebugString(GetAllowedChars());
-	OutputDebugString(_T("\n"));
-
 	bRet = true;
 
 #ifdef _DEBUG
@@ -191,8 +186,23 @@ bool CRuleObj::SetOptionalLongDescription(CStdString& sLongDescription)
 }
 
 bool CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
+// Note: we assume that m_sSpecialChars is already set
 {
 	m_sSpecialChars = sSpecialChars;
+
+	// Adds to m_sCharType if m_sSpecialChars refers to printable or control characters.
+	// "PRINT" is a special code for all printable characters.
+	// "PRINTCTRL" is a special code for all printable characters plus control characters.
+	if (!m_sSpecialChars.CompareNoCase(_T("PRINTCTRL")))
+	{
+		m_sCharType += "PC";
+		m_sSpecialChars.Empty();
+	}
+	else if (!m_sSpecialChars.CompareNoCase(_T("PRINT")))
+	{
+		m_sCharType += "P";
+		m_sSpecialChars.Empty();
+	}
 
 	return true;
 }
@@ -620,6 +630,8 @@ bool CRuleObj::SetCharType(CStdString& sCharType)
 	return bRet;
 }
 
+/* No longer used because this approch makes little sense with UNICODE charsets
+
 void CRuleObj::SetAllowedChars()
 // Sets m_sAllowedChars based on m_sCharType and m_sSpecialChars.
 // It's just a list of all alowed characters.
@@ -689,6 +701,7 @@ void CRuleObj::SetAllowedChars()
 		}
 	}
 }
+*/
 
 bool CRuleObj::SetMNU(CStdString& sMNU)
 {

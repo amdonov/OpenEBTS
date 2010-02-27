@@ -89,7 +89,7 @@ public:
 	int GetMnemonics(const TCHAR* TransactionType, int DataArraySize, const TCHAR** ppDataArray, const TCHAR** ppDescArray, int* pEntries);
 	int GetRuleRestrictions(const TCHAR* TransactionType, const TCHAR* pMnemonic, int* pRecordType,
 							int* pField, int* pSubfield, int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType,
-							const TCHAR** ppAllowedTCHARs, const TCHAR** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax,
+							const TCHAR** ppSpecialChars, const TCHAR** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax,
 							int* pOffset, bool* pAutomaticallySet, bool* pMandatory);
 	int GetValueList(const TCHAR* TransactionType, const TCHAR* Mnemonic, bool *Mandatory,
 					 int DataArraySize, const TCHAR** DataArray, const TCHAR** DescArray, int *Entries);

@@ -2346,7 +2346,7 @@ static const TCHAR s_rgszAutomaticMNU[][10] =
 static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticMNU[0]);
 
 int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCHAR* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
-										 int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType, const TCHAR** ppAllowedChars,
+										 int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType, const TCHAR** ppSpecialChars,
 										 const TCHAR** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
 										 bool* pAutomaticallySet, bool* pMandatory)
 {
@@ -2364,6 +2364,7 @@ int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCH
 	if (ppDesc == NULL) return IW_ERR_NULL_POINTER;
 	if (ppLongDesc == NULL) return IW_ERR_NULL_POINTER;
 	if (ppCharType == NULL) return IW_ERR_NULL_POINTER;
+	if (ppSpecialChars == NULL) return IW_ERR_NULL_POINTER;
 	if (ppDateFormat == NULL) return IW_ERR_NULL_POINTER;
 	if (pSizeMin == NULL) return IW_ERR_NULL_POINTER;
 	if (pSizeMax == NULL) return IW_ERR_NULL_POINTER;
@@ -2397,7 +2398,7 @@ int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCH
 				*ppDesc = CreateNewStringSlot(pRule->GetDescription());
 				*ppLongDesc = CreateNewStringSlot(pRule->GetLongDescription());
 				*ppCharType = CreateNewStringSlot(pRule->GetCharType());
-				*ppAllowedChars = CreateNewStringSlot(pRule->GetAllowedChars());
+				*ppSpecialChars = CreateNewStringSlot(pRule->GetSpecialChars());
 				*ppDateFormat = CreateNewStringSlot(pRule->GetDateFormat());
 
 				// Is field automatically managed by OpenEBTS? Scan array.

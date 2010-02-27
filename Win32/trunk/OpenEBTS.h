@@ -160,7 +160,7 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(
 	const TCHAR** pszDesc,					// Description string
 	const TCHAR** pszLongDesc,				// Long description
 	const TCHAR** pszCharType,				// Character types allowed
-	const TCHAR** pszAllowedChars,			// List of characters allowed
+	const TCHAR** pszSpecialChars,			// List of additional characters allowed
 	const TCHAR** pszDateFormat,			// e.g."CCYYMMDD", or "" when not a date
 	int* pnSizeMin,							// Minimum field size
 	int* pnSizeMax,							// Maximum field size
