@@ -1899,14 +1899,25 @@ bool CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 	return bRet;
 }
 
+// Same as TCHAR for UNICODE, but *unsigned* char for non-UNICODE.
+// This allows the _ist* functions to work properly on negative chars
+// for inputs in the range 128..255.
+#ifdef UNICODE
+typedef WCHAR TUCHAR;
+#else
+typedef unsigned char TUCHAR;
+#endif
+
 bool CIWVerification::IsAlpha(CStdString& s)
 {
-	bool bRet = true;
-	int  i;
+	bool	bRet = true;
+	TUCHAR	c;
 
-	for (i=0; i<s.GetLength(); i++)
+	for (int i = 0; i < s.GetLength(); i++)
 	{
-		if (!_istalpha(s.GetAt(i)))
+		c = s.GetAt(i);
+
+		if (!_istalpha(c))
 		{
 			bRet = false;
 			break;
@@ -1918,12 +1929,14 @@ bool CIWVerification::IsAlpha(CStdString& s)
 
 bool CIWVerification::IsNumeric(CStdString& s)
 {
-	bool bRet = true;
-	int  i;
+	bool	bRet = true;
+	TUCHAR	c;
 
-	for (i=0; i<s.GetLength(); i++)
+	for (int i = 0; i < s.GetLength(); i++)
 	{
-		if (!_istdigit(s.GetAt(i)))
+		c = s.GetAt(i);
+
+		if (!_istdigit(c))
 		{
 			bRet = false;
 			break;
@@ -1935,12 +1948,14 @@ bool CIWVerification::IsNumeric(CStdString& s)
 
 bool CIWVerification::IsAlphaNumeric(CStdString& s)
 {
-	bool bRet = true;
-	int  i;
+	bool	bRet = true;
+	TUCHAR	c;
 
-	for (i=0; i<s.GetLength(); i++)
+	for (int i = 0; i < s.GetLength(); i++)
 	{
-		if (!_istdigit(s.GetAt(i)) && !_istalpha(s.GetAt(i)))
+		c = s.GetAt(i);
+
+		if (!_istalnum(c))
 		{
 			bRet = false;
 			break;
@@ -1952,13 +1967,13 @@ bool CIWVerification::IsAlphaNumeric(CStdString& s)
 
 bool CIWVerification::IsPrintable(CStdString& s, bool bAllowControlChars)
 {
-	bool bRet = true;
-	TCHAR c;
-	int  i;
+	bool	bRet = true;
+	TUCHAR	c;
 
-	for (i=0; i<s.GetLength(); i++)
+	for (int i = 0; i < s.GetLength(); i++)
 	{
 		c = s.GetAt(i);
+
 		if (!_istprint(c))
 		{
 			if (bAllowControlChars)
@@ -1984,9 +1999,8 @@ bool CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
 // Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
 // means all printable characters + CR + LF + TAB.
 {
-	bool bRet = true;
-	TCHAR c;
-	int	 i;
+	bool	bRet = true;
+	TUCHAR	c;
 
 	if (!sSpecial.CompareNoCase(_T("PRINT")))
 	{
@@ -1998,7 +2012,7 @@ bool CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
 	}
 	else
 	{
-		for (i=0; i<s.GetLength(); i++)
+		for (int i = 0; i < s.GetLength(); i++)
 		{
 			c = s.GetAt(i);
 			// If the char is not alphabetic and it can't be found in the set of
@@ -2018,9 +2032,8 @@ bool CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
 // Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
 // means all printable characters + CR + LF + TAB.
 {
-	bool bRet = true;
-	TCHAR c;
-	int	 i;
+	bool	bRet = true;
+	TUCHAR	c;
 
 	if (!sSpecial.CompareNoCase(_T("PRINT")))
 	{
@@ -2032,7 +2045,7 @@ bool CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
 	}
 	else
 	{
-		for (i=0; i<s.GetLength(); i++)
+		for (int i = 0; i < s.GetLength(); i++)
 		{
 			c = s.GetAt(i);
 			// If the char is not numeric and it can't be found in the set of
@@ -2052,9 +2065,8 @@ bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 // Note: sca="PRINT" is a special code for "all printable characters" and sca="PRINTCTRL"
 // means all printable characters + CR + LF + TAB.
 {
-	bool bRet = true;
-	TCHAR c;
-	int	 i;
+	bool	bRet = true;
+	TUCHAR	c;
 
 	if (!sSpecial.CompareNoCase(_T("PRINT")))
 	{
@@ -2066,7 +2078,7 @@ bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 	}
 	else
 	{
-		for (i=0; i<s.GetLength(); i++)
+		for (int i = 0; i < s.GetLength(); i++)
 		{
 			c = s.GetAt(i);
 			// If the char is not alphabetic, not numeric and it can't be found in the set of

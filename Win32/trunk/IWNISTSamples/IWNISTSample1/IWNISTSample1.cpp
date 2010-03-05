@@ -72,7 +72,7 @@ int _tmain(int argc, TCHAR* argv[])
 	lRet = IWSet(pTrans, _T("T2_NAM1"), _T("LISA"), 1, 1);			if (!CheckRet(_T("IWSet"), lRet)) goto done;
 	lRet = IWSet(pTrans, _T("T2_NAM2"), _T("MONA"), 1, 1);			if (!CheckRet(_T("IWSet"), lRet)) goto done;
 	lRet = IWSet(pTrans, _T("T2_NAM3"), _T("J"), 1, 1);				if (!CheckRet(_T("IWSet"), lRet)) goto done;
-	lRet = IWSet(pTrans, _T("T2_POB"), _T("ÑÑ"), 1, 1);				if (!CheckRet(_T("IWSet"), lRet)) goto done;
+	lRet = IWSet(pTrans, _T("T2_POB"), _T("IT"), 1, 1);				if (!CheckRet(_T("IWSet"), lRet)) goto done;
 	lRet = IWSet(pTrans, _T("T2_DOB"), _T("19750620"), 1, 1);		if (!CheckRet(_T("IWSet"), lRet)) goto done;
 	lRet = IWSet(pTrans, _T("T2_SEX"), _T("F"), 1, 1);				if (!CheckRet(_T("IWSet"), lRet)) goto done;
 	lRet = IWSet(pTrans, _T("T2_RAC"), _T("W"), 1, 1);				if (!CheckRet(_T("IWSet"), lRet)) goto done;

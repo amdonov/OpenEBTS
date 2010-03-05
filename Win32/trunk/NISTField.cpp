@@ -478,9 +478,26 @@ int CNISTField::GetWriteLen()
 	return nLen;
 }
 
+struct SubfieldItemSort
+{
+	 bool operator()(CSubFieldItem*& rp1, CSubFieldItem*& rp2)
+	 {
+		if (rp1->m_nSubField == rp2->m_nSubField)
+		// Subfield indices are equal, we sort by the item indices
+		{
+			return (rp1->m_nSubFieldItem < rp2->m_nSubFieldItem);
+		}
+		else
+		{
+			return (rp1->m_nSubField < rp2->m_nSubField);
+		}
+	 }
+};
+
 int CNISTField::Write(FILE *pFile)
 {
 	int nRet = IW_ERR_WRITING_FILE;
+	int nCount;
 
 	if (g_bTraceOn)
 	{
@@ -492,10 +509,13 @@ int CNISTField::Write(FILE *pFile)
 	}
 
 	IWS_BEGIN_EXCEPTION_METHOD("CNISTField::Write")
-
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-	// first, write the field and subfield data
+	// Before writing out all subfields and items we sort the list so we can just output them
+	// sequentially afterwards. We sort the list first by subfield index then by item index.
+	std::sort(m_SubFieldAry.begin(), m_SubFieldAry.end(), SubfieldItemSort());
+
+	// Write the field and subfield data
 	char szFieldLabel[40];
 
 	if (m_nField == 1) // handle LEN field seperately
@@ -509,9 +529,9 @@ int CNISTField::Write(FILE *pFile)
 	}
 	else
 	{
-		int nCount = m_SubFieldAry.size();
+		nCount = m_SubFieldAry.size();
 
-		// add the field descriptor
+		// Add the field descriptor
 		if (m_nRecordType == 1) // dont need this, only for testing
 			sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
 		else
