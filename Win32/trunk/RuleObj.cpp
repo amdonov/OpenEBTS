@@ -1027,21 +1027,13 @@ bool CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 
 bool CRuleObj::IsMandatory(CStdString& sTOT)
 // Given the Type Of Transaction, return is the field the rule refers to is mandatory for this type
-// of record. Currently we ignore Location Form Type 5 rules, such as "2.051..2" for example, because
-// these may be tagged as mandatory, but they are only mandatory if the associated field actually
-// exists, and this field may be optional. This is known by thepresense of the associated Location
-// Form Type 4 rule, for example "2.051:". In the future this will need to be taken into account,
-// perhaps by having a smarter rule structure than just a flat array, i.e., a list of rules each
-// containing related subrules.
+// of record.
 {
 	bool bRet = false;
 	UINT nMandatory;
 	CStdString sTemp;
 	CStdString sMNU;
 	map<CStdString, UINT>::iterator it;
-
-	if (m_nLocFormType == LOC_FORM_4) return false;
-	if (m_nLocFormType == LOC_FORM_5) return false;
 
 	if (m_transactionList.empty()) // No specifics, mandatory or optional for all TOTs
 	{
@@ -1071,10 +1063,6 @@ bool CRuleObj::IsOptional(CStdString& sTOT)
 	CStdString sTemp;
 	CStdString sMNU;
 	map<CStdString, UINT>::iterator it;
-
-	// We return true here for the same reason we returned false in IsMandatory
-	if (m_nLocFormType == LOC_FORM_4) return true;
-	if (m_nLocFormType == LOC_FORM_5) return true;
 
 	// Kludge: In ebts1_2.txt, 10.999 is not marked for DPRS as it should be, but this
 	// is not coherent as any binary record  is useless without it's DAT field. We simply
