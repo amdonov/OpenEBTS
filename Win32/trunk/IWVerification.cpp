@@ -1091,8 +1091,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						{
 							if (nRecTypeCount < pRecTypeCount->nMin)
 							{
-								sErr.Format(_T("Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld."),
-										    sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
+								// Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.
+								sErr.Format(IDS_TOTRECORDSMAX, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
 								pTrans->AddError(sErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
@@ -1101,8 +1101,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						{
 							if (nRecTypeCount > pRecTypeCount->nMax)
 							{
-								sErr.Format(_T("Transaction Type %s may contain at most %ld Type %ld records: it contains %ld."),
-											sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
+								// Transaction Type %s may contain at most %ld Type %ld records: it contains %ld
+								sErr.Format(IDS_TOTRECORDSMAX, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
 								pTrans->AddError(sErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
@@ -1113,8 +1113,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				if (nRecTypeCount != 0 && !bCountFound)
 				// We have a record of an unsupported Record-Type
 				{
-					sErr.Format(_T("Transaction Type %s may not contain Type %ld records: it contains %ld of them."),
-								sTOT, iRecType, nRecTypeCount);
+					// Transaction Type %s may not contain Type %ld records: it contains %ld of them.
+					sErr.Format(IDS_TOTRECORDUNSUPPORTED, sTOT, iRecType, nRecTypeCount);
 					pTrans->AddError(sErr, 0);
 					nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 				}
@@ -1169,14 +1169,16 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						// Check for missing mandatory field
 						if (nRetTmp == IW_ERR_RECORD_NOT_FOUND && bMandatory)
 						{
-							FlagFieldError(pTrans, pRule, IW_WARN_REQ_FIELD_MISSING, _T("Mandatory field not present"));
+							// Mandatory field not present
+							FlagFieldError(pTrans, pRule, IW_WARN_REQ_FIELD_MISSING, IDS_MANDATORYFIELD);
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 
 						// Check for present non-mandatory/non-optional field
 						if (nRetTmp == IW_SUCCESS && !bMandatory && !bOptional)
 						{
-							FlagFieldError(pTrans, pRule, IW_WARN_UNSUPPORT_FIELD_PRESENT, _T("Unsupported field present"));
+							// Unsupported field present
+							FlagFieldError(pTrans, pRule, IW_WARN_UNSUPPORT_FIELD_PRESENT, IDS_UNSUPPORTEDFIELD);
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 					}
@@ -1185,14 +1187,17 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 		}
 		else
 		{
-			sErr.Format(_T("Verification file does not contain Transaction Type %s"), sTOT);
+			// Verification file does not contain Transaction Type %s
+			sErr.Format(IDS_VERTOTUNK, sTOT);
 			pTrans->AddError(sErr, 0);
 			nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 		}
 	}
 	else
 	{
-		pTrans->AddError(_T("Failed to find TOT field in Record 1"), 0);
+		// Failed to find TOT field in Record 1
+		sErr.Format(IDS_NOTOTFIELD);
+		pTrans->AddError(sErr, 0);
 		nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 	}
 
@@ -1243,7 +1248,8 @@ bool CIWVerification::VerifyFieldsForm1(CStdString& sTOT, CIWTransaction *pTrans
 				if (nItemCount != 1)
 				{
 					// Only 1 item allowed per subfield for Location Form 1
-					FlagFieldError(pTrans, pRule, IW_WARN_INCORRECT_ITEM_COUNT, _T("Incorrect item count (%ld), must be 1"), nItemCount);
+					// Incorrect item count (%ld), must be 1
+					FlagFieldError(pTrans, pRule, IW_WARN_INCORRECT_ITEM_COUNT, IDS_INCORRECTITEMCOUNT, nItemCount);
 					bRet = false;
 				}
 
@@ -1546,9 +1552,11 @@ bool CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 				if (nLen != nMin)
 				{
 					if (nLen > nMin)
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid length of %ld, should be %ld"), nLen, nMin);
+						// Invalid length of %ld, should be %ld
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, IDS_INVALIDLENGTH, nLen, nMin);
 					else
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid length of %ld, should be %ld"), nLen, nMin);
+						// Invalid length of %ld, should be %ld
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, IDS_INVALIDLENGTH, nLen, nMin);
 					bRet = false;
 				}
 			}
@@ -1559,7 +1567,8 @@ bool CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 			{
 				if (nLen < nMin)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid length of %ld, minimum allowed is %ld"), nLen, nMin);
+					// Invalid length of %ld, minimum allowed is %ld
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, IDS_INVALIDLENGTHMIN, nLen, nMin);
 					bRet = false;
 				}
 			}
@@ -1567,7 +1576,8 @@ bool CIWVerification::VerifyFieldLength(CIWTransaction *pTrans, CRuleObj *pRule,
 			{
 				if (nLen > nMax)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid length of %ld, maximum allowed is %ld"), nLen, nMax);
+					// Invalid length of %ld, maximum allowed is %ld
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, IDS_INVALIDLENGTHMAX, nLen, nMax);
 					bRet = false;
 				}
 			}
@@ -1607,9 +1617,11 @@ bool CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *p
 				if (nTotalLen != nMin)
 				{
 					if (nTotalLen > nMin)
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid total subfield length of %ld, should be %ld"), nTotalLen, nMin);
+						// Invalid total subfield length of %ld, should be %ld
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, IDS_INVALIDTOTALLENGTH, nTotalLen, nMin);
 					else
-						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid total subfield  length of %ld, should be %ld"), nTotalLen, nMin);
+						// Invalid total subfield length of %ld, should be %ld
+						FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, IDS_INVALIDTOTALLENGTH, nTotalLen, nMin);
 					bRet = false;
 				}
 			}
@@ -1620,7 +1632,8 @@ bool CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *p
 			{
 				if (nTotalLen < nMin)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, _T("Invalid total subfield length of %ld, minimum allowed is %ld"), nTotalLen, nMin);
+					// Invalid total subfield length of %ld, minimum allowed is %ld
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_DATA_CHARS, IDS_INVALIDTOTALLENGTHMIN, nTotalLen, nMin);
 					bRet = false;
 				}
 			}
@@ -1628,7 +1641,8 @@ bool CIWVerification::VerifyFieldLengthTotal(CIWTransaction *pTrans, CRuleObj *p
 			{
 				if (nTotalLen > nMax)
 				{
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid total subfield length of %ld, maximum allowed is %ld"), nTotalLen, nMax);
+					// Invalid total subfield length of %ld, maximum allowed is %ld
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, IDS_INVALIDTOTALLENGTHMAX, nTotalLen, nMax);
 					bRet = false;
 				}
 			}
@@ -1657,7 +1671,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (!IsAlpha(sData))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, _T("Invalid value '%s' for CharType '%s'"), sData.c_str(), sCharType.c_str());
+			// Invalid value '%s' for CharType '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1665,7 +1680,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (!IsNumeric(sData))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, _T("Invalid value '%s' for CharType '%s'"), sData.c_str(), sCharType.c_str());
+			// Invalid value '%s' for CharType '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1673,7 +1689,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (!IsAlphaNumeric(sData))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, _T("Invalid value '%s' for CharType '%s'"), sData.c_str(), sCharType.c_str());
+			// Invalid value '%s' for CharType '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1681,7 +1698,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (!IsAlphaSpecial(sData, sSpecialChars))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, _T("Invalid value '%s' for CharType '%s', Special Chars '%s'"), sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			// Invalid value '%s' for CharType '%s', Special Chars '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1689,7 +1707,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (!IsNumericSpecial(sData, sSpecialChars))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, _T("Invalid value '%s' for CharType '%s', Special Chars '%s'"), sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			// Invalid value '%s' for CharType '%s', Special Chars '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1697,7 +1716,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (!IsAlphaNumericSpecial(sData, sSpecialChars))
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL, _T("Invalid value '%s' for CharType '%s', Special Chars '%s'"), sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			// Invalid value '%s' for CharType '%s', Special Chars '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL,IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1711,7 +1731,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		dwVal = _ttol(sData);
 		if (dwVal > dwValMax)
 		{
-			FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, _T("Invalid value %ld for CharType %s"), dwVal, sCharType.c_str());
+			// Invalid value %ld for CharType '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_DATA_CHARS, IDS_TOOMANYDATACHARS, dwVal, sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1774,21 +1795,23 @@ bool CIWVerification::VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pR
 	// Year must be anywhere from 1900 to 2099
 	if (lY < 1900 || lY > 2099)
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, _T("Invalid year %ld"), lY);
+		// Invalid year %ld
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, IDS_INVALIDYEAR, lY);
 		bRet = false;
 	}
 
 	// Month between 1 and 12
 	if (lM < 1 || lM > 12) 
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, _T("Invalid month %ld"), lM);
+		// Invalid month %ld
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, IDS_INVALIDMONTH, lM);
 		bRet = false;
 	}
 
 	// Day between 1 and ...
 	if (lD < 1 || lD > DaysInMonth(lY, lM))
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, _T("Invalid day %ld"), lD);
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATE, IDS_INVALIDDAY, lD);
 		bRet = false;
 	}
 
@@ -1843,7 +1866,8 @@ bool CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, 
 
 	if (!bFound)
 	{
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, _T("'%s': invalid data from mandatory map"), sData.c_str());
+		// '%s': invalid data from mandatory map
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, IDS_INVALIDMMAP, sData.c_str());
 	}
 
 	return bFound;
@@ -1869,9 +1893,11 @@ bool CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 			if (nSubfieldCount != nMinOccurrences)
 			{
 				if (nSubfieldCount < nMinOccurrences)
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, _T("Too few subfields (%ld), must be %ld"), nSubfieldCount, nMinOccurrences);
+					// Too few subfields (%ld), must be %ld
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, IDS_TOOFEWSUBFIELDS, nSubfieldCount, nMinOccurrences);
 				else
-					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, _T("Too many subfields (%ld), must be %ld"), nSubfieldCount, nMinOccurrences);
+					// Too many subfields (%ld), must be %ld
+					FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, IDS_TOOMANYSUBFIELDS, nSubfieldCount, nMinOccurrences);
 				bRet = false;
 			}
 		}
@@ -1882,7 +1908,8 @@ bool CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 		{
 			if (nSubfieldCount < nMinOccurrences)
 			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, _T("Too few subfields (%ld), minimum allowed is %ld"), nSubfieldCount, nMinOccurrences);
+				// Too few subfields (%ld), minimum allowed is %ld
+				FlagFieldError(pTrans, pRule, IW_WARN_TOO_FEW_SUBFIELDS, IDS_TOOFEWSUBFIELDSMIN, nSubfieldCount, nMinOccurrences);
 				bRet = false;
 			}
 		}
@@ -1890,7 +1917,8 @@ bool CIWVerification::VerifySubfieldOccurrences(CIWTransaction *pTrans, CRuleObj
 		{
 			if (nSubfieldCount > nMaxOccurrences)
 			{
-				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, _T("Too many subfields (%ld), maximum allowed is %ld"), nSubfieldCount, nMaxOccurrences);
+				// Too many subfields (%ld), maximum allowed is %ld
+				FlagFieldError(pTrans, pRule, IW_WARN_TOO_MANY_SUBFIELDS, IDS_TOOFEWSUBFIELDSMAX, nSubfieldCount, nMaxOccurrences);
 				bRet = false;
 			}
 		}
@@ -2094,10 +2122,15 @@ bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 	}
 }
 
-void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, const TCHAR *szFormat, ...)
+extern HINSTANCE g_hInstance;
+
+void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, int nIDC, ...)
 {
 	TCHAR szErr[1024];
+	TCHAR szFormat[1024];
 	CStdString sMsg;
+
+	::LoadString(g_hInstance, nIDC, szFormat, 1024);
 
 	va_list args;
 	va_start(args, szFormat);

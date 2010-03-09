@@ -53,7 +53,7 @@ private:
 	bool VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData);
 	bool VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData);
 	long DaysInMonth(long y, long m);
-	void FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, const TCHAR *szFormat, ...);
+	void FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, int nIDC, ...);
 
 	bool IsAlpha(CStdString& s);
 	bool IsNumeric(CStdString& s);

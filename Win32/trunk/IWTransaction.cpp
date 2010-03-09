@@ -69,10 +69,8 @@ int CIWTransaction::New(CStdString sTransactionType, CIWVerification *pIWVer)
 
 	if (g_bTraceOn)
 	{
-		CStdString sTraceFrom("CIWTransaction::New");
 		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] Result %d"), sTraceFrom, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::New] Result %d"), nRet);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -132,10 +130,8 @@ int CIWTransaction::ReadTransactionFile(CStdString sFilePath)
 
 	if (g_bTraceOn)
 	{
-		CStdString sTraceFrom("CIWTransaction::ReadTransactionFile");
 		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] Path %s, Result %d"), sTraceFrom, sFilePath, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::ReadTransactionFile] Path %s, Result %d"), sFilePath, nRet);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -180,10 +176,8 @@ int CIWTransaction::ReadTransactionFileMem(const BYTE *pMemFile, int MemFileSize
 
 	if (g_bTraceOn)
 	{
-		CStdString sTraceFrom("CIWTransaction::ReadTransactionFileMem");
 		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] Result %d"), sTraceFrom, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::ReadTransactionFileMem] Result %d"), nRet);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -223,10 +217,8 @@ int CIWTransaction::GetRecords()
 
 			if (g_bTraceOn)
 			{
-				CStdString sTraceFrom("CIWTransaction::GetRecords");
 				CStdString sTraceMsg;
-				
-				sTraceMsg.Format(_T("[%s] Records in file %d"), sTraceFrom, nRecords);
+				sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Records in file %d"), nRecords);
 				TraceMsg(sTraceMsg);
 			}
 
@@ -273,18 +265,14 @@ int CIWTransaction::GetRecords()
 
 									if (g_bTraceOn)
 									{
-										CStdString sTraceFrom("CIWTransaction::GetRecords");
 										CStdString sTraceMsg;
-
-										sTraceMsg.Format(_T("[%s] Read record type %d, result %d"), sTraceFrom, nRecordType, nRet);
+										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record type %d, result %d"), nRecordType, nRet);
 										TraceMsg(sTraceMsg);
 									}
 									if (nRet != IW_SUCCESS)
 									{
-										CStdString sTraceFrom("CIWTransaction::GetRecords");
 										CStdString sTraceMsg;
-										
-										sTraceMsg.Format(_T("[%s] Read record FAILED. File %s, type %d, result %d"), sTraceFrom, m_sFilePath, nRecordType, nRet);
+										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record FAILED. File %s, type %d, result %d"), m_sFilePath, nRecordType, nRet);
 										LogFile(sTraceMsg);
 									}
 									
@@ -316,18 +304,14 @@ int CIWTransaction::GetRecords()
 
 									if (g_bTraceOn)
 									{
-										CStdString sTraceFrom("CIWTransaction::GetRecords");
 										CStdString sTraceMsg;
-										
-										sTraceMsg.Format(_T("[%s] Read record type %d, result %d"), sTraceFrom, nRecordType, nRet);
+										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record type %d, result %d"), nRecordType, nRet);
 										TraceMsg(sTraceMsg);
 									}
 									if (nRet != IW_SUCCESS)
 									{
-										CStdString sTraceFrom("CIWTransaction::GetRecords");
 										CStdString sTraceMsg;
-										
-										sTraceMsg.Format(_T("[%s] Read record FAILED. File %s, type %d, result %d"), sTraceFrom, m_sFilePath, nRecordType, nRet);
+										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record FAILED. File %s, type %d, result %d"), m_sFilePath, nRecordType, nRet);
 										LogFile(sTraceMsg);
 									}
 									
@@ -394,10 +378,8 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 
 	if (g_bTraceOn)
 	{
-		CStdString sTraceFrom("CIWTransaction::AddRecord");
 		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] Type %d, Index %d"), sTraceFrom, RecordType, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::AddRecord] Type %d, Index %d"), RecordType, nRet);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -782,9 +764,8 @@ int CIWTransaction::GetImage(int RecordType,int RecordIndex, CStdString& sStorag
 
 	if (g_bTraceOn)
 	{
-		CStdString sTraceFrom("CIWTransaction::GetImage");
 		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[%s] Type %d, Index %d, Result %d"), sTraceFrom, RecordType, RecordIndex, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::GetImage] Type %d, Index %d, Result %d"), RecordType, RecordIndex, nRet);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -832,10 +813,8 @@ int CIWTransaction::SetImage(int RecordType, int RecordIndex, CStdString sInputF
 
 	if (g_bTraceOn)
 	{
-		CStdString sTraceFrom("CIWTransaction::SetImage");
 		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] Type %d, Index %d, Input format %s, Result %d"), sTraceFrom, RecordType, RecordIndex, (sInputFormat ? sInputFormat : ""), nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::SetImage] Type %d, Index %d, Input format %s, Result %d"), RecordType, RecordIndex, (sInputFormat ? sInputFormat : ""), nRet);
 		TraceMsg(sTraceMsg);
 	}
 
@@ -1017,10 +996,8 @@ int CIWTransaction::Write(CStdString sPath)
 
 	if (nRet != IW_SUCCESS)
 	{
-		CStdString sTraceFrom("CIWTransaction::WriteBinary");
 		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] Write record FAILED. File %s, result %d"), sTraceFrom, sPath, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::WriteBinary] Write record FAILED. File %s, result %d"), sPath, nRet);
 		LogFile(sTraceMsg);
 	}
 
@@ -1066,10 +1043,8 @@ int CIWTransaction::WriteXML(CStdString sPath, bool bValidate)
 
 	if (nRet != IW_SUCCESS)
 	{
-		CStdString sTraceFrom("CIWTransaction::WriteXML");
 		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] WriteXML FAILED. File %s, result %d"), sTraceFrom, sPath, nRet);
+		sTraceMsg.Format(_T("[CIWTransaction::WriteXML] WriteXML FAILED. File %s, result %d"), sPath, nRet);
 		LogFile(sTraceMsg);
 	}
 

@@ -30,6 +30,8 @@ using namespace std;
 #include "StdString.h"		// smart CStdString type used throughout
 #include "StringSlots.h"	// Self-destructing string allocation to rsepect string-returning interface
 
+#include "Resource.h"
+
 /*
 For future use: XML support
 

@@ -216,7 +216,7 @@
 	} \
 	catch (...) \
 	{ \
-		sException.Format(_T("[%s] Unknown exception occured."), sFrom); \
+		sException.Format(IDS_EXCEPTIONUNK, sFrom); \
 		LogFile(sException); \
 	}
 

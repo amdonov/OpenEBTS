@@ -2,7 +2,8 @@
 //
 
 #include "stdafx.h"
-#include "IWNist.h"
+
+HINSTANCE g_hInstance = NULL;
 
 BOOL APIENTRY DllMain( HANDLE hModule, 
                        DWORD  ul_reason_for_call, 
@@ -17,6 +18,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 		case DLL_PROCESS_DETACH:
 			break;
     }
+
+	g_hInstance = (HINSTANCE)hModule;
+
     return TRUE;
 }
 

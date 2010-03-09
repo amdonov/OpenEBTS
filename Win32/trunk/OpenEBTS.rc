@@ -27,8 +27,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,29
- PRODUCTVERSION 1,0,0,29
+ FILEVERSION 1,0,0,30
+ PRODUCTVERSION 1,0,0,30
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -45,12 +45,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "ImageWare Systems, Inc"
             VALUE "FileDescription", "OpenEBTS"
-            VALUE "FileVersion", "1, 0, 0, 29"
+            VALUE "FileVersion", "1, 0, 0, 30"
             VALUE "InternalName", "OpenEBTS"
             VALUE "LegalCopyright", "Copyright © 2003"
             VALUE "OriginalFilename", "OpenEBTS.dll"
             VALUE "ProductName", "OpenEBTS Module"
-            VALUE "ProductVersion", "1, 0, 0, 29"
+            VALUE "ProductVersion", "1, 0, 0, 30"
         END
     END
     BLOCK "VarFileInfo"
@@ -84,6 +84,50 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_EXCEPTIONUNK        "[%s] Unknown exception occured."
+    IDS_TOTRECORDSMAX       "Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld."
+    IDS_TOTRECORDSMIN       "Transaction Type %s may contain at most %ld Type %ld records: it contains %ld"
+    IDS_TOTRECORDUNSUPPORTED 
+                            "Transaction Type %s may not contain Type %ld records: it contains %ld of them."
+    IDS_MANDATORYFIELD      "Mandatory field not present"
+    IDS_UNSUPPORTEDFIELD    "Unsupported field present"
+    IDS_VERTOTUNK           "Verification file does not contain Transaction Type %s"
+    IDS_NOTOTFIELD          "Failed to find TOT field in Record 1"
+    IDS_INCORRECTITEMCOUNT  "Incorrect item count (%ld), must be 1"
+    IDS_INVALIDLENGTH       "Invalid length of %ld, should be %ld"
+    IDS_INVALIDLENGTHMIN    "Invalid length of %ld, minimum allowed is %ld"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_INVALIDLENGTHMAX    "Invalid length of %ld, maximum allowed is %ld"
+    IDS_INVALIDTOTALLENGTH  "Invalid total subfield length of %ld, should be %ld"
+    IDS_INVALIDTOTALLENGTHMIN 
+                            "Invalid total subfield length of %ld, minimum allowed is %ld"
+    IDS_INVALIDTOTALLENGTHMAX 
+                            "Invalid total subfield length of %ld, maximum allowed is %ld"
+    IDS_CHARINVALIDVALUE    "Invalid value '%s' for CharType '%s'"
+    IDS_CHARINVALIDVALUESPECIAL 
+                            "Invalid value '%s' for CharType '%s', Special Chars '%s'"
+    IDS_TOOMANYDATACHARS    "Invalid value %ld for CharType '%s'"
+    IDS_INVALIDYEAR         "Invalid year %ld"
+    IDS_INVALIDMONTH        "Invalid month %ld"
+    IDS_INVALIDDAY          "Invalid day %ld"
+    IDS_INVALIDMMAP         "'%s': invalid data from mandatory map"
+    IDS_TOOFEWSUBFIELDS     "Too few subfields (%ld), must be %ld"
+    IDS_TOOMANYSUBFIELDS    "Too many subfields (%ld), must be %ld"
+    IDS_TOOFEWSUBFIELDSMIN  "Too few subfields (%ld), minimum allowed is %ld"
+    IDS_TOOFEWSUBFIELDSMAX  "Too many subfields (%ld), maximum allowed is %ld"
+END
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
