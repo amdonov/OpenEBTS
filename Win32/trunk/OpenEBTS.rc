@@ -93,7 +93,7 @@ END
 
 STRINGTABLE 
 BEGIN
-    IDS_EXCEPTIONUNK        "[%s] Unknown exception occured."
+    IDS_EXCEPTIONUNK        "[%s] Unknown exception occurred."
     IDS_TOTRECORDSMAX       "Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld."
     IDS_TOTRECORDSMIN       "Transaction Type %s may contain at most %ld Type %ld records: it contains %ld"
     IDS_TOTRECORDUNSUPPORTED 
