@@ -348,6 +348,7 @@ CStdString CNISTField::ImageExtFromImageFormat(IWImageFormat fmt)
 
 IWImageFormat CNISTField::ImageFormatFromImageExt(CStdString sFormat)
 {
+	sFormat.MakeLower();
 	if (sFormat == _T("raw")) return fmtRAW;
 	if (sFormat == _T("bmp")) return fmtBMP;
 	if (sFormat == _T("jpg")) return fmtJPG;

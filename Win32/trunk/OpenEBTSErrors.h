@@ -21,6 +21,7 @@
 #define IW_ERR_WSQ_COMPRESS                         17
 #define IW_ERR_WSQ_DECOMPRESS                       18
 #define IW_ERR_IMAGE_CONVERSION                     19
+#define IW_ERR_HEADER_ITEM							20
 
 #define IW_WARN_TRANSACTION_FAILED_VERIFICATION   1000	 
 #define IW_WARN_INVALID_FIELD_NUM                 1001

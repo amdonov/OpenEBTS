@@ -1036,6 +1036,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	bool							bFieldsOK;
 	bool							bMandatory;
 	bool							bOptional;
+	bool							bApplySubItemRules;
+	int								iFieldSave;
 
 #ifdef _DEBUG
 	DebugOutputVerification();
@@ -1120,6 +1122,9 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				}
 			}
 
+			iFieldSave = 0;
+			bApplySubItemRules = false;
+
 			// Now loop through all the rules
 			for (i=0; i < (int)m_rulesAry.size(); i++)
 			{
@@ -1156,31 +1161,53 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				// Note: a field is only mandatory if we actually have a record of the same RecordType
 				if (nRecTypeCount > 0)
 				{
+					// We're done with subitem rules
+					if (iFieldSave != pRule->GetField())
+					{
+						iFieldSave = 0;
+						bApplySubItemRules = false;
+					}
+
+					// If we're on a subitem of an existing field we apply the rule, otherwise we just skip it
+					if (pRule->GetLocFormType() == LOC_FORM_5 && !bApplySubItemRules) continue;
+
 					nRetTmp = pTrans->Get(pRule->GetMNU(), sData, 1, 1);
 
-					// Here we have another limitation, and that is we can't accurately treat multiple
-					// rules per MNU with the current structure (e.g., ebts1_2.txt with T2_CIX, which
-					// appears twice)
-					if (GetNumRulesPerMNU(pRule->GetMNU()) == 1)
+					// Header items are empty, but getting IW_ERR_HEADER_ITEM back value implies the field does exist
+					if (nRetTmp != IW_ERR_HEADER_ITEM)
 					{
-						bMandatory = pRule->IsMandatory(sTOT);
-						bOptional = pRule->IsOptional(sTOT);
-
-						// Check for missing mandatory field
-						if (nRetTmp == IW_ERR_RECORD_NOT_FOUND && bMandatory)
+						// Here we have another limitation, and that is we can't accurately treat multiple
+						// rules per MNU with the current structure (e.g., ebts1_2.txt with T2_CIX, which
+						// appears twice)
+						if (GetNumRulesPerMNU(pRule->GetMNU()) == 1)
 						{
-							// Mandatory field not present
-							FlagFieldError(pTrans, pRule, IW_WARN_REQ_FIELD_MISSING, IDS_MANDATORYFIELD);
-							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
-						}
+							bMandatory = pRule->IsMandatory(sTOT);
+							bOptional = pRule->IsOptional(sTOT);
 
-						// Check for present non-mandatory/non-optional field
-						if (nRetTmp == IW_SUCCESS && !bMandatory && !bOptional)
-						{
-							// Unsupported field present
-							FlagFieldError(pTrans, pRule, IW_WARN_UNSUPPORT_FIELD_PRESENT, IDS_UNSUPPORTEDFIELD);
-							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+							// Check for missing mandatory field
+							if (nRetTmp == IW_ERR_RECORD_NOT_FOUND && bMandatory)
+							{
+								// Mandatory field not present
+								FlagFieldError(pTrans, pRule, IW_WARN_REQ_FIELD_MISSING, IDS_MANDATORYFIELD);
+								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+							}
+
+							// Check for present non-mandatory/non-optional field
+							if (nRetTmp == IW_SUCCESS && !bMandatory && !bOptional)
+							{
+								// Unsupported field present
+								FlagFieldError(pTrans, pRule, IW_WARN_UNSUPPORT_FIELD_PRESENT, IDS_UNSUPPORTEDFIELD);
+								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+							}
 						}
+					}
+					else
+					{
+						// From now on any rule with the same field# will get applied, as the field exist.
+						// This is necessary because the Optional/Mandatory tags only apply if and only if the
+						// field exists.
+						iFieldSave = pRule->GetField();
+						bApplySubItemRules = true;
 					}
 				}
 			}

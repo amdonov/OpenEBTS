@@ -697,7 +697,17 @@ int CNISTRecord::FindItem(int Field, int Subfield, int Item, CStdString& sData)
 		}
 		else
 		{
-			nRet = pField->FindItem(Subfield, Item, sData);
+			if (Item == 0)
+			{
+				// Field exists but this position refers to the header item defined by
+				// a Location Form 4, and hence itself does not contain any data
+				sData = "";
+				nRet = IW_ERR_HEADER_ITEM;
+			}
+			else
+			{
+				nRet = pField->FindItem(Subfield, Item, sData);
+			}
 		}
 	}
 
