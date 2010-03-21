@@ -100,7 +100,7 @@ void InitializePath()
 
 	if (g_LogFilePath[0] == '\0')
 	{
-		DWORD dwLen = GetTempPath(sizeof(szPath), szPath);
+		DWORD dwLen = GetTempPath(sizeof(szPath)/sizeof(TCHAR), szPath);
 
 		// I can't live without a log file....
 		if (dwLen)
@@ -110,7 +110,7 @@ void InitializePath()
 			*(pFName+1) = '\0';
 
 			_tcscpy_s(g_LogFilePath, _MAX_PATH+1, szPath);
-			_tcscpy_s(g_LogFilePath, _MAX_PATH+1, LF_OPENEBTS);
+			_tcscat_s(g_LogFilePath, _MAX_PATH+1, LF_OPENEBTS);
 		}
 		else
 		{
