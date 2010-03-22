@@ -37,10 +37,10 @@ private:
 	bool SetOptionalLongDescription(CStdString& sLongDescription);
 	bool SetOptionalSpecialChars(CStdString& sSpecialChars);
 	bool SetOptionalDateFormat(CStdString& sDateFormat);
+	bool SetOptionalAdvancedRule(CStdString& sAdvancedRule);
 	bool SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath);
 	bool SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath);
 	bool SetOptionalMap(CStdString& sMap, CStdString& sFilePath, std::vector<CStdString>& mapValNames, std::vector<CStdString>& mapValDescriptions);
-	bool SetTags(CStdString& sTags);
 
 	bool GetRangeValue(CStdString& sToken, int *pValue);
 
@@ -70,6 +70,7 @@ private:
 	CStdString m_sLongDescription;		// long_desc tag
 	CStdString m_sSpecialChars;			// sca tag
 	CStdString m_sDateFormat;			// from date tag
+	CStdString m_sAdvancedRule;			// from any advanced rule tag
 	std::vector<CStdString> m_mmapName;	// from mmap tag
 	std::vector<CStdString> m_omapName;	// from omap tag
 	std::vector<CStdString> m_mmapDesc;	// from mmap tag
@@ -84,8 +85,8 @@ public:
 
 	bool SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
 				 CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
-				 CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sOMap, CStdString& sTags,
-				 CStdString& sErr);
+				 CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sAdvancedRule, CStdString& sMMap, CStdString& sOMap,
+				 CStdString& sTags, CStdString& sErr);
 	bool GetLocation(int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
 
 	CStdString GetMNU() { return m_sMNU; }
@@ -95,6 +96,7 @@ public:
 	CStdString GetDescription() { return m_sDescription; }
 	CStdString GetLongDescription() { return m_sLongDescription; }
 	CStdString GetDateFormat() { return m_sDateFormat; }
+	CStdString GetAdvancedRule() { return m_sAdvancedRule; }
 	std::vector<CStdString> GetMMapValNames() { return m_mmapName; }
 	std::vector<CStdString> GetOMapValNames() { return m_omapName; }
 	std::vector<CStdString> GetMMapValDescriptions() { return m_mmapDesc; }

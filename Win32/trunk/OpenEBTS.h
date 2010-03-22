@@ -162,6 +162,7 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(
 	const TCHAR** pszCharType,				// Character types allowed
 	const TCHAR** pszSpecialChars,			// List of additional characters allowed
 	const TCHAR** pszDateFormat,			// e.g."CCYYMMDD", or "" when not a date
+	const TCHAR** pszAdvancedRule,			// e.g."greater("T2_DOA")"
 	int* pnSizeMin,							// Minimum field size
 	int* pnSizeMax,							// Maximum field size
 	int* pnOccMin,							// Minimum number of occurrences

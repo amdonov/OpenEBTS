@@ -140,7 +140,7 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 
 	TCHAR *pRule;
 	CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
-	CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sTags;
+	CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sAdvancedRule, sTags;
 	CStdString sTransactionList;
 	CStdString sMMap, sOMap;
 
@@ -199,6 +199,10 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 			}
 			if (pRule)
 			{
+				sAdvancedRule = GetOptionalAdvancedRule(&pRule);
+			}
+			if (pRule)
+			{
 				sMMap = GetOptionalMMap(&pRule);
 			}
 			if (pRule)
@@ -209,10 +213,6 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 			{
 				sLongDescription = GetOptionalLongDescription(&pRule);
 			}
-			if (pRule)
-			{
-				sTags = GetTags(&pRule);
-			}
 #ifdef _DEBUG
 			sTemp.Format(_T("Loc: %s, MNU: %s, Type: %s, Size: %s, Occ: %s\n"), sLocationIndex,
 						 sMneumonic, sCharType, sFieldSize, sOccurrence);
@@ -221,7 +221,7 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 			CRuleObj ruleObj;
 			if (ruleObj.SetData(sPath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
 								sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat,
-								sMMap, sOMap, sTags, sErr))
+								sAdvancedRule, sMMap, sOMap, sTags, sErr))
 			{
 				m_rulesAry.push_back(ruleObj);
 			}
@@ -444,6 +444,77 @@ CStdString CIWVerification::GetOptionalDateFormat(TCHAR **ppRule)
 	return ExtractTagValue(ppRule, _T("date"));
 }
 
+CStdString CIWVerification::GetOptionalAdvancedRule(TCHAR **ppRule)
+// Catchall function to return any other advanced rule, such as:
+//
+// and(2.030)
+// and("T2_WGT")
+// mustexist(2.030)
+// mustexist("T2_WGT")
+// greater(2.030)
+// greater("T2_DOA")
+// greatereq(2.030)
+// greatereq("T2_DOA")
+// if(10.043..2)="HUMAN"
+// if("T10_SMD_CLASS")="HUMAN"
+// nif(2.499..2)="USA"
+// nif("T2_POB")="MA"
+// supportedif(10.043..2)="SCAR|MARK|TATTOO"
+// supportedif("T10_IMT")="SCAR|MARK|TATTOO"
+// less(2.030)
+// less("T2_DOA")
+// lesseq(2.030)
+// lesseq("T2_DOA")
+// xor(2.030)
+// xor("T2_WGT")
+// regex="[0-9][0-9]\.[0-9]+" 
+// nregex=" .*" 
+//
+// We only support one advanced rule, so as soon as we find one we return it.
+{
+	CStdString sRule;
+
+	sRule = ExtractAdvancedTagValue(ppRule, _T("and"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("mustexist"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("greater"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("greatereq"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("if"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("nif"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("supportedif"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("less"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("lesseq"));
+	if (!sRule.IsEmpty()) goto done;
+	sRule = ExtractAdvancedTagValue(ppRule, _T("xor"));
+	if (!sRule.IsEmpty()) goto done;
+
+	// regex and nregex follow the '[tag]=' syntaz
+	sRule = ExtractTagValue(ppRule, _T("regex"));
+	if (!sRule.IsEmpty())
+	{
+		// tack on tag name again
+		sRule = _T("regex=\"") + sRule + _T("\"");
+		goto done;
+	}
+	sRule = ExtractTagValue(ppRule, _T("nregex"));
+	if (!sRule.IsEmpty())
+	{
+		// tack on tag name again
+		sRule = _T("nregex=\"") + sRule + _T("\"");
+		goto done;
+	}
+
+done:
+	return sRule;
+}
+
 CStdString CIWVerification::GetOptionalMMap(TCHAR **ppRule)
 // Look for optional 'mmap="<Value>[:<Desc>]|<Value>[:<Desc]|..."' Mandatory Mapping tag
 {
@@ -500,6 +571,47 @@ CStdString CIWVerification::GetOptionalLongDescription(TCHAR **ppRule)
 	return sLongDesc;
 }
 
+CStdString CIWVerification::ExtractAdvancedTagValue(TCHAR **ppRule, const TCHAR *szTag, bool bHasValue/*=false*/)
+// Look for '[szTag](X)' or if bHasValue is set, '[szTag](X)="Y"'
+{
+	CStdString sFullTag;
+	CStdString sRet;
+	CStdString sString;
+	long	   lPosStart;
+	long	   lPosCurr;
+	long	   lPosEnd;
+
+	sRet = "";
+
+	sString = *ppRule;												// Copy string into a CStdString
+
+	sFullTag = szTag;
+	sFullTag += "(";
+	lPosStart = sString.Find(sFullTag);								// Find beginning of tag
+
+	// Note that it's possible that there is no such tag, which is fine, we just return ""
+	if (lPosStart != -1)
+	{
+		lPosCurr = lPosStart + sFullTag.GetLength();				// Jump to actual tag contents
+		lPosEnd = sString.Find(_T(")"), lPosCurr);					// Find closing bracker
+
+		if (lPosEnd != -1)
+		{
+			if (bHasValue)
+			{
+				// Also extract ="Y" portion
+				lPosEnd = sString.Find(_T("\""), lPosCurr);			// Find first double-quote
+				lPosCurr = lPosEnd + 1;								// Jump to just after first double-quote
+				lPosEnd = sString.Find(_T("\""), lPosCurr);			// Find second double-quote
+			}
+
+			sRet = sString.Mid(lPosStart, lPosEnd - lPosStart + 1);		// Extract entire tag and content
+		}
+	}
+
+	return sRet;
+}
+
 CStdString CIWVerification::ExtractTagValue(TCHAR **ppRule, const TCHAR *szTag)
 // Look for tag '[tagname]="[tagvalue]"'
 {
@@ -521,40 +633,11 @@ CStdString CIWVerification::ExtractTagValue(TCHAR **ppRule, const TCHAR *szTag)
 	if (lPosStart != -1)
 	{
 		lPosStart += sFullTag.GetLength();							// Jump to actual tag value
-		lPosEnd = sString.Find(_T("\""), lPosStart);					// Find closing double-quote
+		lPosEnd = sString.Find(_T("\""), lPosStart);				// Find closing double-quote
 		if (lPosEnd != -1)
 		{
 			sRet = sString.Mid(lPosStart, lPosEnd - lPosStart);		// Extract tag value
 		}
-	}
-
-	return sRet;
-}
-
-CStdString CIWVerification::GetTags(TCHAR **ppRule)
-{
-	CStdString sRet;
-	TCHAR *pTemp = *ppRule;
-	CStdString sErr;
-
-	if (!pTemp)
-		return sRet;
-	
-	try
-	{
-		while (*pTemp && isspace(*pTemp))
-			pTemp++;
-
-		if (*pTemp)
-		{
-			sRet = pTemp;	
-			*ppRule = pTemp;
-		}
-	}
-	catch (...)
-	{
-		sErr.Format(_T("[CIWVerification::GetTransactionList] exception thrown"));
-		LogFile(sErr);
 	}
 
 	return sRet;
@@ -2419,8 +2502,8 @@ static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticM
 
 int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCHAR* pMnemonic, int* pRecordType, int* pField, int* pSubfield,
 										 int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType, const TCHAR** ppSpecialChars,
-										 const TCHAR** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax, int* pOffset,
-										 bool* pAutomaticallySet, bool* pMandatory)
+										 const TCHAR** ppDateFormat, const TCHAR** ppAdvancedRule, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax,
+										 int* pOffset, bool* pAutomaticallySet, bool* pMandatory)
 {
 	int			nRet = IW_ERR_MNEMONIC_NOT_FOUND;
 	CRuleObj	*pRule;
@@ -2438,6 +2521,7 @@ int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCH
 	if (ppCharType == NULL) return IW_ERR_NULL_POINTER;
 	if (ppSpecialChars == NULL) return IW_ERR_NULL_POINTER;
 	if (ppDateFormat == NULL) return IW_ERR_NULL_POINTER;
+	if (ppAdvancedRule == NULL) return IW_ERR_NULL_POINTER;
 	if (pSizeMin == NULL) return IW_ERR_NULL_POINTER;
 	if (pSizeMax == NULL) return IW_ERR_NULL_POINTER;
 	if (pOccMin == NULL) return IW_ERR_NULL_POINTER;
@@ -2472,6 +2556,7 @@ int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCH
 				*ppCharType = CreateNewStringSlot(pRule->GetCharType());
 				*ppSpecialChars = CreateNewStringSlot(pRule->GetSpecialChars());
 				*ppDateFormat = CreateNewStringSlot(pRule->GetDateFormat());
+				*ppAdvancedRule = CreateNewStringSlot(pRule->GetAdvancedRule());
 
 				// Is field automatically managed by OpenEBTS? Scan array.
 				bAuto = false;

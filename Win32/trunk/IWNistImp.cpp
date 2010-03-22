@@ -568,8 +568,8 @@ OPENEBTS_API int WINAPI IWGetMnemonics(CIWVerification* pIWVer, const TCHAR* szT
 OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic,
 											  int* pnRecordType, int* pnField, int* pnSubfield, int* pnItem, const TCHAR** pszDesc,
 											  const TCHAR** pszLongDesc, const TCHAR** pszCharType, const TCHAR** pszSpecialChars,
-											  const TCHAR** pszDateFormat, int* pnSizeMin, int* pnSizeMax, int* pnOccMin, int* pnOccMax,
-											  int* pnOffset, bool* pbAutomaticallySet, bool* pbMandatory)
+											  const TCHAR** pszDateFormat, const TCHAR** pszAdvancedRule, int* pnSizeMin, int* pnSizeMax,
+											  int* pnOccMin, int* pnOccMax, int* pnOffset, bool* pbAutomaticallySet, bool* pbMandatory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
@@ -579,8 +579,8 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCH
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 		nRet = pIWVer->GetRuleRestrictions(szTransactionType, szMnemonic, pnRecordType, pnField, pnSubfield, pnItem, pszDesc, pszLongDesc,
-										   pszCharType, pszSpecialChars, pszDateFormat, pnSizeMin, pnSizeMax, pnOccMin, pnOccMax, pnOffset,
-										   pbAutomaticallySet, pbMandatory);
+										   pszCharType, pszSpecialChars, pszDateFormat, pszAdvancedRule, pnSizeMin, pnSizeMax, pnOccMin,
+										   pnOccMax, pnOffset, pbAutomaticallySet, pbMandatory);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}

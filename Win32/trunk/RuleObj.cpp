@@ -23,7 +23,7 @@ CRuleObj::~CRuleObj()
 
 bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdString& sLocation, CStdString& sMNU, CStdString& sCharType,
 					   CStdString& sFieldSize, CStdString& sOccurrences, CStdString& sDescription, CStdString& sLongDescription,
-					   CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sMMap, CStdString& sOMap,
+					   CStdString& sSpecialChars, CStdString& sDateFormat, CStdString& sAdvancedRule, CStdString& sMMap, CStdString& sOMap,
 					   CStdString& sTags, CStdString& sErr)
 {
 	CStdString sTemp;
@@ -82,6 +82,11 @@ bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 		sErr.Format(_T("%s, invalid date format value: %s"), m_sMNU, sDateFormat);
 		goto done;
 	}
+	if (!SetOptionalAdvancedRule(sAdvancedRule))
+	{
+		sErr.Format(_T("%s, invalid advanced rule: %s"), m_sMNU, sAdvancedRule);
+		goto done;
+	}
 	if (!SetOptionalMMap(sMMap, sFilePath))
 	{
 		sErr.Format(_T("%s, invalid mmap value: %s"), m_sMNU, sMMap);
@@ -90,11 +95,6 @@ bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 	if (!SetOptionalOMap(sOMap, sFilePath))
 	{
 		sErr.Format(_T("%s, invalid omap value: %s"), m_sMNU, sMMap);
-		goto done;
-	}
-	if (!SetTags(sTags))
-	{
-		sErr.Format(_T("%s, invalid tag value: %s"), m_sMNU, sTags.Left(60));
 		goto done;
 	}
 
@@ -237,6 +237,13 @@ bool CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 	}
 
 	m_sDateFormat = sDateFormat;
+
+	return true;
+}
+
+bool CRuleObj::SetOptionalAdvancedRule(CStdString& sAdvancedRule)
+{
+	m_sAdvancedRule = sAdvancedRule;
 
 	return true;
 }
@@ -448,12 +455,6 @@ CStdString CRuleObj::GetMMap()
 	}
 
 	return sRet;
-}
-
-bool CRuleObj::SetTags(CStdString& sTags)
-{
-#pragma message(" ===> CRuleObj, Tag support not implemented")
-	return true;
 }
 
 bool CRuleObj::SetFieldSize(CStdString& sFieldSize)

@@ -25,11 +25,12 @@ private:
 	CStdString GetOptionalDescription(TCHAR **ppRule);
 	CStdString GetOptionalSpecialChars(TCHAR **ppRule);
 	CStdString GetOptionalDateFormat(TCHAR **ppRule);
+	CStdString GetOptionalAdvancedRule(TCHAR **ppRule);
 	CStdString GetOptionalMMap(TCHAR **ppRule);
 	CStdString GetOptionalOMap(TCHAR **ppRule);
 	CStdString GetOptionalLongDescription(TCHAR **ppRule);
-	CStdString GetTags(TCHAR **ppRule);
 	CStdString ExtractTagValue(TCHAR **ppRule, const TCHAR *szTag);
+	CStdString ExtractAdvancedTagValue(TCHAR **ppRule, const TCHAR *szTag, bool bHasValue = false);
 
 	CStdString GetNextToken(TCHAR **ppRule);
 	CStdString GetRangeToken(TCHAR **ppRule);
@@ -89,8 +90,8 @@ public:
 	int GetMnemonics(const TCHAR* TransactionType, int DataArraySize, const TCHAR** ppDataArray, const TCHAR** ppDescArray, int* pEntries);
 	int GetRuleRestrictions(const TCHAR* TransactionType, const TCHAR* pMnemonic, int* pRecordType,
 							int* pField, int* pSubfield, int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType,
-							const TCHAR** ppSpecialChars, const TCHAR** ppDateFormat, int* pSizeMin, int* pSizeMax, int* pOccMin, int* pOccMax,
-							int* pOffset, bool* pAutomaticallySet, bool* pMandatory);
+							const TCHAR** ppSpecialChars, const TCHAR** ppDateFormat, const TCHAR** ppAdvancedRule, int* pSizeMin, int* pSizeMax,
+							int* pOccMin, int* pOccMax, int* pOffset, bool* pAutomaticallySet, bool* pMandatory);
 	int GetValueList(const TCHAR* TransactionType, const TCHAR* Mnemonic, bool *Mandatory,
 					 int DataArraySize, const TCHAR** DataArray, const TCHAR** DescArray, int *Entries);
 };
