@@ -2243,7 +2243,7 @@ void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, in
 	::LoadString(g_hInstance, nIDC, szFormat, 1024);
 
 	va_list args;
-	va_start(args, szFormat);
+	va_start(args, nIDC);
 	_vsntprintf_s(szErr, 1024, 1024, szFormat, args);
 	va_end(args);
 
