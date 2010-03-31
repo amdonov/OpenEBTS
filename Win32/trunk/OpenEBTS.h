@@ -109,7 +109,7 @@ OPENEBTS_API int WINAPI IWGetNumRecords(
 );
 
 OPENEBTS_API int WINAPI IWGetTransactionCategories(
-	CIWVerification* IWVer,					// Verification pointer
+	CIWVerification* pIWVer,				// Verification pointer
 	int nDataArraySize,						// Number of string pointers in array
 	const TCHAR** rgszDataArray,			// Block of string pointers
 	int* pnEntries							// Number of entries entered into array
@@ -122,7 +122,7 @@ OPENEBTS_API int WINAPI IWGetTransactionCategories(
 //************************************************************/
 
 OPENEBTS_API int WINAPI IWGetTransactionTypes(
-	CIWVerification* IWVer,					// Verification pointer
+	CIWVerification* pIWVer,				// Verification pointer
 	int nDataArraySize,						// Number of string pointers in arrays
 	const TCHAR** rgszDataArray,			// Block of string pointers to TOTs
 	const TCHAR** rgszDescArray,			// Block of string pointers to TOT descriptions
@@ -133,9 +133,9 @@ OPENEBTS_API int WINAPI IWGetTransactionTypes(
 OPENEBTS_API int WINAPI IWGetRecordTypeOccurrences(
 	CIWVerification* pIWVer,				// Verification pointer
 	int nDataArraySize,						// Number of ints in piRecordType & piMinOccurrences & piMaxOccurrences
-	int* pnRecordType,						// Block of record types
-	int* pnMinOccurences,					// Block of minimum occurrences of a record type
-	int* pnMaxOccurences,					// Block of maximum occurrences of a record type
+	int* rgnRecordType,						// Block of record types
+	int* rgnMinOccurences,					// Block of minimum occurrences of a record type
+	int* rgnMaxOccurences,					// Block of maximum occurrences of a record type
 	int* pnEntries,							// Number of entries returned
 	const TCHAR *szTOT						// TOT input
 );
