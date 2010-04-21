@@ -36,6 +36,7 @@ private:
 	int Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC);
 	int DebugOutRecords(CStdString sContext);
 	int SetRecordLengths();
+	int GetRecordLengths();
 
 public:
 	CIWTransaction();
@@ -65,6 +66,7 @@ public:
 	int Write(CStdString sPath);
 	int WriteBinary(CStdString sPath);
 	int WriteXML(CStdString sPath, bool bValidate);
+    int WriteMem(BYTE** ppBuffer, int *pSize);
 
 	/************************************************************/
 	/*                   XML Specific (2-2008)                  */
