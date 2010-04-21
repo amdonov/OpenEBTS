@@ -131,6 +131,14 @@ int _tmain(int argc, TCHAR* argv[])
 	}
 
 	// Write it
+
+	// the following lines need to be uncommented to test IWWriteMem()
+	//BYTE* pBuffer;
+	//int nSize = 0;
+	//lRet = IWWriteMem(pTrans, &pBuffer, &nSize);
+	//lRet = IWClose(&pTrans);
+	//lRet = IWReadMem(pBuffer, nSize, pVer, &pTrans);
+
 	_tcscpy_s(szFilename, _MAX_PATH, szFolderSamples);
 	_tcscat_s(szFilename, _MAX_PATH, _T("out1.ebts"));
 	lRet = IWWrite(pTrans, szFilename);
