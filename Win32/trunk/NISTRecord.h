@@ -68,6 +68,9 @@ public:
 
 	int Write(FILE *pFile);
 	int WriteBinary(FILE *pFile);
+	int WriteBinary( BYTE **ppBuffer, int *pnCurrentSize);
+	int Write(TCHAR **ppBuffer, int *pnCurrentSize);
+
 
 	static float CompressionToRate(float fCompression);
 	static bool FormatSupportedInOut(CStdString sFormat);
