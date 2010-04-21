@@ -618,3 +618,147 @@ done:
 #endif
 	return nRet;
 }
+
+int CNISTField::Write(TCHAR **ppData, int *poffset)
+{
+	int nRet = IW_ERR_WRITING_FILE;
+	int nCount;
+
+	if (g_bTraceOn)
+	{
+		CStdString sTraceFrom("CNISTField::Write");
+		CStdString sTraceMsg;
+		
+		sTraceMsg.Format(_T("[%s] RecordType %d, Field %d"), sTraceFrom, m_nRecordType, m_nField);
+		TraceMsg(sTraceMsg);
+	}
+
+	IWS_BEGIN_EXCEPTION_METHOD("CNISTField::Write")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	// Before writing out all subfields and items we sort the list so we can just output them
+	// sequentially afterwards. We sort the list first by subfield index then by item index.
+	std::sort(m_SubFieldAry.begin(), m_SubFieldAry.end(), SubfieldItemSort());
+
+	// Write the field and subfield data
+	char szFieldLabel[40];
+
+	if (m_nField == 1) // handle LEN field seperately
+	{
+		if (m_nRecordType == 1) // dont need this, only for testing
+			sprintf(szFieldLabel, "%d.%02d:%d", m_nRecordType, m_nField, m_nRecordLen);
+		else
+			sprintf(szFieldLabel, "%d.%03d:%d", m_nRecordType, m_nField, m_nRecordLen);
+
+		memcpy(*ppData + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
+		*poffset = *poffset + strlen(szFieldLabel);
+
+	}
+	else
+	{
+		nCount = m_SubFieldAry.size();
+
+		// Add the field descriptor
+		if (m_nRecordType == 1) // dont need this, only for testing
+			sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
+		else
+			sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
+
+		memcpy(*ppData + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
+		*poffset = *poffset + strlen(szFieldLabel);
+
+		if (nCount)
+		{
+			CSubFieldItem *pSubField, *pNextSubField;
+
+			for (int i = 0; i < nCount; i++)
+			{
+				pSubField = m_SubFieldAry.at(i);
+
+				pNextSubField = 0;
+				if (i+1 < nCount)
+					pNextSubField = m_SubFieldAry.at(i+1);
+
+				if (pSubField)
+				{
+					// Write textual field data. If in UNICODE, write it in UTF-8, otherwise
+					// we write it in regular ASCII.
+					if (!pSubField->m_sData.IsEmpty())
+					{
+#ifdef UNICODE
+						// In the UNICODE version of OpenEBTS, we write out UNICODE strings as UTF-8.
+						char *p = NULL;
+						int  nLength;
+
+						if (UCS2toUTF8(pSubField->m_sData, &p, &nLength))
+						{
+							if (p)
+							{
+								memcpy(*ppData + *poffset, p, nLength-1);	
+								*poffset = *poffset + nLength-1;
+
+								delete p;
+							}
+							else
+							{
+								goto done;		// critical error
+							}
+						}
+						else
+						{
+							goto done;	// failed encoding to UTF-8
+						}
+#else
+						// Write it as regular ASCII
+						memcpy(*ppData + *poffset, pSubField->m_sData.c_str(), pSubField->m_sData.GetLength() );
+						*poffset = *poffset + pSubField->m_sData.GetLength();
+#endif
+					}
+
+					// Separators get written as regular ASCII
+					if (pNextSubField)
+					{
+						if (pSubField->m_nSubField == pNextSubField->m_nSubField)
+						{
+							memcpy(*ppData + *poffset, g_szUS, strlen(g_szUS));
+							*poffset = *poffset + strlen(g_szUS);
+						}
+						else
+						{
+							memcpy(*ppData + *poffset, g_szRS, strlen(g_szRS));
+							*poffset = *poffset + strlen(g_szRS);
+						}
+					}
+				}
+			}
+		}
+		else if (m_pImageData)
+		{
+			// Image data also get written as regular ASCII
+			memcpy(*ppData + *poffset, m_pImageData, m_nImageLen);
+			*poffset = *poffset + m_nImageLen;
+		}
+	}
+
+	// Separators get written as regular ASCII
+	if (m_bWriteRecordSeperator)
+	{
+		memcpy(*ppData + *poffset, g_szFS, strlen(g_szFS));
+		*poffset = *poffset + strlen(g_szFS);
+	}
+	else
+	{
+		memcpy(*ppData + *poffset, g_szGS, strlen(g_szGS));
+		*poffset = *poffset + strlen(g_szGS);
+	}
+
+	nRet = IW_SUCCESS;
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+#ifdef UNICODE
+done:
+#endif
+	return nRet;
+}
+
