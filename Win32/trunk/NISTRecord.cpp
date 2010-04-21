@@ -1835,3 +1835,42 @@ int CNISTRecord::WriteBinary(FILE *pFile)
 
 	return NO_ERROR;
 }
+
+int CNISTRecord::WriteBinary(BYTE **ppData, int *poffset)
+{
+	if (CNISTRecord::IsBinaryType(m_nRecordType))
+	{
+		CNISTField* pField = GetNISTField(GetDATField(m_nRecordType));
+		if(pField)
+		{
+			memcpy(*ppData + *poffset, pField->m_pImageData, pField->m_nRecordLen);
+			*poffset = *poffset + pField->m_nRecordLen;
+		}
+	}
+
+	return NO_ERROR;
+}
+
+int CNISTRecord::Write(TCHAR **ppData, int *poffset)
+{
+	int nFields = m_FieldList.size();
+	CNISTField *pField;
+	int nRet = IW_SUCCESS;
+
+	for (int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
+	{
+		pField = m_FieldList.at(i);
+
+		if (pField)
+		{
+			pField->m_bWriteRecordSeperator = false;
+			if (i+1 == nFields) 
+				pField->m_bWriteRecordSeperator = true;
+
+			nRet = pField->Write(ppData, poffset);
+		}
+	}
+
+	return nRet;
+}
+
