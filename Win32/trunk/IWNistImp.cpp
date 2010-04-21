@@ -97,6 +97,23 @@ OPENEBTS_API int WINAPI IWReadMem(BYTE *pBuffer, int nBufferSize, CIWVerificatio
 	return nErrCode;
 }
 
+OPENEBTS_API int WINAPI IWWriteMem(CIWTransaction* pIWTrans, BYTE** ppBuffer, int *pSize)
+{
+	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
+
+	if (pIWTrans && pIWTrans->IsTransactionLoaded())
+	{
+		IWS_BEGIN_EXCEPTION_METHOD("IWWriteMem")
+		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+		nRet = pIWTrans->WriteMem(ppBuffer, pSize);
+
+		IWS_END_CATCHEXCEPTION_BLOCK()
+	}
+
+	return nRet;
+}
+
 OPENEBTS_API int WINAPI IWReadVerification(const TCHAR* szPath, CIWVerification** ppIWVer, int nMaxParseError, TCHAR* szParseError)
 {
 	SetLogFlags();
