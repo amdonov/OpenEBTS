@@ -80,6 +80,12 @@ OPENEBTS_API int WINAPI IWClose(
 	CIWTransaction **ppIWTrans				// Pointer to transaction pointer
 );
 
+OPENEBTS_API int WINAPI IWWriteMem(
+   CIWTransaction* pIWTrans,				// Transaction pointer
+   BYTE** ppBuffer,							// Pointer to Transaction buffer pointer
+   int *pSize								// Size of buffer
+);											
+
 OPENEBTS_API int WINAPI IWAddRecord(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	int nRecordType,						// Record type
