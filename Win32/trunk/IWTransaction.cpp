@@ -962,6 +962,26 @@ int CIWTransaction::SetRecordLengths()
 	return nRet;
 }
 
+int CIWTransaction::GetRecordLengths()
+{
+	int nSize = m_RecordAry.size();
+	CNISTRecord *pRec = 0;
+	int nRet = IW_SUCCESS;
+	int nRecordLengths = 0;
+
+	for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+	{
+		pRec = m_RecordAry.at(i);
+
+		if (pRec)
+		{
+			nRecordLengths += pRec->GetRecordLen();
+		}
+	}
+
+	return nRecordLengths; 
+}
+
 int CIWTransaction::Write(CStdString sPath)
 {
 	int nSize = m_RecordAry.size();
@@ -1005,6 +1025,58 @@ int CIWTransaction::Write(CStdString sPath)
 
 	return nRet;
 }
+
+int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
+{
+	int nSize = m_RecordAry.size();
+	int nCurrentSize = 0;
+	CNISTRecord *pRec = 0;
+	int nRet = IW_SUCCESS;
+
+	SetRecordLengths();
+	int nRecordLengths = GetRecordLengths();
+	*ppBuffer = new BYTE[nRecordLengths];
+
+	if (ppBuffer != NULL)
+	{
+		for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+		{
+			pRec = m_RecordAry.at(i);
+
+			if (pRec)
+			{
+				if (CNISTRecord::IsBinaryType(pRec->GetRecordType()))
+				{
+					nRet = pRec->WriteBinary( ppBuffer, &nCurrentSize);
+				}
+				else
+				{
+					nRet = pRec->Write((TCHAR **)ppBuffer, &nCurrentSize);
+				}
+			}
+		}
+	}
+	else
+	{
+		nRet = IW_ERR_NULL_POINTER;
+	}
+
+	if (nRet != IW_SUCCESS)
+	{
+		CStdString sTraceFrom("CIWTransaction::WriteBinary");
+		CStdString sTraceMsg;
+
+		sTraceMsg.Format(_T(" Write record to memory FAILED. Result %d"), nRet);
+		LogFile(sTraceMsg);
+	}
+	else
+	{
+		*pSize = nRecordLengths;
+	}
+
+	return nRet;
+}
+
 
 int CIWTransaction::WriteXML(CStdString sPath, bool bValidate)
 {
