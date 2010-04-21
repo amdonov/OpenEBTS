@@ -85,6 +85,7 @@ public:
 
 	int GetWriteLen();
 	int Write(FILE *pFile);
+    int Write(TCHAR **ppData, int *poffset);
 
 	static CStdString ImageExtFromImageFormat(IWImageFormat fmt);
 	static IWImageFormat ImageFormatFromImageExt(CStdString sFormat);
