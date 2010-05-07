@@ -482,11 +482,11 @@ CStdString CIWVerification::GetOptionalAdvancedRule(TCHAR **ppRule)
 	if (!sRule.IsEmpty()) goto done;
 	sRule = ExtractAdvancedTagValue(ppRule, _T("greatereq"));
 	if (!sRule.IsEmpty()) goto done;
-	sRule = ExtractAdvancedTagValue(ppRule, _T("if"));
+	sRule = ExtractAdvancedTagValue(ppRule, _T("supportedif"), true);
 	if (!sRule.IsEmpty()) goto done;
-	sRule = ExtractAdvancedTagValue(ppRule, _T("nif"));
+	sRule = ExtractAdvancedTagValue(ppRule, _T("if"), true);
 	if (!sRule.IsEmpty()) goto done;
-	sRule = ExtractAdvancedTagValue(ppRule, _T("supportedif"));
+	sRule = ExtractAdvancedTagValue(ppRule, _T("nif"), true);
 	if (!sRule.IsEmpty()) goto done;
 	sRule = ExtractAdvancedTagValue(ppRule, _T("less"));
 	if (!sRule.IsEmpty()) goto done;
@@ -600,7 +600,7 @@ CStdString CIWVerification::ExtractAdvancedTagValue(TCHAR **ppRule, const TCHAR 
 			if (bHasValue)
 			{
 				// Also extract ="Y" portion
-				lPosEnd = sString.Find(_T("\""), lPosCurr);			// Find first double-quote
+				lPosEnd = sString.Find(_T("\""), lPosEnd);			// Find first double-quote
 				lPosCurr = lPosEnd + 1;								// Jump to just after first double-quote
 				lPosEnd = sString.Find(_T("\""), lPosCurr);			// Find second double-quote
 			}
