@@ -8,6 +8,10 @@
 #pragma warning(disable : 4786)
 #include <boost/regex.hpp>
 
+bool DownloadURLContent( std::string strUrl , std::string & strContent,  
+							   std::string &headers,bool grabHeaders = true,  
+							   bool grabUrl = true );   
+
 
 CRuleObj::CRuleObj()
 {
@@ -270,6 +274,12 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 	CStdString	sDesc;
 	CStdString	sFilename;
 	CStdString	sFilePrefix = "file://";
+	CStdString	sFTPPrefix = "ftp://";
+	std::string sFTPFilePath;
+	std::string sContent;   
+	std::string sHeaders; 
+	bool bfileFTP = false;
+	bool bfileLocal = false;
 	int			i;
 	int			j;
 
@@ -294,7 +304,12 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 	*/
 
 	// First check if the info is in a file
+	if (sMap.Find(sFTPPrefix) == 0) // (starts at position 0)
+		bfileFTP = true;
 	if (sMap.Find(sFilePrefix) == 0) // (starts at position 0)
+		bfileLocal = true;
+
+	if ( bfileFTP || bfileLocal )  // (starts at position 0)
 	{
 		TCHAR		szDrive[_MAX_DRIVE];
 		TCHAR		szDir[_MAX_DIR];
@@ -305,27 +320,53 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 		TCHAR		*szFile;
 
 		// Open file in same folder as main verification file and read-in contents
-
-		sFilename = sMap.Right(sMap.GetLength() - sFilePrefix.GetLength());
-
-		_tsplitpath(sFilePath, szDrive, szDir, NULL, NULL);
-		_tcscpy(szPath, szDrive);
-		_tcscat(szPath, szDir);
-		_tcscat(szPath, sFilename);
-
-		f = _tfopen(szPath, _T("rb"));
-		if (f != NULL)
+		if (bfileLocal)
 		{
-			fseek(f, 0, SEEK_END);
-			lSize = ftell(f);
-			fseek(f, 0, SEEK_SET);
+			sFilename = sMap.Right(sMap.GetLength() - sFilePrefix.GetLength());
 
-			pFile = new BYTE[lSize + 2];
-			memset(pFile, '\0', lSize + 2);
-			fread(pFile, 1, lSize, f);
-			pFile[lSize] =  0x0A; // end file with carriage return so parser can include last element easily
-			pFile[lSize+1] = '\0';
-			fclose(f);
+			_tsplitpath(sFilePath, szDrive, szDir, NULL, NULL);
+			_tcscpy(szPath, szDrive);
+			_tcscat(szPath, szDir);
+			_tcscat(szPath, sFilename);
+
+			f = _tfopen(szPath, _T("rb"));
+			if (f != NULL)
+			{
+				fseek(f, 0, SEEK_END);
+				lSize = ftell(f);
+				fseek(f, 0, SEEK_SET);
+
+				pFile = new BYTE[lSize + 2];
+				memset(pFile, '\0', lSize + 2);
+				fread(pFile, 1, lSize, f);
+				pFile[lSize] =  0x0A; // end file with carriage return so parser can include last element easily
+				pFile[lSize+1] = '\0';
+				fclose(f);
+			}
+			else
+				return false;
+		}
+		if (bfileFTP)
+		{
+			sFilename = sMap.Right(sMap.GetLength() - sFTPPrefix.GetLength());
+
+			sFTPFilePath = sFTPPrefix;
+			sFTPFilePath.append(sFilename);
+	
+			//if(DownloadURLContent("ftp://qa:Image2010@ftp.iwsinc.com//CATSA//test/release_notes.txt", content, headers))
+			if(DownloadURLContent(sFTPFilePath, sContent, sHeaders))
+			{  
+				printf("Headers : %s \n", sHeaders.c_str()); 
+				lSize = sContent.length();
+				pFile = new BYTE[lSize + 2];
+				memset(pFile, '\0', lSize + 2);
+				memcpy(pFile, sContent.c_str(), lSize);
+			}  
+			else
+				return false;
+		}
+
+		//}
 
 #ifdef UNICODE
 			// In the UNICODE version of OpenEBTS, the Verification Files are in UTF-8
@@ -379,11 +420,11 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 			}
 
 			delete szFile;
-		}
-		else
-		{
-			return false;
-		}
+		//}
+		//else
+		//{
+		//	return false;
+		//}
 	}
 	else
 	{
