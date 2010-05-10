@@ -52,7 +52,7 @@
 				AdditionalOptions="-Zm500"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source"
+				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source;CURL\include"
 				PreprocessorDefinitions="NDEBUG;_WIN32_WINNT=0x0400;WIN32;_WINDOWS;_USRDLL;OPENEBTS_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -81,11 +81,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/LTCG"
-				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-1_35.lib"
+				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-1_35.lib libcurl_imp.lib"
 				OutputFile=".\Release\OpenEBTS.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="TIFF\libtiff\Release;WSQ\libwsq\Release;JPEG2000\libjasper\Release;JPEG\libjpeg\Release;Boost\Libs\regex"
+				AdditionalLibraryDirectories="TIFF\libtiff\Release;WSQ\libwsq\Release;JPEG2000\libjasper\Release;JPEG\libjpeg\Release;Boost\Libs\regex;CURL\bin"
 				ModuleDefinitionFile=".\OpenEBTS.def"
 				ProgramDatabaseFile=".\Release/OpenEBTS.pdb"
 				RandomizedBaseAddress="1"
@@ -153,7 +153,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/I /nist/include&quot; &quot; -Zm500"
 				Optimization="0"
-				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source"
+				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source;CURL\include"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WINNT=0x0400;WIN32;_WINDOWS;_USRDLL;OPENEBTS_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -182,11 +182,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-gd-1_35.lib"
+				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-gd-1_35.lib libcurl_imp.lib"
 				OutputFile=".\Debug\OpenEBTSd.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="TIFF\libtiff\Debug;WSQ\libwsq\Debug;JPEG2000\libjasper\Debug;JPEG\libjpeg\Debug;Boost\Libs\regex"
+				AdditionalLibraryDirectories="TIFF\libtiff\Debug;WSQ\libwsq\Debug;JPEG2000\libjasper\Debug;JPEG\libjpeg\Debug;Boost\Libs\regex;CURL\bin"
 				ModuleDefinitionFile=".\OpenEBTSd.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/OpenEBTSd.pdb"
@@ -255,7 +255,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/I /nist/include&quot; &quot; -Zm500"
 				Optimization="0"
-				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source"
+				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source;CURL\include"
 				PreprocessorDefinitions="UNICODE;_DEBUG;_WIN32_WINNT=0x0400;WIN32;_WINDOWS;_USRDLL;OPENEBTS_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -284,11 +284,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-gd-1_35.lib"
+				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-gd-1_35.lib libcurl_imp.lib"
 				OutputFile=".\Debug Unicode\OpenEBTSud.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="TIFF\libtiff\Debug;WSQ\libwsq\Debug;JPEG2000\libjasper\Debug;JPEG\libjpeg\Debug;Boost\Libs\regex"
+				AdditionalLibraryDirectories="TIFF\libtiff\Debug;WSQ\libwsq\Debug;JPEG2000\libjasper\Debug;JPEG\libjpeg\Debug;Boost\Libs\regex;CURL\bin"
 				ModuleDefinitionFile=".\OpenEBTSud.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug Unicode/OpenEBTSud.pdb"
@@ -358,7 +358,7 @@
 				AdditionalOptions="-Zm500"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source"
+				AdditionalIncludeDirectories="JPEG2000\libjasper;JPEG\libjpeg;TIFF\libtiff;WSQ\libwsq;Boost;UTF8\source;CURL\include"
 				PreprocessorDefinitions="UNICODE;NDEBUG;_WIN32_WINNT=0x0400;WIN32;_WINDOWS;_USRDLL;OPENEBTS_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -387,11 +387,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/LTCG"
-				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-1_35.lib"
+				AdditionalDependencies="libtiff.lib libwsq.lib libjasper.lib libjpeg.lib libboost_regex-vc90-mt-1_35.lib libcurl_imp.lib"
 				OutputFile=".\Release Unicode\OpenEBTSu.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="TIFF\libtiff\Release;WSQ\libwsq\Release;JPEG2000\libjasper\Release;JPEG\libjpeg\Release;Boost\Libs\regex"
+				AdditionalLibraryDirectories="TIFF\libtiff\Release;WSQ\libwsq\Release;JPEG2000\libjasper\Release;JPEG\libjpeg\Release;Boost\Libs\regex;CURL\bin"
 				ModuleDefinitionFile=".\OpenEBTSu.def"
 				ProgramDatabaseFile=".\Release Unicode/OpenEBTSu.pdb"
 				RandomizedBaseAddress="1"
@@ -471,6 +471,10 @@
 						PreprocessorDefinitions=""
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Curl.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\IWNist.cpp"
