@@ -86,6 +86,11 @@ OPENEBTS_API int WINAPI IWWriteMem(
    int *pSize								// Size of buffer
 );											
 
+OPENEBTS_API int WINAPI IWWriteMemFree(
+   BYTE** ppBuffer							// Pointer to Transaction buffer pointer
+);											
+
+
 OPENEBTS_API int WINAPI IWAddRecord(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	int nRecordType,						// Record type
