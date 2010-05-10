@@ -138,6 +138,7 @@ int _tmain(int argc, TCHAR* argv[])
 	//lRet = IWWriteMem(pTrans, &pBuffer, &nSize);
 	//lRet = IWClose(&pTrans);
 	//lRet = IWReadMem(pBuffer, nSize, pVer, &pTrans);
+	//lRet = IWWriteMemFree(&pBuffer);
 
 	_tcscpy_s(szFilename, _MAX_PATH, szFolderSamples);
 	_tcscat_s(szFilename, _MAX_PATH, _T("out1.ebts"));
