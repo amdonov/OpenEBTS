@@ -351,7 +351,7 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 			sFilename = sMap.Right(sMap.GetLength() - sFTPPrefix.GetLength());
 
 			sFTPFilePath.assign(sFTPPrefix.begin(), sFTPPrefix.end());
-			sFTPFilePath.append(sFilename);
+			sFTPFilePath.append(sFilename.begin(), sFilename.end());
 	
 			if(DownloadURLContent(sFTPFilePath, sContent, sHeaders))
 			{  
