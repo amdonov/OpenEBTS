@@ -350,13 +350,13 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 		{
 			sFilename = sMap.Right(sMap.GetLength() - sFTPPrefix.GetLength());
 
-			sFTPFilePath = sFTPPrefix;
+			sFTPFilePath.assign(sFTPPrefix.begin(), sFTPPrefix.end());
 			sFTPFilePath.append(sFilename);
 	
-			//if(DownloadURLContent("ftp://qa:Image2010@ftp.iwsinc.com//CATSA//test/release_notes.txt", content, headers))
 			if(DownloadURLContent(sFTPFilePath, sContent, sHeaders))
 			{  
-				printf("Headers : %s \n", sHeaders.c_str()); 
+				//the following line is to display debugging data
+				//printf("Headers : %s \n", sHeaders.c_str()); 
 				lSize = sContent.length();
 				pFile = new BYTE[lSize + 2];
 				memset(pFile, '\0', lSize + 2);
