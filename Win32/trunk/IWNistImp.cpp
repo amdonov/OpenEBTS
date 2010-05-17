@@ -175,27 +175,14 @@ OPENEBTS_API int WINAPI IWSetVerification(CIWTransaction *pIWTrans, CIWVerificat
 	return nRet;
 }
 
-OPENEBTS_API int WINAPI IWWriteMemFree(BYTE** ppBuffer)
+OPENEBTS_API int WINAPI IWMemFree(BYTE** ppBuffer)
 {
-	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
+	int nRet = IW_ERR_NULL_POINTER;
 
 	if (ppBuffer != NULL)
 	{
-		BYTE *pBuffer = *ppBuffer;
-
-		if (pBuffer)
-		{
-			IWS_BEGIN_EXCEPTION_METHOD("IWWriteMemFree")
-			IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-			delete pBuffer;
-			*ppBuffer = 0;
-			nRet = IW_SUCCESS;
-
-			IWS_END_CATCHEXCEPTION_BLOCK()
-		}
+		nRet = MemFree(*ppBuffer);
 	}
-
 	return nRet;
 }
 
