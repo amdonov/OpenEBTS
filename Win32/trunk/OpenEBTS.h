@@ -86,7 +86,7 @@ OPENEBTS_API int WINAPI IWWriteMem(
    int *pSize								// Size of buffer
 );											
 
-OPENEBTS_API int WINAPI IWWriteMemFree(
+OPENEBTS_API int WINAPI IWMemFree(
    BYTE** ppBuffer							// Pointer to Transaction buffer pointer
 );											
 
