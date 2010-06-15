@@ -11,6 +11,7 @@
 #include "NISTField.h"
 #include "ruleobj.h"
 
+extern HINSTANCE g_hInstance;
 
 // If FAIL_ON_ERROR not defined functions will return IW_SUCCESS 
 // unless we're unable to open or read file. Parsing errors will
@@ -816,12 +817,11 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 				{
 					if (!pTransDef->IsValid())
 					{
+						// No occurrences limitations were specified, flag the error
 						delete pTransDef;
 						pTransDef = NULL;
-#ifdef FAIL_ON_ERROR
 						nRet = IW_ERR_LOADING_VERICATION;
-						continue;
-#endif
+						break;
 					}
 				}
 			}
@@ -904,7 +904,7 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 
 							sComment += ch;
 						}
-						else if (isspace(ch))
+						else if (_istspace(ch))
 						{
 							sComment += ch; // continue in enStTOTComment state
 						}
@@ -1121,6 +1121,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	bool							bOptional;
 	bool							bApplySubItemRules;
 	int								iFieldSave;
+	CStdString						sRes;
 
 #ifdef _DEBUG
 	DebugOutputVerification();
@@ -1177,7 +1178,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 							if (nRecTypeCount < pRecTypeCount->nMin)
 							{
 								// Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.
-								sErr.Format(IDS_TOTRECORDSMAX, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
+								sRes.Load(IDS_TOTRECORDSMAX, g_hInstance);
+								sErr.Format(sRes, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
 								pTrans->AddError(sErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
@@ -1187,7 +1189,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 							if (nRecTypeCount > pRecTypeCount->nMax)
 							{
 								// Transaction Type %s may contain at most %ld Type %ld records: it contains %ld
-								sErr.Format(IDS_TOTRECORDSMAX, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
+								sRes.Load(IDS_TOTRECORDSMAX, g_hInstance);
+								sErr.Format(sRes, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
 								pTrans->AddError(sErr, 0);
 								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 							}
@@ -1199,7 +1202,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				// We have a record of an unsupported Record-Type
 				{
 					// Transaction Type %s may not contain Type %ld records: it contains %ld of them.
-					sErr.Format(IDS_TOTRECORDUNSUPPORTED, sTOT, iRecType, nRecTypeCount);
+					sRes.Load(IDS_TOTRECORDUNSUPPORTED, g_hInstance);
+					sErr.Format(sRes, sTOT, iRecType, nRecTypeCount);
 					pTrans->AddError(sErr, 0);
 					nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 				}
@@ -1298,7 +1302,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 		else
 		{
 			// Verification file does not contain Transaction Type %s
-			sErr.Format(IDS_VERTOTUNK, sTOT);
+			sRes.Load(IDS_VERTOTUNK, g_hInstance);
+			sErr.Format(sRes, sTOT);
 			pTrans->AddError(sErr, 0);
 			nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 		}
@@ -1306,7 +1311,7 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	else
 	{
 		// Failed to find TOT field in Record 1
-		sErr.Format(IDS_NOTOTFIELD);
+		sErr.Load(IDS_NOTOTFIELD, g_hInstance);
 		pTrans->AddError(sErr, 0);
 		nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 	}
