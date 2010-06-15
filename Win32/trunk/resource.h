@@ -28,6 +28,8 @@
 #define IDS_TOOMANYSUBFIELDS            124
 #define IDS_TOOFEWSUBFIELDSMIN          125
 #define IDS_TOOFEWSUBFIELDSMAX          126
+#define IDS_TOTRECORDSMAX2              127
+#define IDS_TOTRECORDSMIN2              128
 
 // Next default values for new objects
 // 

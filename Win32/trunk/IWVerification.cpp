@@ -1109,10 +1109,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	int								j;
 	CStdString						sData;
 	bool							bFound;
-	bool							bCountFound;
 	std::vector<CRecordTypeCount>	recTypeCountAry;
 	CTransactionDefinition			*pTransDef;
-	int								iRecType;
 	int								nRecTypeCount;
 	CStdString						sTraceMsg;
 	CRuleObj						*pRule;
@@ -1122,6 +1120,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 	bool							bApplySubItemRules;
 	int								iFieldSave;
 	CStdString						sRes;
+	CStdString						sRecordType;
+	std::vector<int>				rgiRecordTypes;
 
 #ifdef _DEBUG
 	DebugOutputVerification();
@@ -1155,57 +1155,131 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 
 		if (bFound)
 		{
-			// Next scan all possible record types, and check the allowed-record-counts array
-			for (iRecType = 1; iRecType <= 99; iRecType++)	// 1-based
+			// Scan the allowed-record-counts array and check for compliance
+			for (i = 0; i < (int)recTypeCountAry.size(); i++)
 			{
+				CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(i);
+
+				// If record type is 1 or 2 digits, it's really a record type,
+				// if it's 3 or 4 digits, it's 2 separate record types, and
+				// the record count restrictions then apply to the sum of the
+				// records of those 2 record types.
+				sRecordType.Format(_T("%d"), pRecTypeCount->nRecordType);
+
+				if (sRecordType.GetLength() <= 2)
+				{
+					// Verify record type ranges
+					pTrans->GetRecordTypeCount(pRecTypeCount->nRecordType, &nRecTypeCount);
+
+					if (pRecTypeCount->nMin != RANGE_NOTSPECIFIED)
+					{
+						if (nRecTypeCount < pRecTypeCount->nMin)
+						{
+							// Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.
+							sRes.Load(IDS_TOTRECORDSMIN, g_hInstance);
+							sErr.Format(sRes, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
+							pTrans->AddError(sErr, 0);
+							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+						}
+					}
+					if (pRecTypeCount->nMax != RANGE_NOTSPECIFIED)
+					{
+						if (nRecTypeCount > pRecTypeCount->nMax)
+						{
+							// Transaction Type %s may contain at most %ld Type %ld records: it contains %ld
+							sRes.Load(IDS_TOTRECORDSMAX, g_hInstance);
+							sErr.Format(sRes, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
+							pTrans->AddError(sErr, 0);
+							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+						}
+					}
+
+					// Populate our array of allowed record types. Later we will use this
+					// to ensure there are no stray records of unallowed record types.
+					rgiRecordTypes.push_back(pRecTypeCount->nRecordType);
+				}
+				else if (sRecordType.GetLength() == 3 || sRecordType.GetLength() == 4)
+				{
+					CStdString sRecordType1;
+					CStdString sRecordType2;
+					int		   iRecType1;
+					int		   iRecType2;
+					int		   nRecTypeCount1;
+					int		   nRecTypeCount2;
+					
+					sRecordType2 = sRecordType.Right(2);							// The right 2 digits
+					sRecordType1 = sRecordType.Left(sRecordType.GetLength() - 2);	// The left 1 or 2 digits
+
+					iRecType1 = _ttol(sRecordType1);
+					iRecType2 = _ttol(sRecordType2);
+
+					// Now we check for compliance against the *sum* of the record types
+					pTrans->GetRecordTypeCount(iRecType1, &nRecTypeCount1);
+					pTrans->GetRecordTypeCount(iRecType2, &nRecTypeCount2);
+
+					if (pRecTypeCount->nMin != RANGE_NOTSPECIFIED)
+					{
+						if (nRecTypeCount1 + nRecTypeCount2 < pRecTypeCount->nMin)
+						{
+							// Transaction Type %s must contain at least %ld Type %ld and Type %ld records: it only contains %ld.
+							sRes.Load(IDS_TOTRECORDSMIN2, g_hInstance);
+							sErr.Format(sRes, sTOT, pRecTypeCount->nMin, iRecType1, iRecType2, nRecTypeCount1 + nRecTypeCount2);
+							pTrans->AddError(sErr, 0);
+							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+						}
+					}
+					if (pRecTypeCount->nMax != RANGE_NOTSPECIFIED)
+					{
+						if (nRecTypeCount1 + nRecTypeCount2 > pRecTypeCount->nMax)
+						{
+							// Transaction Type %s may contain at most %ld Type %ld and Type %ld records: it contains %ld
+							sRes.Load(IDS_TOTRECORDSMAX2, g_hInstance);
+							sErr.Format(sRes, sTOT, pRecTypeCount->nMax, iRecType1, iRecType2, nRecTypeCount1 + nRecTypeCount2);
+							pTrans->AddError(sErr, 0);
+							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+						}
+					}
+
+					// Populate our array of allowed record types. Later we will use this
+					// to ensure there are no stray records of disallowed record types.
+					rgiRecordTypes.push_back(iRecType1);
+					rgiRecordTypes.push_back(iRecType2);
+				}
+				else
+				{
+					// just plain ignore 5 or more digit record type descriptors
+				}
+			}
+
+			// Next scan all possible record types, and check for disallowed record types
+			for (int iRecType = 1; iRecType <= 99; iRecType++)	// 1-based
+			{
+				bool bRecTypeFound = false;
+	
 				nRecTypeCount = 0;
 				pTrans->GetRecordTypeCount(iRecType, &nRecTypeCount);
 
-				bCountFound = false;
-	
-				for (i=0; i<(int)recTypeCountAry.size(); i++)
+				if (nRecTypeCount != 0)
 				{
-					CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(i);
-					if (pRecTypeCount && pRecTypeCount->nRecordType == iRecType)
+					// Scan array of allowed Record Types we created above
+					for (UINT i = 0; i < rgiRecordTypes.size(); i++)
 					{
-						bCountFound = true;
-
-						// Verify record type ranges
-						pTrans->GetRecordTypeCount(pRecTypeCount->nRecordType, &nRecTypeCount);
-
-						if (pRecTypeCount->nMin != RANGE_NOTSPECIFIED)
+						if (rgiRecordTypes.at(i) == iRecType)
 						{
-							if (nRecTypeCount < pRecTypeCount->nMin)
-							{
-								// Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.
-								sRes.Load(IDS_TOTRECORDSMAX, g_hInstance);
-								sErr.Format(sRes, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
-								pTrans->AddError(sErr, 0);
-								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
-							}
-						}
-						if (pRecTypeCount->nMax != RANGE_NOTSPECIFIED)
-						{
-							if (nRecTypeCount > pRecTypeCount->nMax)
-							{
-								// Transaction Type %s may contain at most %ld Type %ld records: it contains %ld
-								sRes.Load(IDS_TOTRECORDSMAX, g_hInstance);
-								sErr.Format(sRes, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
-								pTrans->AddError(sErr, 0);
-								nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
-							}
+							bRecTypeFound = true;
+							break;
 						}
 					}
-				}
 
-				if (nRecTypeCount != 0 && !bCountFound)
-				// We have a record of an unsupported Record-Type
-				{
-					// Transaction Type %s may not contain Type %ld records: it contains %ld of them.
-					sRes.Load(IDS_TOTRECORDUNSUPPORTED, g_hInstance);
-					sErr.Format(sRes, sTOT, iRecType, nRecTypeCount);
-					pTrans->AddError(sErr, 0);
-					nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+					if (!bRecTypeFound)
+					// We have a record of an unsupported Record-Type
+					{
+						// Transaction Type %s may not contain Type %ld records: it contains %ld of them.
+						sRes.Load(IDS_TOTRECORDUNSUPPORTED, g_hInstance);
+						sErr.Format(sRes, sTOT, iRecType, nRecTypeCount);
+						pTrans->AddError(sErr, 0);
+						nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
+					}
 				}
 			}
 

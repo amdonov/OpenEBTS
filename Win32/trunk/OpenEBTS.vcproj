@@ -319,7 +319,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				CommandLine="copy &quot;$(TargetPath)&quot; C:\work\EPI\trunk\3rdParty\Bin\$(TargetFileName)"
 			/>
 		</Configuration>
 		<Configuration

@@ -94,8 +94,8 @@ END
 STRINGTABLE 
 BEGIN
     IDS_EXCEPTIONUNK        "[%s] Unknown exception occurred."
-    IDS_TOTRECORDSMAX       "Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld."
-    IDS_TOTRECORDSMIN       "Transaction Type %s may contain at most %ld Type %ld records: it contains %ld"
+    IDS_TOTRECORDSMIN       "Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld."
+    IDS_TOTRECORDSMAX       "Transaction Type %s may contain at most %ld Type %ld records: it contains %ld"
     IDS_TOTRECORDUNSUPPORTED 
                             "Transaction Type %s may not contain Type %ld records: it contains %ld of them."
     IDS_MANDATORYFIELD      "Mandatory field not present"
@@ -127,6 +127,12 @@ BEGIN
     IDS_TOOMANYSUBFIELDS    "Too many subfields (%ld), must be %ld"
     IDS_TOOFEWSUBFIELDSMIN  "Too few subfields (%ld), minimum allowed is %ld"
     IDS_TOOFEWSUBFIELDSMAX  "Too many subfields (%ld), maximum allowed is %ld"
+    IDS_TOTRECORDSMIN2      "Transaction Type %s must contain at least %ld Type %ld and Type %ld records: it only contains %ld."
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_TOTRECORDSMAX2      "Transaction Type %s may contain at most %ld Type %ld and Type %ld records: it contains %ld"
 END
 
 #endif    // English (U.S.) resources
