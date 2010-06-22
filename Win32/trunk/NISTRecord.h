@@ -22,6 +22,7 @@ protected:
 
 	void AddField(CNISTField *pField);
 	int AddSubItems(CNISTField *pNISTField, char* szFieldData);
+	void RemoveField(CNISTField *pField);
 
 	int GetInfoFromImage(BYTE *pImage, long lImageLength, CStdString sFmt, IWNISTImageInfo *pInfo);
 	void SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInfo& info, long lRecordIndex, long lFieldLength);
@@ -56,6 +57,7 @@ public:
 	int FindItem(int Field, int Subfield, int Item, CStdString& sData);
 	int DeleteSubfield(int Field, int Subfield);
 	int SetItem(CStdString sData, int Field, int Subfield, int Item);
+	int RemoveItem(int Field, int Subfield, int Item);
 
 	int ReadRecord(BYTE *pTransactionData, int nRecordType);
 	int ReadBinaryRecord(BYTE *pTransactionData, int nRecordType);

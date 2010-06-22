@@ -272,6 +272,24 @@ OPENEBTS_API int WINAPI IWSet(CIWTransaction* pIWTrans, const TCHAR* szMnemonic,
 	return nRet;
 }
 
+OPENEBTS_API int WINAPI IWRemove(CIWTransaction* pIWTrans, const TCHAR* szMnemonic, 
+																		int nRecordIndex, int nIndex)
+{
+	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
+
+	IWS_BEGIN_EXCEPTION_METHOD("IWRemove")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	if (pIWTrans && pIWTrans->IsTransactionLoaded())
+	{
+		nRet = pIWTrans->Remove(CStdString(szMnemonic), nRecordIndex, nIndex);
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	return nRet;
+}
+
 OPENEBTS_API int WINAPI IWOccurrences(CIWTransaction* pIWTrans, const TCHAR* szMnemonic, int* pnOccurrences, int nRecordIndex)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
@@ -501,6 +519,22 @@ OPENEBTS_API int WINAPI IWSetItem(CIWTransaction* pIWTrans, const TCHAR* szData,
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 		nRet = pIWTrans->SetItem(CStdString(szData), nRecordType, nRecordIndex, nField, nSubfield, nItem);
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	return nRet;
+}
+
+OPENEBTS_API int WINAPI IWRemoveItem(CIWTransaction* pIWTrans, int nRecordType, 
+								  int nRecordIndex, int nField, int nSubfield, int nItem)
+{
+	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
+
+	IWS_BEGIN_EXCEPTION_METHOD("IWRemoveItem")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	if (pIWTrans && pIWTrans->IsTransactionLoaded())
+		nRet = pIWTrans->RemoveItem(nRecordType, nRecordIndex, nField, nSubfield, nItem);
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 

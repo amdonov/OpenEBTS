@@ -694,6 +694,27 @@ int CIWTransaction::SetItem(CStdString sData, int RecordType, int RecordIndex, i
 	return nRet;
 }
 
+int CIWTransaction::RemoveItem(int RecordType, int RecordIndex, int Field, int Subfield, int Item)
+{
+	int nRet = IW_SUCCESS;
+
+	if (g_bTraceOn)
+	{
+		CStdString sTraceFrom("CIWTransaction::RemoveItem");
+		CStdString sTraceMsg;
+
+		sTraceMsg.Format(_T("[%s] (%ld, %ld, %ld, %ld, %ld)"), sTraceFrom, RecordType, RecordIndex, Field, Subfield, Item);
+		TraceMsg(sTraceMsg);
+	}
+
+	CNISTRecord *pRecord = GetRecord(RecordType, RecordIndex);
+
+	if (pRecord)
+		nRet = pRecord->RemoveItem(Field,Subfield,Item);
+
+	return nRet;
+}
+
 int CIWTransaction::GetRecordTypeCount(int RecordType, int *pRecordTypeCount)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
@@ -1180,6 +1201,27 @@ int CIWTransaction::Set(CStdString sMnemonic, CStdString sData, int nStartIndex,
 
 		if ((nRet = m_pVerification->GetMNULocation(sMnemonic, nStartIndex, nRecordIndex, &recordType, &recordIndex, &field, &subField, &item)) == IW_SUCCESS)
 			nRet = SetItem(sData, recordType, recordIndex, field, subField, item);
+	}
+	else
+		nRet = IW_ERR_VERIFICATION_NOT_LOADED;
+
+	return nRet;
+}
+
+int CIWTransaction::Remove(CStdString sMnemonic, int nRecordIndex, int nIndex)
+{
+	int nRet = IW_SUCCESS;
+
+	if (IsVerificationLoaded())
+	{	
+		int recordType = 0;
+		int recordIndex = 0;
+		int field = 0;
+		int subField = 0;
+		int item = 0;
+
+		if ((nRet = m_pVerification->GetMNULocation(sMnemonic, nIndex, nRecordIndex, &recordType, &recordIndex, &field, &subField, &item)) == IW_SUCCESS)
+			nRet = RemoveItem(recordType, recordIndex, field, subField, item);
 	}
 	else
 		nRet = IW_ERR_VERIFICATION_NOT_LOADED;

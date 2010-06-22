@@ -680,7 +680,35 @@ void CNISTRecord::AddField(CNISTField *pField)
 	else
 		m_FieldList.insert(m_FieldList.begin() + nPos, pField);
 }
-	
+
+int CNISTRecord::RemoveItem(int Field, int Subfield, int Item)
+{
+	int nRet = IW_SUCCESS;
+
+	int nSize = m_FieldList.size();
+	int nPos = -1;
+	CNISTField *pTemp;
+
+	// KAS 6/22/10
+	// For now we simply remove the entire field and
+	// ignore the subfield and item values
+	for (int i = 0; i < nSize; i++)
+	{
+		pTemp = m_FieldList.at(i);
+
+		if (pTemp && pTemp->m_nField == Field)
+		{
+			nPos = i;
+			break;
+		}
+	}
+
+	if (nPos > -1 && nPos < nSize)
+		m_FieldList.erase(m_FieldList.begin()+nPos);
+
+	return nRet;
+}
+
 int CNISTRecord::FindItem(int Field, int Subfield, int Item, CStdString& sData)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;

@@ -113,6 +113,7 @@ public:
 	int GetNumItems(int RecordType, int RecordIndex, int Field, int Subfield, int *pCount);
 	int FindItem(int RecordType, int RecordIndex, int Field, int Subfield, int Item, CStdString& sData);
 	int SetItem(CStdString sData, int RecordType, int RecordIndex, int Field, int Subfield, int Item);
+	int RemoveItem(int RecordType, int RecordIndex, int Field, int Subfield, int Item);
 
 	/************************************************************/
 	/*        Verification based NIST Data Access               */
@@ -125,6 +126,7 @@ public:
 	int Verify();
 	int GetErrorCount();
 	int GetError(int Index, int* Code, CStdString& sDesc);
+	int Remove(CStdString sMnemonic, int Index, int RecordIndex);
 
 	void FreeErrors();
 	void AddError(CStdString sErr, int nCode);

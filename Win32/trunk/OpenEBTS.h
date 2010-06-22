@@ -226,6 +226,17 @@ OPENEBTS_API int WINAPI IWSet(
 	int nRecordIndex						// Record index
 );
 
+// IWRemove and IWRemoveItem are partially implemented.
+// They will only remove the entire field at present, at some
+// point we may want to remove subfields and subitems within
+// fields.
+OPENEBTS_API int WINAPI IWRemove(
+	CIWTransaction* pIWTrans,				// Transaction pointer
+	const TCHAR* szMnemonic,				// Field identifier
+	int nRecordIndex,						// Record index
+	int nIndex						// Index value, pass 0 to remove entire field
+);
+
 OPENEBTS_API int WINAPI IWOccurrences(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	const TCHAR* szMnemonic,				// Field identifier
@@ -273,6 +284,15 @@ OPENEBTS_API int WINAPI IWFindItem(
 OPENEBTS_API int WINAPI IWSetItem(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	const TCHAR* szData,					// String of data
+	int nRecordType,						// Record type
+	int nRecordIndex,						// Record index
+	int nField,								// Field number
+	int nSubfield,							// Subfield number
+	int nItem								// Item number
+);
+
+OPENEBTS_API int WINAPI IWRemoveItem(
+	CIWTransaction* pIWTrans,				// Transaction pointer
 	int nRecordType,						// Record type
 	int nRecordIndex,						// Record index
 	int nField,								// Field number
