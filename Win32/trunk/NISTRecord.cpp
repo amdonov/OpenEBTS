@@ -1491,9 +1491,9 @@ int CNISTRecord::GetInfoFromImage(BYTE *pImage, long lImageLength, CStdString sF
 				p += sizeof(frm_header_wsq.black);
 				frm_header_wsq.white = (BYTE) *p;
 				p += sizeof(frm_header_wsq.white);
-				frm_header_wsq.width = MAKEWORD(*(p+1), *p);
-				p += sizeof(frm_header_wsq.width);
 				frm_header_wsq.height = MAKEWORD(*(p+1), *p);
+				p += sizeof(frm_header_wsq.height);
+				frm_header_wsq.width = MAKEWORD(*(p+1), *p);
 
 				pInfo->lWidth = frm_header_wsq.width;
 				pInfo->lHeight = frm_header_wsq.height;
