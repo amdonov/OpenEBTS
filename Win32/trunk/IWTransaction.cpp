@@ -7,6 +7,7 @@
 #include "NISTRecord.h"
 #include "IWVerification.h"
 #include "OpenEBTS.h"
+#include "RuleObj.h"
 
 
 #define ITEM_RECORDTYPE		1
@@ -1200,10 +1201,53 @@ int CIWTransaction::Set(CStdString sMnemonic, CStdString sData, int nStartIndex,
 		int item = 0;
 
 		if ((nRet = m_pVerification->GetMNULocation(sMnemonic, nStartIndex, nRecordIndex, &recordType, &recordIndex, &field, &subField, &item)) == IW_SUCCESS)
+		{
 			nRet = SetItem(sData, recordType, recordIndex, field, subField, item);
+
+			// Add any non-existent items as blank string, if they have the same field number. This will ensure
+			// that multi-item fields will include the non-provided items as empty items which will be used by
+			// any NIST file reader as a spacer between the multiple items. We only bother doing this for items
+			// up to and not-including the final item, hence item must be greater than 1, otherwise no spacing
+			// is required.
+			if (nRet == IW_SUCCESS && item > 1)
+			{
+				const std::vector<CRuleObj>* parr = m_pVerification->GetRuleArray();
+				CRuleObj *pRule;
+				int recordType2 = 0;
+				int recordIndex2 = 0;
+				int field2 = 0;
+				int subField2 = 0;
+				int item2 = 0;
+
+				// Loop throught them all and get the location indices, and compare with 'field' (and 'subfield')
+				for (unsigned int i = 0; i < parr->size(); i++)
+				{
+					pRule = (CRuleObj*)&parr->at(i);
+
+					if (pRule->GetLocation(nStartIndex, nRecordIndex, &recordType2, &recordIndex2, &field2, &subField2, &item2))
+					{
+						if (recordType2 == recordType && recordIndex2 == recordIndex &&
+							field2 == field && subField2 == subField) // we have a mnemonic for one of the sibling items
+						{
+							// Only set to a blank string items *before* the one this function was asked to set
+							if (item2 < item)
+							{
+								// And of course, only set it if it doesn't exist
+								if (FindItem(recordType2, recordIndex2, field2, subField2, item2, sData) == IW_ERR_RECORD_NOT_FOUND)
+								{
+									nRet = SetItem(_T(""), recordType2, recordIndex2, field2, subField2, item2);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	else
+	{
 		nRet = IW_ERR_VERIFICATION_NOT_LOADED;
+	}
 
 	return nRet;
 }

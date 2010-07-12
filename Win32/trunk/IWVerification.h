@@ -94,6 +94,8 @@ public:
 							int* pOccMin, int* pOccMax, int* pOffset, bool* pAutomaticallySet, bool* pMandatory);
 	int GetValueList(const TCHAR* TransactionType, const TCHAR* Mnemonic, bool *Mandatory,
 					 int DataArraySize, const TCHAR** DataArray, const TCHAR** DescArray, int *Entries);
+
+	std::vector<CRuleObj>* GetRuleArray() { return &m_rulesAry; }
 };
 
 #endif // IWVERIFICATION_H
