@@ -201,11 +201,13 @@ bool CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
 	{
 		m_sCharType += "PC";
 		m_sSpecialChars.Empty();
+		m_sCharType.Remove(_T('S'));	// remove S since we don't consider "printable/control" to be so special
 	}
 	else if (!m_sSpecialChars.CompareNoCase(_T("PRINT")))
 	{
 		m_sCharType += "P";
 		m_sSpecialChars.Empty();
+		m_sCharType.Remove(_T('S'));	// remove S since we don't consider "printable" to be so special
 	}
 
 	return true;
