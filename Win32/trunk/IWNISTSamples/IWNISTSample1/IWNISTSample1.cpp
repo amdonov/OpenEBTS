@@ -87,6 +87,10 @@ int _tmain(int argc, TCHAR* argv[])
 	lRet = IWSet(pTrans, _T("T2_ASL_AOL"), _T("Armed Robbery"), 1, 1); if (!CheckRet(_T("IWSet"), lRet)) goto done;
 	lRet = IWSet(pTrans, _T("T2_ISN"), _T("1234567890123"), 1, 1);	if (!CheckRet(_T("IWSet"), lRet)) goto done;
 
+	lRet = IWSet(pTrans, _T("T2_RTA_ATT"), _T("Attention Me"), 1, 1);	if (!CheckRet(_T("IWSet"), lRet)) goto done;
+	lRet = IWSet(pTrans, _T("T2_RTA_LINE1"), _T("Blab blah Line 1"), 1, 1);	if (!CheckRet(_T("IWSet"), lRet)) goto done;
+	lRet = IWSet(pTrans, _T("T2_RTA_CITY"), _T("Ottawa"), 1, 1);	if (!CheckRet(_T("IWSet"), lRet)) goto done;
+
 	//
 	// Add some Type-4 fingerprints and a Type-14 4-finger slap
 	//
