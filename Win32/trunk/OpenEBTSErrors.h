@@ -41,5 +41,7 @@
 #define IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL     1015
 #define IW_WARN_INVALID_DATE                      1016
 #define IW_WARN_INVALID_DATA                      1017
+#define IW_WARN_DATA_NOT_PRINT                    1018
+#define IW_WARN_DATA_NOT_PRINTCTRL                1019
 
 #endif /* _IWNISTERRORS_H_ */

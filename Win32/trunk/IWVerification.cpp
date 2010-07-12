@@ -1604,7 +1604,13 @@ bool CIWVerification::VerifyFieldsForm5(CStdString& sTOT, CIWTransaction *pTrans
 			if (nRet == IW_SUCCESS)
 			// Note that an error may occur, because it's not a given that item 'iItem' exists
 			{
-				bRet &= VerifyfieldContents(pTrans, pRule, sData);
+				// If the data is empty then we just ignore any rule, because all sub-items
+				// defined in the verification file must always be provided for a header-item,
+				// and if the item is not specified than an empty string serves as a placeholder.
+				if (!sData.IsEmpty())
+				{
+					bRet &= VerifyfieldContents(pTrans, pRule, sData);
+				}
 			}
 		}
 	}
@@ -1856,7 +1862,28 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	sCharType = pRule->GetCharType();
 	sSpecialChars = pRule->GetSpecialChars();
 
-	if (!sCharType.CompareNoCase(_T("A")))
+	// "P" = Printable and "PC" = Control chars are supersets of all other chartypes so we check
+	// for the presence of those char codes first, then we explicitly look for the other code types.
+
+	if (sCharType.Find(_T("PC")) != -1)
+	{
+		if (!IsPrintable(sData, false))
+		{
+			// Invalid value '%s' for CharType '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINT, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			bRet = false;
+		}		
+	}
+	else if (sCharType.Find(_T("P")) != -1)
+	{
+		if (!IsPrintable(sData, true))
+		{
+			// Invalid value '%s' for CharType '%s'
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINTCTRL, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			bRet = false;
+		}		
+	}
+	else if (!sCharType.CompareNoCase(_T("A")))
 	{
 		if (!IsAlpha(sData))
 		{
@@ -2219,30 +2246,19 @@ bool CIWVerification::IsAlphaSpecial(CStdString& s, CStdString& sSpecial)
 	bool	bRet = true;
 	TUCHAR	c;
 
-	if (!sSpecial.CompareNoCase(_T("PRINT")))
+	for (int i = 0; i < s.GetLength(); i++)
 	{
-		return IsPrintable(s, false);
-	}
-	else if (!sSpecial.CompareNoCase(_T("PRINTCTRL")))
-	{
-		return IsPrintable(s, true);
-	}
-	else
-	{
-		for (int i = 0; i < s.GetLength(); i++)
+		c = s.GetAt(i);
+		// If the char is not alphabetic and it can't be found in the set of
+		// Special Characters the string fails the test.
+		if (!_istalpha(c) && sSpecial.Find(c) == -1)
 		{
-			c = s.GetAt(i);
-			// If the char is not alphabetic and it can't be found in the set of
-			// Special Characters the string fails the test.
-			if (!_istalpha(c) && sSpecial.Find(c) == -1)
-			{
-				bRet = false;
-				break;
-			}
+			bRet = false;
+			break;
 		}
-
-		return bRet;
 	}
+
+	return bRet;
 }
 
 bool CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
@@ -2252,30 +2268,19 @@ bool CIWVerification::IsNumericSpecial(CStdString& s, CStdString& sSpecial)
 	bool	bRet = true;
 	TUCHAR	c;
 
-	if (!sSpecial.CompareNoCase(_T("PRINT")))
+	for (int i = 0; i < s.GetLength(); i++)
 	{
-		return IsPrintable(s, false);
-	}
-	else if (!sSpecial.CompareNoCase(_T("PRINTCTRL")))
-	{
-		return IsPrintable(s, true);
-	}
-	else
-	{
-		for (int i = 0; i < s.GetLength(); i++)
+		c = s.GetAt(i);
+		// If the char is not numeric and it can't be found in the set of
+		// Special Characters the string fails the test.
+		if (!_istdigit(c) && sSpecial.Find(c) == -1)
 		{
-			c = s.GetAt(i);
-			// If the char is not numeric and it can't be found in the set of
-			// Special Characters the string fails the test.
-			if (!_istdigit(c) && sSpecial.Find(c) == -1)
-			{
-				bRet = false;
-				break;
-			}
+			bRet = false;
+			break;
 		}
-
-		return bRet;
 	}
+
+	return bRet;
 }
 
 bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
@@ -2285,30 +2290,19 @@ bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 	bool	bRet = true;
 	TUCHAR	c;
 
-	if (!sSpecial.CompareNoCase(_T("PRINT")))
+	for (int i = 0; i < s.GetLength(); i++)
 	{
-		return IsPrintable(s, false);
-	}
-	else if (!sSpecial.CompareNoCase(_T("PRINTCTRL")))
-	{
-		return IsPrintable(s, true);
-	}
-	else
-	{
-		for (int i = 0; i < s.GetLength(); i++)
+		c = s.GetAt(i);
+		// If the char is not alphabetic, not numeric and it can't be found in the set of
+		// Special Characters the string fails the test.
+		if (!_istalpha(c) && !_istdigit(c) && sSpecial.Find(c) == -1)
 		{
-			c = s.GetAt(i);
-			// If the char is not alphabetic, not numeric and it can't be found in the set of
-			// Special Characters the string fails the test.
-			if (!_istalpha(c) && !_istdigit(c) && sSpecial.Find(c) == -1)
-			{
-				bRet = false;
-				break;
-			}
+			bRet = false;
+			break;
 		}
-
-		return bRet;
 	}
+
+	return bRet;
 }
 
 extern HINSTANCE g_hInstance;
