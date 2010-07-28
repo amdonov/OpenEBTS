@@ -53,3 +53,5 @@ EXPORTS
 	IWGetMnemonics
 	IWGetRuleRestrictions
 	IWGetValueList
+	IWRemove
+	IWRemoveItem
