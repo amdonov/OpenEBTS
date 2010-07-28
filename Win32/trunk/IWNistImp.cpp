@@ -273,7 +273,7 @@ OPENEBTS_API int WINAPI IWSet(CIWTransaction* pIWTrans, const TCHAR* szMnemonic,
 }
 
 OPENEBTS_API int WINAPI IWRemove(CIWTransaction* pIWTrans, const TCHAR* szMnemonic, 
-																		int nRecordIndex, int nIndex)
+																		int nIndex, int nRecordIndex)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -282,7 +282,7 @@ OPENEBTS_API int WINAPI IWRemove(CIWTransaction* pIWTrans, const TCHAR* szMnemon
 
 	if (pIWTrans && pIWTrans->IsTransactionLoaded())
 	{
-		nRet = pIWTrans->Remove(CStdString(szMnemonic), nRecordIndex, nIndex);
+		nRet = pIWTrans->Remove(CStdString(szMnemonic), nIndex, nRecordIndex);
 	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()

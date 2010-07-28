@@ -1252,7 +1252,7 @@ int CIWTransaction::Set(CStdString sMnemonic, CStdString sData, int nStartIndex,
 	return nRet;
 }
 
-int CIWTransaction::Remove(CStdString sMnemonic, int nRecordIndex, int nIndex)
+int CIWTransaction::Remove(CStdString sMnemonic, int nIndex, int nRecordIndex)
 {
 	int nRet = IW_SUCCESS;
 

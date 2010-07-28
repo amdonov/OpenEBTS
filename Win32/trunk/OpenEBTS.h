@@ -233,8 +233,8 @@ OPENEBTS_API int WINAPI IWSet(
 OPENEBTS_API int WINAPI IWRemove(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	const TCHAR* szMnemonic,				// Field identifier
-	int nRecordIndex,						// Record index
-	int nIndex						// Index value, pass 0 to remove entire field
+	int nIndex,							// Index value, pass 0 to remove entire field
+	int nRecordIndex						// Record index
 );
 
 OPENEBTS_API int WINAPI IWOccurrences(
