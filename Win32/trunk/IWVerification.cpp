@@ -1858,6 +1858,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	CStdString	sErr;
 	DWORD		dwVal;
 	DWORD		dwValMax;
+	CStdString sDataErrString;
 
 	sCharType = pRule->GetCharType();
 	sSpecialChars = pRule->GetSpecialChars();
@@ -1865,21 +1866,24 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	// "P" = Printable and "PC" = Control chars are supersets of all other chartypes so we check
 	// for the presence of those char codes first, then we explicitly look for the other code types.
 
+	// truncate long strings so we don't overrun err msg buffers down the line
+	sDataErrString.append(sData,512);
+
 	if (sCharType.Find(_T("PC")) != -1)
 	{
-		if (!IsPrintable(sData, false))
+		if (!IsPrintable(sData, true))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINT, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINT, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
 			bRet = false;
 		}		
 	}
 	else if (sCharType.Find(_T("P")) != -1)
 	{
-		if (!IsPrintable(sData, true))
+		if (!IsPrintable(sData, false))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINTCTRL, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINTCTRL, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
 			bRet = false;
 		}		
 	}
@@ -1888,7 +1892,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlpha(sData))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1897,7 +1901,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsNumeric(sData))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1906,7 +1910,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlphaNumeric(sData))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1915,7 +1919,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlphaSpecial(sData, sSpecialChars))
 		{
 			// Invalid value '%s' for CharType '%s', Special Chars '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sDataErrString.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1924,7 +1928,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsNumericSpecial(sData, sSpecialChars))
 		{
 			// Invalid value '%s' for CharType '%s', Special Chars '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sDataErrString.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1933,7 +1937,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlphaNumericSpecial(sData, sSpecialChars))
 		{
 			// Invalid value '%s' for CharType '%s', Special Chars '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL,IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL,IDS_CHARINVALIDVALUESPECIAL, sDataErrString.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
