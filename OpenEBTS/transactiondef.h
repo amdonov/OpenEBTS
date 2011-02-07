@@ -19,8 +19,8 @@ public:
 	CStdString GetRuleString();
 	std::vector<CRecordTypeCount> GetRecTypeCountAry() { return m_recTypeCountAry; }
 
-	bool IsValid() { return ((m_TOTArray.size() > 0) && (m_sRule != _T(""))); }
-	bool IsEmpty() { return ((m_TOTArray.size() == 0) && (m_sRule == _T(""))); }
+	bool IsValid() { return ((m_TOTArray.size() > 0) && !m_sRule.IsEmpty()); }
+	bool IsEmpty() { return ((m_TOTArray.size() == 0) && m_sRule.IsEmpty()); }
 
 	std::vector<CStdString> m_TOTArray;
 	std::vector<CStdString> m_TOTLabelArray;

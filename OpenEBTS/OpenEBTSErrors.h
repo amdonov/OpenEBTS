@@ -43,5 +43,8 @@
 #define IW_WARN_INVALID_DATA                      1017
 #define IW_WARN_DATA_NOT_PRINT                    1018
 #define IW_WARN_DATA_NOT_PRINTCTRL                1019
+#define IW_WARN_REQ_RECORD_MISSING                1020
+#define IW_WARN_UNSUPPORT_RECORD_PRESENT          1021
+#define IW_WARN_UNKNOWN_TOT				          1022
 
 #endif /* _IWNISTERRORS_H_ */

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Includes.h"
 #include "OpenEBTSErrors.h"
 #include "TransactionDef.h"
 #include "IWTransaction.h"
@@ -68,17 +68,17 @@ int CIWTransaction::New(CStdString sTransactionType, CIWVerification *pIWVer)
 #endif
 	}
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::New] Result %d"), nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSNEW, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
 }
 
-int CIWTransaction::ReadTransactionFile(CStdString sFilePath)
+int CIWTransaction::ReadTransactionFile(CStdStringPath sFilePath)
 {
 	int nRet = IW_ERR_READING_FILE;
 	FILE *f;
@@ -95,7 +95,8 @@ int CIWTransaction::ReadTransactionFile(CStdString sFilePath)
 
 	m_bTransactionLoaded = false;
 
-	f = _tfopen(sFilePath, _T("rb"));
+	f = _tfopenpath(sFilePath, _TPATH("rb"));
+
 	if (f != NULL)
 	{
 		fseek(f, 0, SEEK_END);
@@ -129,11 +130,11 @@ int CIWTransaction::ReadTransactionFile(CStdString sFilePath)
 		m_pTransactionData = NULL;
 	}
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::ReadTransactionFile] Path %s, Result %d"), sFilePath, nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSREAD, sFilePath, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
@@ -175,11 +176,11 @@ int CIWTransaction::ReadTransactionFileMem(const BYTE *pMemFile, int MemFileSize
 		m_pTransactionData = 0;
 	}
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::ReadTransactionFileMem] Result %d"), nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSREADMEM, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
@@ -197,7 +198,7 @@ int CIWTransaction::GetRecords()
 
 	// Get and store the native resolution, this may be useful later
 	if (pRec1->FindItem(TYPE1_NSR, 1, 1, sData) == IW_SUCCESS)
-		m_dNativeResolutionPPMM = _tstof(sData);
+		m_dNativeResolutionPPMM = _tcstod(sData, NULL);
 
 	if (nRet == IW_SUCCESS)
 	{
@@ -216,11 +217,11 @@ int CIWTransaction::GetRecords()
 			int nRecordType, nRecordIndex;
 			int nSubField;
 
-			if (g_bTraceOn)
+			if (g_bLogToFile)
 			{
-				CStdString sTraceMsg;
-				sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Records in file %d"), nRecords);
-				TraceMsg(sTraceMsg);
+				CStdString sLogMessage;
+				sLogMessage.Format(IDS_LOGTRANSRECORDSINFILE, nRecords);
+				LogMessage(sLogMessage);
 			}
 
 			for (nSubField=1;nSubField <= nRecords && nRet == IW_SUCCESS;nSubField++)
@@ -228,13 +229,13 @@ int CIWTransaction::GetRecords()
 				// first get the expected record type
 				if (FindItem(RECORD_TYPE1, 1, TYPE1_CNT, nSubField, ITEM_RECORDTYPE, sData) == IW_SUCCESS)
 				{
-					nRecordType = _ttoi(sData);
+					nRecordType = (int)_tcstol(sData, NULL, 10);
 
 					// then get the record index
 					if (FindItem(RECORD_TYPE1, 1, TYPE1_CNT, nSubField, ITEM_RECORDINDEX, sData) == IW_SUCCESS)
 					{
 						m_nIDCDigits = sData.GetLength();
-						nRecordIndex = _ttoi(sData);
+						nRecordIndex = (int)_tcstol(sData, NULL, 10);
 
 						switch (nRecordType)
 						{
@@ -264,17 +265,17 @@ int CIWTransaction::GetRecords()
 									else
 										delete pRec;
 
-									if (g_bTraceOn)
+									if (g_bLogToFile)
 									{
-										CStdString sTraceMsg;
-										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record type %d, result %d"), nRecordType, nRet);
-										TraceMsg(sTraceMsg);
+										CStdString sLogMessage;
+										sLogMessage.Format(IDS_LOGTRANSREADRECORDTYPE, nRecordType, nRet);
+										LogMessage(sLogMessage);
 									}
 									if (nRet != IW_SUCCESS)
 									{
-										CStdString sTraceMsg;
-										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record FAILED. File %s, type %d, result %d"), m_sFilePath, nRecordType, nRet);
-										LogFile(sTraceMsg);
+										CStdString sLogMessage;
+										sLogMessage.Format(IDS_LOGTRANSREADRECORDFAILED, m_sFilePath, nRecordType, nRet);
+										LogMessage(sLogMessage);
 									}
 									
 								}
@@ -303,17 +304,17 @@ int CIWTransaction::GetRecords()
 									else
 										delete pRec;
 
-									if (g_bTraceOn)
+									if (g_bLogToFile)
 									{
-										CStdString sTraceMsg;
-										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record type %d, result %d"), nRecordType, nRet);
-										TraceMsg(sTraceMsg);
+										CStdString sLogMessage;
+										sLogMessage.Format(IDS_LOGTRANSREADRECORDTYPE, nRecordType, nRet);
+										LogMessage(sLogMessage);
 									}
 									if (nRet != IW_SUCCESS)
 									{
-										CStdString sTraceMsg;
-										sTraceMsg.Format(_T("[CIWTransaction::GetRecords] Read record FAILED. File %s, type %d, result %d"), m_sFilePath, nRecordType, nRet);
-										LogFile(sTraceMsg);
+										CStdString sLogMessage;
+										sLogMessage.Format(IDS_LOGTRANSREADRECORDFAILED, m_sFilePath, nRecordType, nRet);
+										LogMessage(sLogMessage);
 									}
 									
 								}
@@ -349,10 +350,9 @@ int CIWTransaction::GetRecords()
 int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 {
 	int nRet = IW_SUCCESS;
-	int nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 
-	//DebugOutRecords("AddRecord start");
+	DebugOutRecords(_T("AddRecord start"));
 
 	pRec = new CNISTRecord;
 
@@ -377,21 +377,23 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 		Type1AddRecordIDC(pRec, RecordType, nIDC);
 	}
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::AddRecord] Type %d, Index %d"), RecordType, nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSADDRECORD, RecordType, nRet);
+		LogMessage(sLogMessage);
 	}
 
-	//DebugOutRecords("AddRecord end");
+	DebugOutRecords(_T("AddRecord end"));
 
 	return nRet;
 }
 
-int CIWTransaction::DebugOutRecords(CStdString sContext)
+void CIWTransaction::DebugOutRecords(CStdString sContext)
 {
 #ifdef _DEBUG
+	if (!g_bLogToFile) return;
+
 	int nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	CNISTRecord *pType1Rec = GetRecord(RECORD_TYPE1, 1);
@@ -400,44 +402,45 @@ int CIWTransaction::DebugOutRecords(CStdString sContext)
 	CStdString sData2;
 	CStdString sFoo;
 
-	sFoo.Format(_T("\n------------------------------- %s\n"), sContext);
-	OutputDebugString(sFoo);
+	sFoo.Format(IDS_LOGTRANSDEBUGSTART, sContext);
+	LogMessage(sFoo);
 
 	if (pType1Rec->FindItem(TYPE1_CNT, 1, 2, sData) == IW_SUCCESS)
 	{
-		int nCount = _ttoi(sData);
+		int nCount = (int)_tcstol(sData, NULL, 10);
 
-		sFoo.Format(_T("CONTENTS: (01) %02d items\n"), nCount);
-		OutputDebugString(sFoo);
+		sFoo.Format(IDS_LOGTRANSDEBUGCONTENTS1, nCount);
+		LogMessage(sFoo);
 
 		for (int i=2; i<=nCount+1; i++)
 		{
 			if (pType1Rec->FindItem(TYPE1_CNT, i, 1, sData1) != IW_SUCCESS)
 			{
-				OutputDebugString(_T("error\n"));
+				sFoo = IDS_LOGTRANSDEBUGERROR;
+				LogMessage(sFoo);
 				continue;
 			}
 			if (pType1Rec->FindItem(TYPE1_CNT, i, 2, sData2) != IW_SUCCESS)
 			{
-				OutputDebugString(_T("error\n"));
+				sFoo = IDS_LOGTRANSDEBUGERROR;
+				LogMessage(sFoo);
 				continue;
 			}
 
-			sFoo.Format(_T("CONTENTS: (%02d) %02s %02s\n"), i, sData1, sData2);
-			OutputDebugString(sFoo);
+			sFoo.Format(IDS_LOGTRANSDEBUGCONTENTS2, i, sData1, sData2);
+			LogMessage(sFoo);
 		}
 	}
 
 	for (int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
-		sFoo.Format(_T("Record %02d, Type %02d\n"), i, pRec->GetRecordType());
-		OutputDebugString(sFoo);
+		sFoo.Format(IDS_LOGTRANSDEBUGRECORD, i, pRec->GetRecordType());
+		LogMessage(sFoo);
 	}
-	OutputDebugString(_T("-------------------------------\n"));
+	sFoo = IDS_LOGTRANSDEBUGEND;
+	LogMessage(sFoo);
 #endif
-
-	return IW_SUCCESS;
 }
 
 int CIWTransaction::DeleteRecord(int RecordType, int RecordIndex)
@@ -446,7 +449,6 @@ int CIWTransaction::DeleteRecord(int RecordType, int RecordIndex)
 	int nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	CNISTRecord *pRecTmp = 0;
-	int nRecordIndex = 0;
 
 	pRec = GetRecord(RecordType, RecordIndex);
 
@@ -475,14 +477,13 @@ int CIWTransaction::Type1AddRecordIDC(CNISTRecord *pRecord, int nRecordType, int
 
 	if (pRec)
 	{
-		int nCount = 0;
 		CStdString sData;
 		CStdString sCount;
 		CStdString sIDC;
 
 		if (pRec->FindItem(TYPE1_CNT, 1, 2, sData) == IW_SUCCESS)
 		{
-			int nCount = _ttoi(sData);
+			int nCount = (int)_tcstol(sData, NULL, 10);
 
 			nCount++;
 			sCount.Format(_T("%02d"), nCount);
@@ -516,7 +517,6 @@ int CIWTransaction::Type1UpdateIDC(CNISTRecord *pRecord, int nIDC)
 
 	if (pType1Rec)
 	{
-		int nCount = 0;
 		int nRecPos = 0;
 		int nSize = m_RecordAry.size();
 		CNISTRecord *pRec = 0;
@@ -580,7 +580,7 @@ int CIWTransaction::Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC)
 		{
 			if (pType1Rec->FindItem(TYPE1_CNT, 1, 2, sData) == IW_SUCCESS)
 			{
-				nCount = _ttoi(sData);
+				nCount = (int)_tcstol(sData, NULL, 10);
 
 				nCount--;
 				sCount.Format(_T("%02d"), nCount);
@@ -598,7 +598,6 @@ CNISTRecord *CIWTransaction::GetRecord(int nRecordType, int nRecordIndex)
 	int nSize = m_RecordAry.size();
 	CNISTRecord *pRet = 0;
 	CNISTRecord *pRec = 0;
-	int nTypeCount = 0;
 	int nIndex = 0;
 
 	for (int i = 0; i < nSize; i++)
@@ -677,7 +676,7 @@ int CIWTransaction::SetItem(CStdString sData, int RecordType, int RecordIndex, i
 		// although it doesn't matter, use 2 digit IDC fields
 		if (Field == REC_TAG_IDC && RecordType != RECORD_TYPE1)
 		{
-			int nIDC = _ttoi(sData);
+			int nIDC = (int)_tcstol(sData, NULL, 10);
 			sData.Format(_T("%02d"), nIDC);
 		}
 
@@ -685,7 +684,7 @@ int CIWTransaction::SetItem(CStdString sData, int RecordType, int RecordIndex, i
 		{
 			if (Field == REC_TAG_IDC && RecordType != RECORD_TYPE1)
 			{
-				int nIDC = _ttoi(sData);
+				int nIDC = (int)_tcstol(sData, NULL, 10);
 				// modifying the IDC field, so update the contents field in the type1 record
 				Type1UpdateIDC(pRecord, nIDC);
 			}
@@ -699,13 +698,11 @@ int CIWTransaction::RemoveItem(int RecordType, int RecordIndex, int Field, int S
 {
 	int nRet = IW_SUCCESS;
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CIWTransaction::RemoveItem");
-		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] (%ld, %ld, %ld, %ld, %ld)"), sTraceFrom, RecordType, RecordIndex, Field, Subfield, Item);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSREMOVEITEM, RecordType, RecordIndex, Field, Subfield, Item);
+		LogMessage(sLogMessage);
 	}
 
 	CNISTRecord *pRecord = GetRecord(RecordType, RecordIndex);
@@ -776,7 +773,7 @@ int CIWTransaction::GetNumRecords(int *pRecords)
 	return IW_SUCCESS;
 }
 
-int CIWTransaction::GetImage(int RecordType,int RecordIndex, CStdString& sStorageFormat, long *pLength, const BYTE **ppData)
+int CIWTransaction::GetImage(int RecordType,int RecordIndex, CStdString& sStorageFormat, int *pLength, const BYTE **ppData)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
 	CNISTRecord *pRecord = GetRecord(RecordType, RecordIndex);
@@ -784,18 +781,18 @@ int CIWTransaction::GetImage(int RecordType,int RecordIndex, CStdString& sStorag
 	if (pRecord)
 		nRet = pRecord->GetImage(sStorageFormat, pLength, ppData);
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::GetImage] Type %d, Index %d, Result %d"), RecordType, RecordIndex, nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSGETIMAGE, RecordType, RecordIndex, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
 }
 
-int CIWTransaction::GetImageInfo(int RecordType, int RecordIndex, CStdString& sStorageFormat, long *pnLength,
-								 long *pnHLL, long *pnVLL, int *pnBitsPerPixel)
+int CIWTransaction::GetImageInfo(int RecordType, int RecordIndex, CStdString& sStorageFormat, int *pnLength,
+								 int *pnHLL, int *pnVLL, int *pnBitsPerPixel)
 {
 	int	nRet = IW_ERR_RECORD_NOT_FOUND;
 	CNISTRecord *pRecord = GetRecord(RecordType, RecordIndex);
@@ -806,7 +803,7 @@ int CIWTransaction::GetImageInfo(int RecordType, int RecordIndex, CStdString& sS
 	return nRet;
 }
 
-int CIWTransaction::SetImage(int RecordType, int RecordIndex, CStdString sInputFormat, long nLength, BYTE *pData,
+int CIWTransaction::SetImage(int RecordType, int RecordIndex, CStdString sInputFormat, int nLength, BYTE *pData,
 							 CStdString sStorageFormat, float Compression)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
@@ -833,21 +830,21 @@ int CIWTransaction::SetImage(int RecordType, int RecordIndex, CStdString sInputF
 	if (pRecord)
 		nRet = pRecord->SetImage(sInputFormat, RecordIndex, nLength, pData, sStorageFormat, Compression);
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::SetImage] Type %d, Index %d, Input format %s, Result %d"), RecordType, RecordIndex, (sInputFormat ? sInputFormat : ""), nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSSETIMAGE, RecordType, RecordIndex, (sInputFormat ? sInputFormat : ""), nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
 }
 
-int CIWTransaction::ImportImage(int RecordType, int RecordIndex, CStdString sPath, CStdString sStorageFormat, float fCompression,
+int CIWTransaction::ImportImage(int RecordType, int RecordIndex, CStdStringPath sPath, CStdString sStorageFormat, float fCompression,
 								CStdString sInputFormat)
 // Same as IWSetImage, but from a file.
 {
-	int			nRet;
+	int			nRet = IW_ERR_OPENING_FILE_FOR_READING;
 	long		nLength;
 	BYTE		*pData = NULL;
 	CStdString	sExt;
@@ -855,7 +852,7 @@ int CIWTransaction::ImportImage(int RecordType, int RecordIndex, CStdString sPat
 
 	IWS_BEGIN_EXCEPTION_METHOD("CIWTransaction::ImportImage")
 
-	f = _tfopen(sPath, _T("rb"));
+	f = _tfopenpath(sPath, _TPATH("rb"));
 	if (f != NULL)
 	{
 		fseek(f, 0, SEEK_END);
@@ -890,7 +887,7 @@ int CIWTransaction::ImportImage(int RecordType, int RecordIndex, CStdString sPat
 			sExt = sInputFormat;
 		}
 
-		if (nRet == NO_ERROR)
+		if (nRet == IW_SUCCESS)
 			nRet = SetImage(RecordType, RecordIndex, sExt, nLength, pData, sStorageFormat, fCompression);
 
 	}
@@ -898,6 +895,7 @@ int CIWTransaction::ImportImage(int RecordType, int RecordIndex, CStdString sPat
 		nRet = IW_ERR_OPENING_FILE_FOR_READING;
 
 	if (pData)
+
 	{
 		delete [] pData;
 		pData = NULL;
@@ -906,7 +904,7 @@ int CIWTransaction::ImportImage(int RecordType, int RecordIndex, CStdString sPat
 	return nRet;
 }
 
-int CIWTransaction::ExportImage(int nRecordType, int nRecordIndex, CStdString sPath, CStdString sOutputFormat)
+int CIWTransaction::ExportImage(int nRecordType, int nRecordIndex, CStdStringPath sPath, CStdString sOutputFormat)
 // Currently only supports RAW to BMP, since NistImageExport uses this functionality, 
 // but eventually we could easily support all format combinations using the existing
 // XXXtoYYY functions.
@@ -914,38 +912,39 @@ int CIWTransaction::ExportImage(int nRecordType, int nRecordIndex, CStdString sP
 	int			nRet = IW_ERR_RECORD_NOT_FOUND;
 	CStdString  sFmt;
 	const BYTE	*pData;
-	long		lLength;
-	long		lW;
-	long		lH;
-	long		lBpp;
-	long		lLengthNew;
+	int			nLength;
+	int			w;
+	int			h;
+	int			bpp;
+	int			nLengthNew;
 	double		dPPMM;	// pixels per millimeter
-	long		lDPI;
+	int			DPI;
 	BYTE		*pNew = NULL;
 	FILE		*f;
 
 	CNISTRecord *pRecord = GetRecord(nRecordType, nRecordIndex);
 	if (!pRecord) goto done;
 
-	nRet = pRecord->GetImageInfo(sFmt, &lLength, &lW, &lH, (int*)&lBpp);
+	nRet = pRecord->GetImageInfo(sFmt, &nLength, &w, &h, (int*)&bpp);
 	if (nRet != IW_SUCCESS) goto done;
 
 	if (sFmt == _T("raw") && sOutputFormat == _T("bmp"))
 	{
-		nRet = pRecord->GetImage(sFmt, &lLength, &pData);
+		nRet = pRecord->GetImage(sFmt, &nLength, &pData);
 		if (nRet != IW_SUCCESS) goto done;
 
 		nRet = pRecord->GetImageResolution(&dPPMM);
 		if (nRet != IW_SUCCESS) goto done;
-		lDPI = (long)(dPPMM * 25.4);
+		DPI = (int)(dPPMM * 25.4);
 
-		nRet = RAWtoBMP(lW, lH, lDPI, lBpp, (BYTE*)pData, &pNew, &lLengthNew);
+		nRet = RAWtoBMP(w, h, DPI, bpp, (BYTE*)pData, &pNew, &nLengthNew);
+
 		if (nRet != IW_SUCCESS) goto done;
 
-		f = _tfopen(sPath, _T("wb"));
+		f = _tfopenpath(sPath, _TPATH("wb"));
 		if (f != NULL)
 		{
-			fwrite(pNew, 1, lLengthNew, f);
+			fwrite(pNew, 1, nLengthNew, f);
 			fclose(f);
 			nRet = IW_SUCCESS;
 		}
@@ -1004,7 +1003,7 @@ int CIWTransaction::GetRecordLengths()
 	return nRecordLengths; 
 }
 
-int CIWTransaction::Write(CStdString sPath)
+int CIWTransaction::Write(CStdStringPath sPath)
 {
 	int nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
@@ -1013,7 +1012,7 @@ int CIWTransaction::Write(CStdString sPath)
 
 	SetRecordLengths();
 
-	f = _tfopen(sPath, _T("wb"));
+	f = _tfopenpath(sPath, _TPATH("wb"));
 	if (f != NULL)
 	{
 		for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
@@ -1038,9 +1037,9 @@ int CIWTransaction::Write(CStdString sPath)
 
 	if (nRet != IW_SUCCESS)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::WriteBinary] Write record FAILED. File %s, result %d"), sPath, nRet);
-		LogFile(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSWRITEBINARY, sPath, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	if (f != NULL) fclose(f);
@@ -1085,11 +1084,9 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 
 	if (nRet != IW_SUCCESS)
 	{
-		CStdString sTraceFrom("CIWTransaction::WriteBinary");
-		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T(" Write record to memory FAILED. Result %d"), nRet);
-		LogFile(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSWRITEMEM, nRet);
+		LogMessage(sLogMessage);
 	}
 	else
 	{
@@ -1100,7 +1097,7 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 }
 
 
-int CIWTransaction::WriteXML(CStdString sPath, bool bValidate)
+int CIWTransaction::WriteXML(CStdStringPath sPath, bool bValidate)
 {
 	int				nRet = IW_SUCCESS;
 	FILE			*f;
@@ -1125,7 +1122,7 @@ int CIWTransaction::WriteXML(CStdString sPath, bool bValidate)
 		return nRet;
 	}
 
-	f = _tfopen(sPath, _T("wb"));
+	f = _tfopenpath(sPath, _TPATH("wb"));
 	if (f != NULL)
 	{
 		fwrite(pXML, 1, lLengthXML, f);
@@ -1137,9 +1134,9 @@ int CIWTransaction::WriteXML(CStdString sPath, bool bValidate)
 
 	if (nRet != IW_SUCCESS)
 	{
-		CStdString sTraceMsg;
-		sTraceMsg.Format(_T("[CIWTransaction::WriteXML] WriteXML FAILED. File %s, result %d"), sPath, nRet);
-		LogFile(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSWRITEXML, sPath, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;

@@ -2,9 +2,6 @@
 #ifndef _RULE_OBJ_
 #define _RULE_OBJ_
 
-//#pragma warning(disable : 4786)
-//#include <boost/regex.hpp>
-
 #define TRANS_UNKNOWN	0
 #define TRANS_OPTIONAL	1
 #define TRANS_MANDATORY 2

@@ -2,8 +2,6 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#include "stdafx.h"
-
 #define RECORD_TYPE1  (int)1	// transaction information
 #define RECORD_TYPE2  (int)2	// Descriptive text (user defined)
 #define RECORD_TYPE3  (int)3	// Fingerprint (low resolution grayscale)
@@ -43,8 +41,8 @@
 #include "OpenEBTSErrors.h"
 
 /***************
-/* TYPE 1 Fields
-/**************/
+* TYPE 1 Fields
+**************/
 #define TYPE1_LEN	1
 #define TYPE1_VER	2
 #define TYPE1_CNT	3
@@ -62,8 +60,8 @@
 #define TYPE1_DCS	15
 
 /*****************
-/* TYPE 3-6 Fields
-/****************/
+* TYPE 3-6 Fields
+****************/
 #define TYPE4_LEN	1
 #define TYPE4_IDC	2
 #define TYPE4_IMP	3
@@ -75,8 +73,8 @@
 #define TYPE4_DAT	9
 
 /***************
-/* TYPE 7 Fields
-/***************/
+* TYPE 7 Fields
+***************/
 #define TYPE7_ISR	5
 #define TYPE7_HLL	6
 #define TYPE7_VLL	7
@@ -84,8 +82,8 @@
 #define TYPE7_DAT	9
 
 /***************
-/* TYPE 8 Fields
-/***************/
+* TYPE 8 Fields
+***************/
 #define TYPE8_LEN	1
 #define TYPE8_IDC	2
 #define TYPE8_SIG	3
@@ -96,8 +94,8 @@
 #define TYPE8_DAT	8
 
 /***************
-/* TYPE 10 Fields
-/***************/
+* TYPE 10 Fields
+***************/
 #define TYPE10_HLL	6
 #define TYPE10_VLL	7
 #define TYPE10_SLC	8
@@ -108,8 +106,8 @@
 #define TYPE10_DAT	999
 
 /***************
-/* TYPE 13 Fields
-/***************/
+* TYPE 13 Fields
+***************/
 #define TYPE13_HLL	6
 #define TYPE13_VLL	7
 #define TYPE13_SLC	8
@@ -120,8 +118,8 @@
 #define TYPE13_DAT	999
 
 /***************
-/* TYPE 14 Fields
-/***************/
+* TYPE 14 Fields
+***************/
 #define TYPE14_HLL	6
 #define TYPE14_VLL	7
 #define TYPE14_SLC	8
@@ -132,8 +130,8 @@
 #define TYPE14_DAT	999
 
 /***************
-/* TYPE 15 Fields
-/***************/
+* TYPE 15 Fields
+***************/
 #define TYPE15_HLL	6
 #define TYPE15_VLL	7
 #define TYPE15_SLC	8
@@ -144,9 +142,8 @@
 #define TYPE15_DAT	999
 
 /***************
-/* TYPE 16 Fields
-/***************/
-#define TYPE16_IFM  5
+* TYPE 16 Fields
+***************/
 #define TYPE16_HLL	6
 #define TYPE16_VLL	7
 #define TYPE16_SLC	8
@@ -157,8 +154,8 @@
 #define TYPE16_DAT	999
 
 /***************
-/* TYPE 17 Fields
-/***************/
+* TYPE 17 Fields
+***************/
 #define TYPE17_HLL	6
 #define TYPE17_VLL	7
 #define TYPE17_SLC	8
@@ -170,8 +167,8 @@
 #define TYPE17_DAT	999
 
 /***************
-/* TYPE 99 Fields
-/***************/
+* TYPE 99 Fields
+***************/
 #define TYPE99_DAT	999
 
 // Redefinitions in "short format"
@@ -200,9 +197,20 @@
 #define T4_GCA	TYPE4_GCA
 #define T4_DAT	TYPE4_DAT
 
+/*****************************************
+* Grayscale Compression Algorithm values
+*****************************************/
+#define GCA_NONE			0
+#define GCA_WSQ				1
+#define GCA_JPEG			2
+#define GCA_JPEG_LOSSLESS	3
+#define GCA_JPEG2K			4
+#define GCA_JPEG2K_LOSSLESS	5
+#define GCA_PNG				6
+
 /***************************
-/* Exception handling macros
-/***************************/
+* Exception handling macros
+***************************/
 
 #define IWS_BEGIN_EXCEPTION_METHOD(FROMSTRING) \
 	CStdString sFrom(FROMSTRING); \
@@ -216,21 +224,16 @@
 	} \
 	catch (...) \
 	{ \
-		sException.Format(IDS_EXCEPTIONUNK, sFrom); \
-		LogFile(sException); \
+		sException.Format(_T("[%s] Unknown exception occurred."), sFrom); \
+		LogMessage(sException); \
 	}
 
-#define LF_OPENEBTS	_T("OpenEBTS.log")
+#define LF_OPENEBTS	_TPATH("OpenEBTS.log")
 
-extern bool g_bTraceOn; 
-extern bool g_bLogErrors; 
+extern bool g_bLogToFile;
+void LogMessage(CStdString& str);
 
-void LogFile(CStdString& sException);
-void TraceMsg(CStdString& sTraceMsg);
-
-void SetLogFlags();
-
-bool UTF8toUCS2(const char *pIn, wchar_t **ppOut);
-bool UCS2toUTF8(const wchar_t *wIn, char **ppOut, int *pnLength);
+bool UTF8toUCS(const char *pIn, wchar_t **ppOut);
+bool UCStoUTF8(const wchar_t *wIn, char **ppOut, int *pnLength);
 
 #endif // _COMMON_H

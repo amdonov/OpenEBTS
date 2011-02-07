@@ -7,7 +7,7 @@ class CRuleObj;
 class CIWVerification
 {
 private:
-	int LoadTOTDefinitions(TCHAR *pFile, CStdString sPath);
+	int LoadTOTDefinitions(TCHAR *pFile, CStdStringPath sPath);
 	int LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr);
 
 	CRuleObj *GetRule(CStdString sMNU);
@@ -54,7 +54,7 @@ private:
 	bool VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData);
 	bool VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, CStdString sData);
 	long DaysInMonth(long y, long m);
-	void FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, int nIDC, ...);
+	void FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, CStdString sErr, ...);
 
 	bool IsAlpha(CStdString& s);
 	bool IsNumeric(CStdString& s);
@@ -74,7 +74,7 @@ public:
 
 	TCHAR* CreateNewStringSlot(CStdString s) { return m_stringSlots.AddNew(s); };
 
-	int ReadVerificationFile(CStdString sPath, CStdString& sParseError);
+	int ReadVerificationFile(CStdStringPath sPath, CStdString& sParseError);
 	int VerifyTransaction(CIWTransaction *pTrans);
 	bool IsLoaded() { return m_bVerificationLoaded; }
 
@@ -86,7 +86,7 @@ public:
 	int GetTransactionTypes(int DataArraySize, const TCHAR **ppDataArray, 
 							const TCHAR **ppDescArray, int *pEntries, const TCHAR *pCategory);
 	int GetRecordTypeOccurrences(int DataArraySize, int *piRecordType, int *piMinOccurrences, int *piMaxOccurrences, int *pEntries, const TCHAR *pTOT);
-	int GetNumRulesPerMNU(CStdString &sMNU);
+	int GetNumRulesPerMNU(CStdString sMNU);
 	int GetMnemonics(const TCHAR* TransactionType, int DataArraySize, const TCHAR** ppDataArray, const TCHAR** ppDescArray, int* pEntries);
 	int GetRuleRestrictions(const TCHAR* TransactionType, const TCHAR* pMnemonic, int* pRecordType,
 							int* pField, int* pSubfield, int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType,

@@ -2,7 +2,7 @@
 #ifndef _IW_NISTRECORD_H
 #define _IW_NISTRECORD_H
 
-#include "common.h"
+#include "Common.h"
 
 class CNISTField;
 
@@ -24,8 +24,8 @@ protected:
 	int AddSubItems(CNISTField *pNISTField, char* szFieldData);
 	void RemoveField(CNISTField *pField);
 
-	int GetInfoFromImage(BYTE *pImage, long lImageLength, CStdString sFmt, IWNISTImageInfo *pInfo);
-	void SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInfo& info, long lRecordIndex, long lFieldLength);
+	int GetInfoFromImage(BYTE *pImage, int cbLength, CStdString sFmt, OpenEBTSImageInfo *pInfo);
+	void SetMandatoryImageFields(CNISTField *pNISTField, OpenEBTSImageInfo& info, int recordIndex, int fieldLength);
 
 	int GetFingerprintInfo(int nRecordType, BYTE* pTransactionData);
 	int GetSignatureInfo(BYTE* pTransactionData);
@@ -63,9 +63,9 @@ public:
 	int ReadBinaryRecord(BYTE *pTransactionData, int nRecordType);
 	int Validate() { return IW_ERR_RECORD_NOT_FOUND; }
 
-	int GetImage(CStdString& sStorageFormat, long *pLength, const BYTE **ppData);
-	int SetImage(CStdString sInputFormat, int nRecordIndex, long nLength, BYTE *pData, CStdString sStorageFormat, float fCompression);
-	int GetImageInfo(CStdString& spStorageFormat, long *pnLength, long *pnHLL, long *pnVLL, int *pnBitsPerPixel);
+	int GetImage(CStdString& sStorageFormat, int *pLength, const BYTE **ppData);
+	int SetImage(CStdString sInputFormat, int nRecordIndex, int nLength, BYTE *pData, CStdString sStorageFormat, float fCompression);
+	int GetImageInfo(CStdString& spStorageFormat, int *pnLength, int *pnHLL, int *pnVLL, int *pnBitsPerPixel);
 	int GetImageResolution(double *pfPPM);
 
 	int Write(FILE *pFile);
@@ -75,7 +75,7 @@ public:
 
 
 	static float CompressionToRate(float fCompression);
-	static bool FormatSupportedInOut(CStdString sFormat);
+	static bool FormatSupportedInput(CStdString sFormat);
 	static bool FormatSupportedEBTS(CStdString sFormat);
 	static int GetDATField(int nRecordType);
 	static bool IsDATField(int nRecordType, int nField);
@@ -84,28 +84,5 @@ public:
 
 	int GetRecordLen();
 };
-
-// Useful in determining width and heigh of WSQ images
-typedef struct header_frm {
-   unsigned char black;
-   unsigned char white;
-   unsigned short width;
-   unsigned short height;
-   float m_shift; 
-   float r_scale;
-   unsigned char wsq_encoder;
-   unsigned short software;
-} FRM_HEADER_WSQ;
-
-// "IHDR" within JPEG2000 images
-typedef struct {
-	UINT width;
-	UINT height;
-	WORD numcmpts;
-	BYTE bpc;
-	BYTE comptype;
-	BYTE csunk;
-	BYTE ipr;
-} jp2_ihdr_t;
 
 #endif // _IW_NISTRECORD_H

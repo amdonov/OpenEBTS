@@ -9,7 +9,7 @@ class CStringSlots
 public:
 	CStringSlots() {}
 
-	CStringSlots::~CStringSlots()
+	~CStringSlots()
 	{
 		// Delete all strings in string array
 
@@ -24,7 +24,7 @@ public:
 		m_rgszStrings.clear();
 	}
 
-	TCHAR* CStringSlots::AddNew(CStdString s)
+	TCHAR* AddNew(CStdString s)
 	{
 		TCHAR *szNew = new TCHAR[s.GetLength() + 1];
 		_tcscpy(szNew, s);

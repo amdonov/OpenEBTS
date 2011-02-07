@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Includes.h"
 #include "TransactionDef.h"
 #include "RuleObj.h"
 
@@ -54,14 +54,14 @@ bool CTransactionDefinition::SetRuleString(CStdString& sRule)
 		}
 
 		CRecordTypeCount recTypeCount;
-		recTypeCount.nRecordType = _ttol(sRecType);
+		recTypeCount.nRecordType = (int)_tcstol(sRecType, NULL, 10);
 		recTypeCount.nMin = nMin;
 		recTypeCount.nMax = nMax;
 		m_recTypeCountAry.push_back(recTypeCount);
 	}
 
 	// Make sure each ':' created a CRecordTypeCount
-	if (m_recTypeCountAry.size() == nCounts)
+	if (m_recTypeCountAry.size() == (UINT)nCounts)
 	{
 		bRet = true;
 	}

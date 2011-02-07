@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "Includes.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
 #include "OpenEBTS.h"
@@ -51,10 +51,10 @@ int CSubFieldItem::GetLength()
 	// to write out the data.
 	int nLen = 0;
 	char *szOut;
-	if (UCS2toUTF8(m_sData, &szOut, &nLen))
+	if (UCStoUTF8(m_sData, &szOut, &nLen))
 	{
 		delete szOut;
-		// Returned lenght is allocated byte-length, so we don't include the null-terminator
+		// Returned length is allocated byte-length, so we don't include the null-terminator
 		return nLen - 1;
 	}
 	else
@@ -331,43 +331,46 @@ int CNISTField::FindItem(int nSubfield, int nItem, CStdString& sData)
 	return nRet;
 }
 
-CStdString CNISTField::ImageExtFromImageFormat(IWImageFormat fmt)
+CStdString CNISTField::ImageExtFromImageFormat(OpenEBTSImageFormat fmt)
 {
 	switch (fmt)
 	{
 		case fmtRAW: return _T("raw"); break;
 		case fmtBMP: return _T("bmp"); break;
 		case fmtJPG: return _T("jpg"); break;
-		case fmtWSQ: return _T("wsq"); break;
 		case fmtJP2: return _T("jp2"); break;
+		case fmtPNG: return _T("png"); break;
 		case fmtFX4: return _T("fx4"); break;
+		case fmtWSQ: return _T("wsq"); break;
 		case fmtCBEFF: return _T("cbeff"); break;
 		default: return _T("raw");
 	}
 }
 
-IWImageFormat CNISTField::ImageFormatFromImageExt(CStdString sFormat)
+OpenEBTSImageFormat CNISTField::ImageFormatFromImageExt(CStdString sFormat)
 {
 	sFormat.MakeLower();
 	if (sFormat == _T("raw")) return fmtRAW;
 	if (sFormat == _T("bmp")) return fmtBMP;
 	if (sFormat == _T("jpg")) return fmtJPG;
-	if (sFormat == _T("wsq")) return fmtWSQ;
 	if (sFormat == _T("jp2")) return fmtJP2;
+	if (sFormat == _T("png")) return fmtPNG;
 	if (sFormat == _T("fx4")) return fmtFX4;
+	if (sFormat == _T("wsq")) return fmtWSQ;
 	if (sFormat == _T("cbeff")) return fmtCBEFF;
 	return fmtUNK; // Format unknown
 }
 
-IWImageFormat CNISTField::GetImageFormatFromHeader(int nRecordType, const BYTE* pImage)
+OpenEBTSImageFormat CNISTField::GetImageFormatFromHeader(int nRecordType, const BYTE* pImage)
 // Note that a dangerous assumption here is that a potential RAW image won't start
 // with one of the other image file format headers.
 // TODO: must differentiate between "cbeff" and "raw" somehow.
 {
+	BYTE wsqHdr[2]  = { 0xFF, 0xA0 };
 	BYTE jpgHdr[4]  = { 0xFF, 0xD8, 0xFF, 0xE0 };
 	BYTE exfHdr[4]  = { 0xFF, 0xD8, 0xFF, 0xE1 };
 	BYTE bmpHdr[2]  = { 0x42, 0x4D };
-	BYTE wsqHdr[2]  = { 0xFF, 0xA0 };
+	BYTE pngHdr[8] =  { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
 	BYTE jp2Hdr[23] = { 0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A, 
 					    0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70, 0x6A, 0x70, 0x32 };
 	BYTE tif1Hdr[2] = { 0x4D, 0x4D };
@@ -400,6 +403,10 @@ IWImageFormat CNISTField::GetImageFormatFromHeader(int nRecordType, const BYTE* 
 	else if (!memcmp(pImageStart, bmpHdr, 2))
 	{
 		return fmtBMP;
+	}
+	else if (!memcmp(pImageStart, pngHdr, 8))
+	{
+		return fmtPNG;
 	}
 	else if (!memcmp(pImageStart, tif1Hdr, 2) || !memcmp(pImageStart, tif2Hdr, 2))
 	{
@@ -454,10 +461,10 @@ int CNISTField::GetWriteLen()
 			if (pSubField)
 			{
 				nLen += pSubField->GetLength();
-				nLen++; // sub field seperator
+				nLen++; // sub field separator
 			}
 		}
-		if (nLen) nLen--; // remove last sub field seperator
+		if (nLen) nLen--; // remove last sub field separator
 	}
 	else if (m_pImageData)
 	{
@@ -465,15 +472,13 @@ int CNISTField::GetWriteLen()
 	}
 
 	nLen += nLabelLen;
-	nLen++; // for GS field seperator
+	nLen++; // for GS field separator
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTField::GetWriteLen");
-		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] RecordType %d, Field %d, Len %ld"), sTraceFrom, m_nRecordType, m_nField, nLen);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGFIELDGETWRITELEN, m_nRecordType, m_nField, nLen);
+		LogMessage(sLogMessage);
 	}
 
 	return nLen;
@@ -493,6 +498,30 @@ struct SubfieldItemSort
 			return (rp1->m_nSubField < rp2->m_nSubField);
 		}
 	 }
+	 bool operator()(CSubFieldItem*& rp1, CSubFieldItem* const& rp2)
+	 {
+		if (rp1->m_nSubField == rp2->m_nSubField)
+		// Subfield indices are equal, we sort by the item indices
+		{
+			return (rp1->m_nSubFieldItem < rp2->m_nSubFieldItem);
+		}
+		else
+		{
+			return (rp1->m_nSubField < rp2->m_nSubField);
+		}
+	 }
+	 bool operator()(CSubFieldItem* const& rp1, CSubFieldItem*& rp2)
+	 {
+		if (rp1->m_nSubField == rp2->m_nSubField)
+		// Subfield indices are equal, we sort by the item indices
+		{
+			return (rp1->m_nSubFieldItem < rp2->m_nSubFieldItem);
+		}
+		else
+		{
+			return (rp1->m_nSubField < rp2->m_nSubField);
+		}
+	 }
 };
 
 int CNISTField::Write(FILE *pFile)
@@ -500,13 +529,11 @@ int CNISTField::Write(FILE *pFile)
 	int nRet = IW_ERR_WRITING_FILE;
 	int nCount;
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTField::Write");
-		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] RecordType %d, Field %d"), sTraceFrom, m_nRecordType, m_nField);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGFIELDWRITE, m_nRecordType, m_nField);
+		LogMessage(sLogMessage);
 	}
 
 	IWS_BEGIN_EXCEPTION_METHOD("CNISTField::Write")
@@ -563,7 +590,7 @@ int CNISTField::Write(FILE *pFile)
 						char *p = NULL;
 						int  nLength;
 
-						if (UCS2toUTF8(pSubField->m_sData, &p, &nLength))
+						if (UCStoUTF8(pSubField->m_sData, &p, &nLength))
 						{
 							if (p)
 							{
@@ -624,13 +651,11 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 	int nRet = IW_ERR_WRITING_FILE;
 	int nCount;
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTField::Write");
-		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] RecordType %d, Field %d"), sTraceFrom, m_nRecordType, m_nField);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGFIELDWRITE, m_nRecordType, m_nField);
+		LogMessage(sLogMessage);
 	}
 
 	IWS_BEGIN_EXCEPTION_METHOD("CNISTField::Write")
@@ -690,7 +715,7 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 						char *p = NULL;
 						int  nLength;
 
-						if (UCS2toUTF8(pSubField->m_sData, &p, &nLength))
+						if (UCStoUTF8(pSubField->m_sData, &p, &nLength))
 						{
 							if (p)
 							{

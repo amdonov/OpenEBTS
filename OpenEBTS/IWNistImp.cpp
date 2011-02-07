@@ -1,11 +1,16 @@
 
-#include "stdafx.h"
+#include "Includes.h"
 #include "OpenEBTS.h"
 #include "TransactionDef.h"
 #include "IWTransaction.h"
 #include "IWVerification.h"
 #include "OpenEBTSErrors.h"
 #include "Common.h"
+extern "C"
+{
+#include <wsq.h>
+int debug = 0;
+}
 
 //************************************************************/
 //                                                            /
@@ -13,10 +18,8 @@
 //                                                            /
 //************************************************************//
 
-OPENEBTS_API int WINAPI IWRead(const TCHAR *szPath, CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
+OPENEBTS_API int WINAPI IWRead(const TCHARPATH *szPath, CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
 {
-	SetLogFlags();
-
 	if (!szPath)
 		return IW_ERR_READING_FILE;
 
@@ -57,8 +60,6 @@ OPENEBTS_API int WINAPI IWRead(const TCHAR *szPath, CIWVerification *pIWVer, CIW
 
 OPENEBTS_API int WINAPI IWReadMem(BYTE *pBuffer, int nBufferSize, CIWVerification *pIWVer, CIWTransaction **ppIWTrans)
 {
-	SetLogFlags();
-
 	if (!pBuffer)
 		return IW_ERR_NULL_POINTER;
 
@@ -114,10 +115,8 @@ OPENEBTS_API int WINAPI IWWriteMem(CIWTransaction* pIWTrans, BYTE** ppBuffer, in
 	return nRet;
 }
 
-OPENEBTS_API int WINAPI IWReadVerification(const TCHAR* szPath, CIWVerification** ppIWVer, int nMaxParseError, TCHAR* szParseError)
+OPENEBTS_API int WINAPI IWReadVerification(const TCHARPATH* szPath, CIWVerification** ppIWVer, int nMaxParseError, TCHAR* szParseError)
 {
-	SetLogFlags();
-
 	if (!szPath)
 		return IW_ERR_OPENING_FILE_FOR_READING;
 
@@ -139,8 +138,9 @@ OPENEBTS_API int WINAPI IWReadVerification(const TCHAR* szPath, CIWVerification*
 	if (pVerification)
 	{
 		CStdString sParseError;
+		CStdStringPath sPath(szPath);
 
-		nErrCode = pVerification->ReadVerificationFile(CStdString(szPath), sParseError);
+		nErrCode = pVerification->ReadVerificationFile(sPath, sParseError);
 		if (nErrCode == IW_SUCCESS)
 		{
 			*ppIWVer = pVerification;
@@ -374,7 +374,7 @@ OPENEBTS_API int WINAPI IWGetRecordTypeCount(CIWTransaction* pIWTrans, int nReco
 	return nRet;
 }
 
-OPENEBTS_API int WINAPI IWWrite(CIWTransaction* pIWTrans, const TCHAR* szPath)
+OPENEBTS_API int WINAPI IWWrite(CIWTransaction* pIWTrans, const TCHARPATH* szPath)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -391,7 +391,7 @@ OPENEBTS_API int WINAPI IWWrite(CIWTransaction* pIWTrans, const TCHAR* szPath)
 	return nRet;
 }
 
-OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHAR* szPath, bool bValidate)
+OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHARPATH* szPath, bool bValidate)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -408,7 +408,6 @@ OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHAR* szPath
 	return nRet;
 }
 
-// following fns not required, but may be simple to implement
 OPENEBTS_API int WINAPI IWGetNumRecords(CIWTransaction* pIWTrans, int* pnRecords)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
@@ -429,8 +428,6 @@ OPENEBTS_API int WINAPI IWGetNumRecords(CIWTransaction* pIWTrans, int* pnRecords
 
 OPENEBTS_API int WINAPI IWNew(const TCHAR* szTransactionType, CIWVerification* pIWVer, CIWTransaction** ppIWTrans)
 {
-	SetLogFlags();
-
 	if (ppIWTrans == NULL)
 		return IW_ERR_NULL_TRANSACTION_POINTER;
 
@@ -676,7 +673,7 @@ OPENEBTS_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const TCHAR* szT
 //************************************************************/
 
 OPENEBTS_API int WINAPI IWGetImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, 
-								   const TCHAR** pszStorageFormat, long* pnLength, const void** pData)
+								   const TCHAR** pszStorageFormat, int* pnLength, const void** pData)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -696,7 +693,7 @@ OPENEBTS_API int WINAPI IWGetImage(CIWTransaction* pIWTrans, int nRecordType, in
 }
 
 OPENEBTS_API int WINAPI IWSetImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, const TCHAR* szInputFormat,
-								   long nLength, void* pData, const TCHAR* szStorageFormat, float fCompression)
+								   int nLength, void* pData, const TCHAR* szStorageFormat, float fCompression)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -711,7 +708,7 @@ OPENEBTS_API int WINAPI IWSetImage(CIWTransaction* pIWTrans, int nRecordType, in
 	return nRet;	
 }
 
-OPENEBTS_API int WINAPI IWImportImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, const TCHAR* szPath,
+OPENEBTS_API int WINAPI IWImportImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, const TCHARPATH* szPath,
 									  const TCHAR* szStorageFormat, float fCompression, const TCHAR* szInputFormat)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
@@ -728,7 +725,7 @@ OPENEBTS_API int WINAPI IWImportImage(CIWTransaction* pIWTrans, int nRecordType,
 }
 
 OPENEBTS_API int WINAPI IWExportImage(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
-									  const TCHAR* szPath, const TCHAR* szOutputFormat)
+									  const TCHARPATH* szPath, const TCHAR* szOutputFormat)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -744,7 +741,7 @@ OPENEBTS_API int WINAPI IWExportImage(CIWTransaction* pIWTrans, int nRecordType,
 }
 
 OPENEBTS_API int WINAPI IWGetImageInfo(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
-									   const TCHAR** pszStorageFormat, long* pnLength, long* pnHLL, long* pnVLL, int* pnBitsPerPixel)
+									   const TCHAR** pszStorageFormat, int* pnLength, int* pnHLL, int* pnVLL, int* pnBitsPerPixel)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -784,161 +781,45 @@ OPENEBTS_API int WINAPI IWDeleteRecord(CIWTransaction* pIWTrans, int nRecordType
 //                                                            /
 //************************************************************/
 
-OPENEBTS_API int WINAPI RAWtoWSQ(BYTE* pImageIn, long lWidth, long lHeight, long lDPI, float fRate, BYTE** ppImageOut, long *plLengthOut)
-// Input assumed to be 8 bpp
-{
-	int ret = IW_ERR_WSQ_COMPRESS;
-	HGLOBAL hWSQ;
-	BYTE *pWSQ;
-
-	IWS_BEGIN_EXCEPTION_METHOD("RAWtoWSQ")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (NISTRAWtoWSQ((char*)pImageIn, lWidth, lHeight, lDPI, &hWSQ, fRate))
-	{
-		pWSQ = (BYTE*)GlobalLock(hWSQ);
-		if (pWSQ != NULL)
-		{
-			*plLengthOut = GlobalSize(hWSQ);
-			*ppImageOut = new BYTE[*plLengthOut];
-			memcpy((void*)*ppImageOut, pWSQ, *plLengthOut);
-			ret = IW_SUCCESS;
-		}
-
-		GlobalUnlock(hWSQ);
-		GlobalFree(hWSQ);
-	}
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	return ret;
-}
-
-OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, long lLengthIn, float fRate, BYTE** ppImageOut, long *plLengthOut)
-// Input assumed to be 8 bpp (NISTBMPtoWSQ will return 0 otherwise and IW_ERR_WSQ_COMPRESS gets returned here)
-{
-	int ret = IW_ERR_WSQ_COMPRESS;
-	HGLOBAL hWSQ;
-	BYTE *pWSQ;
-
-	IWS_BEGIN_EXCEPTION_METHOD("BMPtoWSQ")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (NISTBMPtoWSQ((char*)pImageIn, lLengthIn, &hWSQ, fRate))
-	{
-		pWSQ = (BYTE*)GlobalLock(hWSQ);
-		if (pWSQ != NULL)
-		{
-			*plLengthOut = GlobalSize(hWSQ);
-			*ppImageOut = new BYTE[*plLengthOut];
-			memcpy((void*)*ppImageOut, pWSQ, *plLengthOut);
-			ret = IW_SUCCESS;
-		}
-
-		GlobalUnlock(hWSQ);
-		GlobalFree(hWSQ);
-	}
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	return ret;
-}
-
-OPENEBTS_API int WINAPI WSQtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
-{
-	int ret = IW_ERR_WSQ_DECOMPRESS;
-	HGLOBAL hRAW;
-	BYTE *pRAW;
-
-	IWS_BEGIN_EXCEPTION_METHOD("WSQtoRAW")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (NISTWSQtoRAW((char*)pImageIn, lLengthIn, &hRAW, plWidth, plHeight, plDPI))
-	{
-		pRAW = (BYTE*)GlobalLock(hRAW);
-		if (pRAW != NULL)
-		{
-			*plLengthOut = GlobalSize(hRAW);
-			*ppImageOut = new BYTE[*plLengthOut];
-			memcpy((void*)*ppImageOut, pRAW, *plLengthOut);
-			ret = IW_SUCCESS;
-		}
-
-		GlobalUnlock(hRAW);
-		GlobalFree(hRAW);
-	}
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	return ret;
-}
-
-OPENEBTS_API int WINAPI WSQtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
-{
-	int ret = IW_ERR_WSQ_DECOMPRESS;
-	HGLOBAL hBMP;
-	BYTE *pBMP;
-
-	IWS_BEGIN_EXCEPTION_METHOD("WSQtoBMP")
-
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (NISTWSQtoBMP((char*)pImageIn, lLengthIn, &hBMP))
-	{
-		pBMP = (BYTE*)GlobalLock(hBMP);
-		if (pBMP != NULL)
-		{
-			*plLengthOut = GlobalSize(hBMP);
-			*ppImageOut = new BYTE[*plLengthOut];
-			memcpy((void*)*ppImageOut, pBMP, *plLengthOut);
-			ret = IW_SUCCESS;
-		}
-
-		GlobalUnlock(hBMP);
-		GlobalFree(hBMP);
-	}
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	return ret;
-}
-
-OPENEBTS_API int WINAPI RAWtoBMP(int nWidth, int nHeight, int nDPI, int nDepth, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI RAWtoBMP(int width, int height, int DPI, int depth, BYTE* pImageIn, BYTE** ppImageOut, int *pcbOut)
 // Supports 1bpp, 8bpp and 24bpp
 {
 	int		ret = IW_ERR_IMAGE_CONVERSION;
-	long	lBytesPerRowBMP;
-	long	lBytesPerRowRAW;
-	long	nBMPDataLen;
+	int		bytesPerRowBMP;
+	int		bytesPerRowRAW;
+	int		nBMPDataLen;
 
-	if (nDepth != 1 && nDepth != 8 && nDepth != 24) goto done;
+	IWS_BEGIN_EXCEPTION_METHOD("RAWtoBMP")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	if (depth != 1 && depth != 8 && depth != 24) goto done;
 
 	if (pImageIn)
 	{
-		if (nDepth == 1)
+		if (depth == 1)
 		{
-			lBytesPerRowRAW = (nWidth+7)/8;
-			lBytesPerRowBMP = (lBytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
+			bytesPerRowRAW = (width+7)/8;
+			bytesPerRowBMP = (bytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
 		}
 		else
 		{
-			lBytesPerRowRAW = nWidth * nDepth/8;
-			lBytesPerRowBMP = (lBytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
+			bytesPerRowRAW = width * depth/8;
+			bytesPerRowBMP = (bytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
 		}
-		nBMPDataLen = lBytesPerRowBMP * nHeight;
+		nBMPDataLen = bytesPerRowBMP * height;
 
 		// Define and initialize default color table, be it grayscale or two-tone
 		DWORD color_count = 0;
-		LPRGBQUAD color_table = NULL;
+		RGBQUAD *color_table = NULL;
 		DWORD table_size = 0;
 
-		if (nDepth != 24)
+		if (depth != 24)
 		{
-			color_count = 1 << nDepth;
+			color_count = 1 << depth;
 			color_table = new RGBQUAD[color_count];
 			table_size = color_count * sizeof(RGBQUAD);
 
-			if (nDepth == 1)
+			if (depth == 1)
 			{
 				RGBQUAD rgbBlack = { 0, 0, 0, 0 };
 				RGBQUAD rgbWhite = { 0xff, 0xff, 0xff, 0 };
@@ -961,74 +842,76 @@ OPENEBTS_API int WINAPI RAWtoBMP(int nWidth, int nHeight, int nDPI, int nDepth, 
 		DWORD dwFileSize = (DWORD)(sizeof(BITMAPFILEHEADER) + dwBMPSize);
 
 		*ppImageOut = new BYTE[dwFileSize];
-		LPBYTE lpData = (LPBYTE) *ppImageOut;
-		memset(lpData, NULL, dwFileSize);
+		BYTE *pData = (BYTE*)*ppImageOut;
+		memset(pData, 0, dwFileSize);
 
-		LPBITMAPFILEHEADER lpbmfh = (LPBITMAPFILEHEADER) lpData;
-		lpbmfh->bfType = 0x4D42;
-		lpbmfh->bfSize = dwFileSize;
-		lpbmfh->bfReserved1 = lpbmfh->bfReserved2 = 0;
-		lpbmfh->bfOffBits = dwFileSize - nBMPDataLen;
+		BITMAPFILEHEADER *pbmfh = (BITMAPFILEHEADER*)pData;
+		pbmfh->bfType = 0x4D42;
+		pbmfh->bfSize = dwFileSize;
+		pbmfh->bfReserved1 = pbmfh->bfReserved2 = 0;
+		pbmfh->bfOffBits = dwFileSize - nBMPDataLen;
 
-		LPBITMAPINFO lpbi = (LPBITMAPINFO)(lpData + sizeof(BITMAPFILEHEADER));
+		BITMAPINFO *pbi = (BITMAPINFO*)(pData + sizeof(BITMAPFILEHEADER));
 
-		lpbi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER); 
-		lpbi->bmiHeader.biWidth = nWidth; 
-		lpbi->bmiHeader.biHeight = nHeight; // switch sign on biHeight convert to top-down
-		lpbi->bmiHeader.biPlanes = 1;
-		lpbi->bmiHeader.biBitCount = nDepth;
-		lpbi->bmiHeader.biCompression = BI_RGB;
-        lpbi->bmiHeader.biXPelsPerMeter = (long)(nDPI * 10000.0 / 254.0 + 0.5);
-        lpbi->bmiHeader.biYPelsPerMeter = lpbi->bmiHeader.biXPelsPerMeter;
-		lpbi->bmiHeader.biSizeImage = nBMPDataLen;
+		pbi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		pbi->bmiHeader.biWidth = width;
+		pbi->bmiHeader.biHeight = height; // switch sign on biHeight convert to top-down
+		pbi->bmiHeader.biPlanes = 1;
+		pbi->bmiHeader.biBitCount = depth;
+		pbi->bmiHeader.biCompression = 0;	//BI_RGB
+        pbi->bmiHeader.biXPelsPerMeter = (LONG)(DPI * 10000.0 / 254.0 + 0.5);
+        pbi->bmiHeader.biYPelsPerMeter = pbi->bmiHeader.biXPelsPerMeter;
+		pbi->bmiHeader.biSizeImage = nBMPDataLen;
 
 		// no color table for 24-bit, otherwise use default
-		if (lpbi->bmiHeader.biBitCount != 24) 
-			lpbi->bmiHeader.biClrUsed = (DWORD)(1 << lpbi->bmiHeader.biBitCount); 
+		if (pbi->bmiHeader.biBitCount != 24)
+			pbi->bmiHeader.biClrUsed = (DWORD)(1 << pbi->bmiHeader.biBitCount);
 
 		// write the color table
-		memcpy(lpbi->bmiColors, color_table, table_size);
+		memcpy(pbi->bmiColors, color_table, table_size);
 
 		// write the pixel data
-		if (nDepth != 24)
+		if (depth != 24)
 		{
-			for(int i = 0; i < nHeight; i++)
+			for(int i = 0; i < height; i++)
 			{
-				memcpy(lpData + lpbmfh->bfOffBits + (i * lBytesPerRowBMP), 
-					   pImageIn + (nHeight - i - 1) * lBytesPerRowRAW,
-					   lBytesPerRowRAW);
+				memcpy(pData + pbmfh->bfOffBits + (i * bytesPerRowBMP),
+					   pImageIn + (height - i - 1) * bytesPerRowRAW,
+					   bytesPerRowRAW);
 			}
 		}
 		else
 		{
 			// BGR not RGB!
-			BYTE *ptrSrc = pImageIn + (nHeight-1)*lBytesPerRowRAW;
-			BYTE *ptrDst = lpData + lpbmfh->bfOffBits;
-			for(int i = 0; i < nHeight; i++)
+			BYTE *ptrSrc = pImageIn + (height-1)*bytesPerRowRAW;
+			BYTE *ptrDst = pData + pbmfh->bfOffBits;
+			for(int i = 0; i < height; i++)
 			{
-				for(int j = 0; j < nWidth; j++)
+				for(int j = 0; j < width; j++)
 				{
 					memcpy(ptrDst + j*3 + 0, ptrSrc + j*3 + 2, 1);
 					memcpy(ptrDst + j*3 + 1, ptrSrc + j*3 + 1, 1);
 					memcpy(ptrDst + j*3 + 2, ptrSrc + j*3 + 0, 1);
 				}
-				ptrSrc -= lBytesPerRowRAW;
-				ptrDst += lBytesPerRowBMP;
+				ptrSrc -= bytesPerRowRAW;
+				ptrDst += bytesPerRowBMP;
 			}
 		}
 
-		*plLengthOut = dwFileSize;
+		*pcbOut = dwFileSize;
 
 		if (color_table) delete color_table;
 
 		ret = IW_SUCCESS;
 	}
 
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
 done:
 	return ret;
 }
 
-OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
+OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut, int *pWidth, int *pHeight, int *pDPI)
 //
 // Supports 1bpp, 8bpp and 24bpp BMP inputs.
 //
@@ -1036,24 +919,29 @@ OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageO
 	int					ret = IW_ERR_IMAGE_CONVERSION;
 	BITMAPFILEHEADER	*pbfh;
 	BITMAPINFOHEADER	*pbih;
-	long				lBytesPerRowBMP;
-	long				lBytesPerRowRAW;
-	long				i;
-	long				lLenPalette;
+	int					bytesPerRowBMP;
+	int					bytesPerRowRAW;
+	int					i;
+	int					lLenPalette;
 	BYTE				*pBMPPtr;
 	BYTE				*pRawPtr;
+	bool				bInverse = false;
+
+	IWS_BEGIN_EXCEPTION_METHOD("BMPtoRAW")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
 	if (!pImageIn) goto done;
 
 	// Support both file BMPs and DIBs, why not
 	pbfh = (BITMAPFILEHEADER*)pImageIn;
-	if (pbfh->bfType == 0x4d42) { //"BM"
+	if (pbfh->bfType == 0x4d42)	 //"BM"
+	{
 		pbih = (BITMAPINFOHEADER*)(pImageIn + sizeof(BITMAPFILEHEADER));
 	} else {
 		pbih = (BITMAPINFOHEADER*)pImageIn;
 	}
 
-	if (pbih->biCompression != BI_RGB) goto done;	// only uncompressed supported
+	if (pbih->biCompression != 0) goto done;	// only uncompressed supported (BI_RGB = 0)
 	if (pbih->biBitCount != 1 && pbih->biBitCount != 8 && pbih->biBitCount != 24) goto done;
 
 	// Set pBMPPtr to where image bits start.
@@ -1062,274 +950,367 @@ OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageO
 	else
 		lLenPalette = 0;
 	pBMPPtr = (BYTE*)pbih + sizeof(BITMAPINFOHEADER) + lLenPalette;
+
 	if (pbih->biBitCount == 1)
 	{
-		lBytesPerRowRAW = (pbih->biWidth+7)/8;
-		lBytesPerRowBMP = (lBytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
+		bytesPerRowRAW = (pbih->biWidth+7)/8;
+		bytesPerRowBMP = (bytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
+
+		// For 1bpp images, the input BMP could have the 0 pixels as white, in which case
+		// we'll need to invert the output since we need 0 as black. to determine this we
+		// just check for 0xff in any one of the RGB components of the first palette entry.
+		if (lLenPalette != 0)
+		{
+			RGBQUAD *pRGB = (RGBQUAD*)((BYTE*)pbih + sizeof(BITMAPINFOHEADER));
+			if (pRGB->rgbRed == 0xff)
+			{
+				bInverse = true;	// yes, 0 is white in the input bmp
+			}
+		}
 	}
 	else
 	{
-		lBytesPerRowRAW = pbih->biWidth * pbih->biBitCount/8;
-		lBytesPerRowBMP = (lBytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
+		bytesPerRowRAW = pbih->biWidth * pbih->biBitCount/8;
+		bytesPerRowBMP = (bytesPerRowRAW + 3)/4*4;	// 4-byte aligned BMPs
 	}
 	// Since the BMP is upside down, move the pointer to the last row
-	pBMPPtr += lBytesPerRowBMP*(pbih->biHeight-1);
+	pBMPPtr += bytesPerRowBMP*(pbih->biHeight-1);
 
-	*plLengthOut = lBytesPerRowRAW * pbih->biHeight;
-	*ppImageOut = new BYTE[*plLengthOut];
+	*pcbOut = bytesPerRowRAW * pbih->biHeight;
+	*ppImageOut = new BYTE[*pcbOut];
 
 	pRawPtr = (BYTE*)*ppImageOut;
 
 	// We transfer each row into the new array, with 4-byte alignment
 	// and with the rows reversed
-	for (i=0; i<pbih->biHeight; i++) {
-		memcpy(pRawPtr, pBMPPtr, lBytesPerRowRAW);
-		pRawPtr += lBytesPerRowRAW;		// move down one raw row
-		pBMPPtr -= lBytesPerRowBMP;		// move up one BMP row
+	for (i=0; i<pbih->biHeight; i++)
+	{
+		if (!bInverse)
+		{
+			memcpy(pRawPtr, pBMPPtr, bytesPerRowRAW);
+			pRawPtr += bytesPerRowRAW;		// move down one raw row
+		}
+		else
+		{
+			// We use pBMPPtrTmp here so as to not change pBMPPtr, which gets adjusted below
+			// by the proper row amount, bytesPerRowBMP. On the other hand pRawPtr gets
+			// incremented by bytesPerRowRAW in this loop.
+			BYTE *pBMPPtrTmp = pBMPPtr;
+			for (int j=0; j<bytesPerRowRAW; j++)
+			{
+				*pRawPtr++ = ~(*pBMPPtrTmp++);
+			}
+		}
+		pBMPPtr -= bytesPerRowBMP;			// move up one BMP row
 	}
 
-	*plWidth = pbih->biWidth;
-	*plHeight = pbih->biHeight;
-	*plDPI = (long)(pbih->biXPelsPerMeter * 254 / 10000.0 + 0.5);
+	*pWidth = pbih->biWidth;
+	*pHeight = pbih->biHeight;
+	*pDPI = (LONG)(pbih->biXPelsPerMeter * 254 / 10000.0 + 0.5);
 
 	ret = IW_SUCCESS;
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
 
 done:
 	return ret;
 }
 
-OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut)
 {
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	HGLOBAL	hIn = NULL;
-	HGLOBAL	hOut = NULL;
-	void	*pIn = NULL;
-	void	*pOut = NULL;
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
 
 	IWS_BEGIN_EXCEPTION_METHOD("JPGtoBMP")
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-	hIn = ::GlobalAlloc(GMEM_MOVEABLE, lLengthIn);
-	if (hIn == NULL) goto done;
-	pIn = GlobalLock(hIn);
-	if (pIn == NULL) goto done;
-	memcpy(pIn, pImageIn, lLengthIn);
-	GlobalUnlock(hIn);
-	pIn = NULL;
-	if (JPGMemory_to_BMPMemory(hIn, &hOut) != 1) goto done;
-	pOut = GlobalLock(hOut);
-	if (pOut == NULL) goto done;
-
-	*plLengthOut = ::GlobalSize(hOut);
-	*ppImageOut = new BYTE[*plLengthOut];
-	memcpy(*ppImageOut, pOut, *plLengthOut);
+	FreeImage_ConvertInMemory(FIF_JPEG, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[JPGtoBMP] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
 
 	ret = IW_SUCCESS;
 
-done:
-	if (pIn != NULL) GlobalUnlock(hIn);
-	if (pOut != NULL) GlobalUnlock(hOut);
-	if (hIn != NULL) GlobalFree(hIn);
-	if (hOut != NULL) GlobalFree(hOut);
+Exit:
 
 	return ret;
 }
 
-OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, long lLengthIn, long nCompression, BYTE **ppImageOut, long *plLengthOut)
+OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, int cbIn, int nCompression, BYTE **ppImageOut, int *pcbOut)
 {
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	HGLOBAL	hIn = NULL;
-	HGLOBAL	hOut = NULL;
-	void	*pIn = NULL;
-	void	*pOut = NULL;
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
 
 	IWS_BEGIN_EXCEPTION_METHOD("BMPtoJPG")
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-	hIn = ::GlobalAlloc(GMEM_MOVEABLE, lLengthIn);
-	if (hIn == NULL) goto done;
-	pIn = GlobalLock(hIn);
-	if (pIn == NULL) goto done;
-	memcpy(pIn, pImageIn, lLengthIn);
-	GlobalUnlock(hIn);
-	pIn = NULL;
-	if (BMPMemory_to_JPGMemory(hIn, &hOut, nCompression) != 1) goto done;
-	pOut = GlobalLock(hOut);
-	if (pOut == NULL) goto done;
-
-	*plLengthOut = ::GlobalSize(hOut);
-	*ppImageOut = new BYTE[*plLengthOut];
-	memcpy(*ppImageOut, pOut, *plLengthOut);
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	ret = IW_SUCCESS;
-
-done:
-	if (pIn != NULL) GlobalUnlock(hIn);
-	if (pOut != NULL) GlobalUnlock(hOut);
-	if (hIn != NULL) GlobalFree(hIn);
-	if (hOut != NULL) GlobalFree(hOut);
-
-	return ret;
-}
-
-int WINAPI JP2toBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
-{
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	HGLOBAL	hOut = NULL;
-	void	*pOut = NULL;
-
-	IWS_BEGIN_EXCEPTION_METHOD("JPGtoBMP")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (!JasperJP2toBMP((char*)pImageIn, lLengthIn, &hOut)) goto done;
-
-	pOut = GlobalLock(hOut);
-	if (pOut == NULL) goto done;
-
-	*plLengthOut = ::GlobalSize(hOut);
-	*ppImageOut = new BYTE[*plLengthOut];
-	memcpy(*ppImageOut, pOut, *plLengthOut);
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	ret = IW_SUCCESS;
-
-done:
-	if (pOut != NULL) GlobalUnlock(hOut);
-	if (hOut != NULL) GlobalFree(hOut);
-
-	return ret;
-}
-
-int WINAPI BMPtoJP2(BYTE* pImageIn, long lLengthIn, float fRate, BYTE **ppImageOut, long *plLengthOut)
-{
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	HGLOBAL	hOut = NULL;
-	void	*pOut = NULL;
-
-	IWS_BEGIN_EXCEPTION_METHOD("JPGtoBMP")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (!JasperBMPtoJP2((char*)pImageIn, lLengthIn, &hOut, fRate)) goto done;
-
-	pOut = GlobalLock(hOut);
-	if (pOut == NULL) goto done;
-
-	*plLengthOut = ::GlobalSize(hOut);
-	*ppImageOut = new BYTE[*plLengthOut];
-	memcpy(*ppImageOut, pOut, *plLengthOut);
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	ret = IW_SUCCESS;
-
-done:
-	if (pOut != NULL) GlobalUnlock(hOut);
-	if (hOut != NULL) GlobalFree(hOut);
-
-	return ret;
-}
-
-int WINAPI RAWtoFX4(int nWidth, int nHeight, int nDPI, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut)
-{
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	HGLOBAL	hOut = NULL;
-	void	*pOut = NULL;
-
-	IWS_BEGIN_EXCEPTION_METHOD("RAWtoFX4")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (!LIBTIFFRAWtoGroup4Fax((char*)pImageIn, nWidth, nHeight, nDPI, &hOut)) goto done;
-
-	pOut = GlobalLock(hOut);
-	if (pOut == NULL) goto done;
-
-	*plLengthOut = ::GlobalSize(hOut);
-	*ppImageOut = new BYTE[*plLengthOut];
-	memcpy(*ppImageOut, pOut, *plLengthOut);
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	ret = IW_SUCCESS;
-
-done:
-	if (pOut != NULL) GlobalUnlock(hOut);
-	if (hOut != NULL) GlobalFree(hOut);
-
-	return ret;
-}
-
-int WINAPI BMPtoFX4(BYTE* pImageIn, long lLengthIn, BYTE** ppImageOut, long *plLengthOut)
-//
-// 2-step process, via RAW
-//
-{
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	BYTE	*pImageTemp = NULL;
-	long	lLengthTemp;
-	long	lWidth;
-	long	lHeight;
-	long	lDPI;
-
-	ret = BMPtoRAW(pImageIn, lLengthIn, &pImageTemp, &lLengthTemp, &lWidth, &lHeight, &lDPI);
-	if (ret != IW_SUCCESS) goto done;
-
-	ret = RAWtoFX4(lWidth, lHeight, lDPI, pImageTemp, ppImageOut, plLengthOut);
-
-done:
-	if (pImageTemp != NULL) delete [] pImageTemp;
-
-	return ret;
-}
-
-int WINAPI FX4toRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI)
-{
-	int		ret = IW_ERR_IMAGE_CONVERSION;
-	HGLOBAL	hOut = NULL;
-	void	*pOut = NULL;
-
-	IWS_BEGIN_EXCEPTION_METHOD("FX4toRAW")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	if (!LIBTIFFGroup4FaxtoRAW((char*)pImageIn, lLengthIn, &hOut, plWidth, plHeight, plDPI)) goto done;
-
-	pOut = GlobalLock(hOut);
-	if (pOut == NULL) goto done;
-
-	*plLengthOut = ::GlobalSize(hOut);
-	*ppImageOut = new BYTE[*plLengthOut];
-	memcpy(*ppImageOut, pOut, *plLengthOut);
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-	ret = IW_SUCCESS;
-
-done:
-	if (pOut != NULL) GlobalUnlock(hOut);
-	if (hOut != NULL) GlobalFree(hOut);
-
-	return ret;
-}
-
-int WINAPI FX4toBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut)
-{
-	int		ret;
-	BYTE	*pRAW;
-	long	lLengthRAW;
-	long	lWidthRAW;
-	long	lHeightRAW;
-	long	lDPIRAW;
-
-	ret = FX4toRAW(pImageIn, lLengthIn, &pRAW, &lLengthRAW, &lWidthRAW, &lHeightRAW, &lDPIRAW);
-	if (ret == IW_SUCCESS)
+	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_JPEG, nCompression, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
 	{
-		ret = RAWtoBMP(lWidthRAW, lHeightRAW, lDPIRAW, 1, pRAW, ppImageOut, plLengthOut);
-		MemFree(pRAW);	// free pRAW no matter what the result of RAWtoBMP
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[BMPtoJPG] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
 	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI JP2toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut)
+{
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
+
+	IWS_BEGIN_EXCEPTION_METHOD("JP2toBMP")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	FreeImage_ConvertInMemory(FIF_JP2, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[JP2toBMP] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI BMPtoJP2(BYTE* pImageIn, int cbIn, float fRate, BYTE **ppImageOut, int *pcbOut)
+{
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
+
+	IWS_BEGIN_EXCEPTION_METHOD("BMPtoJP2")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_JP2, (int)fRate, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[BMPtoJP2] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI BMPtoPNG(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, int *pcbOut)
+{
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
+
+	IWS_BEGIN_EXCEPTION_METHOD("BMPtoPNG")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_PNG, 0, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[BMPtoPNG] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI PNGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut)
+{
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
+
+	IWS_BEGIN_EXCEPTION_METHOD("PNGtoBMP")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	FreeImage_ConvertInMemory(FIF_PNG, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[PNGtoBMP] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI BMPtoFX4(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, int *pcbOut)
+{
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
+
+	IWS_BEGIN_EXCEPTION_METHOD("BMPtoFX4")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_TIFF, TIFF_CCITTFAX4, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[BMPtoFX4] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI FX4toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut)
+{
+	int			ret = IW_ERR_IMAGE_CONVERSION;
+	char		szErr[FREEIMAGEERRSIZE];
+
+	IWS_BEGIN_EXCEPTION_METHOD("FX4toBMP")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	FreeImage_ConvertInMemory(FIF_TIFF, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
+	if (FreeImageError(szErr))
+	{
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(_T("[FX4toBMP] Error: %s"), szErr);
+			LogMessage(sMsg);
+		}
+		goto Exit;
+	}
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, int cbIn, float fRate, BYTE** ppImageOut, int *pcbOut)
+// Input assumed to be 8 bpp
+{
+	int 	ret = IW_ERR_WSQ_COMPRESS;
+	BYTE	*pRAW = NULL;
+	int		cbSizeRAW;
+	int		width;
+	int		height;
+	int		DPI;
+	BYTE	*pWSQ;
+	int		cbSizeWSQ;
+	int		retWSQ;
+
+	IWS_BEGIN_EXCEPTION_METHOD("BMPtoWSQ")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	ret = BMPtoRAW(pImageIn, cbIn, &pRAW, &cbSizeRAW, &width, &height, &DPI);
+	if (ret != IW_SUCCESS) goto Exit;
+
+	retWSQ = wsq_encode_mem(&pWSQ, &cbSizeWSQ, fRate, pRAW, width, height, 8, DPI, NULL);
+	if (retWSQ != 0) goto Exit;
+
+	*pcbOut = cbSizeWSQ;
+	*ppImageOut = new BYTE[cbSizeWSQ];
+	memcpy(*ppImageOut, pWSQ, cbSizeWSQ);
+	free(pWSQ);	// (allocated by wsq library via malloc)
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+	if (pRAW != NULL) delete pRAW;
+
+	return ret;
+}
+
+OPENEBTS_API int WINAPI WSQtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut)
+{
+	int		ret = IW_ERR_WSQ_DECOMPRESS;
+	BYTE	*pRAW = NULL;
+	int		width;
+	int		height;
+	int		DPI;
+	int		bpp;
+	int		lossy;
+	int		retWSQ;
+
+	IWS_BEGIN_EXCEPTION_METHOD("WSQtoBMP")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	retWSQ = wsq_decode_mem(&pRAW, &width, &height, &bpp, &DPI, &lossy, pImageIn, cbIn);
+	if (retWSQ != 0) goto Exit;
+
+	ret = RAWtoBMP(width, height, DPI, bpp, pRAW, ppImageOut, pcbOut);
+	if (ret != IW_SUCCESS) goto Exit;
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	ret = IW_SUCCESS;
+
+Exit:
+	if (pRAW != NULL) free(pRAW);	// (allocated by wsq library via malloc)
 
 	return ret;
 }

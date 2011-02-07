@@ -2,17 +2,37 @@
 #ifndef _OPENEBTS_H_
 #define _OPENEBTS_H_
 
-// The following ifdef block is the standard way of creating macros which make exporting 
-// from a DLL simpler. All files within this DLL are compiled with the OPENEBTS_EXPORTS
-// symbol defined on the command line. this symbol should not be defined on any project
-// that uses this DLL. This way any other project whose source files include this file see 
-// OPENEBTS_API functions as being imported from a DLL, wheras this DLL sees symbols
-// defined with this macro as being exported.
+#ifdef UNICODE
+	typedef wchar_t		TCHAR;
+#else
+	typedef char		TCHAR;
+#endif
+
+
+#ifdef WIN32
+
 #ifdef OPENEBTS_EXPORTS
 #define OPENEBTS_API __declspec(dllexport)
 #else
 #define OPENEBTS_API __declspec(dllimport)
 #endif
+
+#ifndef WINAPI
+#define WINAPI      __stdcall
+#endif
+
+// On Win32 paths are Unicode so we can refer to them with wide or single chars
+#define TCHARPATH	TCHAR
+
+#else
+
+#define OPENEBTS_API
+#define WINAPI
+// On *nix, the filesystem is UTF-8, so we always use char*'s to pass filenames around
+#define TCHARPATH	char
+
+#endif
+
 
 #ifdef  __cplusplus
   class CIWTransaction;
@@ -27,6 +47,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+#ifndef BYTE
+typedef unsigned char BYTE;
+#endif
 
 typedef struct _FINGERPRINT_HEADER_
 {
@@ -57,6 +81,7 @@ typedef struct _SIGNATURE_HEADER_
 //                                                            /
 //************************************************************/
 
+
 OPENEBTS_API int WINAPI IWNew(
 	const TCHAR* szTransactionType,			// Type of transaction
 	CIWVerification* pIWVer,				// Verification pointer
@@ -64,7 +89,7 @@ OPENEBTS_API int WINAPI IWNew(
 );
 
 OPENEBTS_API int WINAPI IWRead(
-	const TCHAR *szPath,					// Path of transaction file
+	const TCHARPATH *szPath,				// Path of transaction file
 	CIWVerification *pIWVer,				// Verification pointer
 	CIWTransaction **ppIWTrans				// Pointer to transaction pointer
 );
@@ -105,12 +130,12 @@ OPENEBTS_API int WINAPI IWGetRecordTypeCount(
 
 OPENEBTS_API int WINAPI IWWrite(
 	CIWTransaction* pIWTrans,				// Transaction pointer
-	const TCHAR* szPath						// Path of transaction file to create
+	const TCHARPATH* szPath					// Path of transaction file to create
 );
 
 OPENEBTS_API int WINAPI IWWriteXML(
 	CIWTransaction* pIWTrans,				// Transaction pointer
-	const TCHAR* szPath,					// Path of transaction file to create
+	const TCHARPATH* szPath,				// Path of transaction file to create
 	bool bValidate							// Validate produced XML against NIST schemas
 );
 
@@ -195,7 +220,7 @@ OPENEBTS_API int WINAPI IWGetValueList(
 );
 
 OPENEBTS_API int WINAPI IWReadVerification(
-	const TCHAR* szPath,					// Path name to file
+	const TCHARPATH* szPath,				// Path name to file
 	CIWVerification** ppIWVer,				// Pointer to a verification pointer
 	int nMaxParseError,						// Size of szParseError
 	TCHAR* szParseError						// Potential errors encountered in verification file
@@ -319,7 +344,7 @@ OPENEBTS_API int WINAPI IWGetImage(
 	int nRecordType,						// Record type
 	int nRecordIndex,						// Record index
 	const TCHAR** pszStorageFormat,			// Three character image format
-	long* pnLength,							// Data length
+	int* pnLength,							// Data length
 	const void** Data						// Pointer to a pointer of binary data
 );
 
@@ -328,7 +353,7 @@ OPENEBTS_API int WINAPI IWSetImage(
 	int nRecordType,						// Record type
 	int nRecordIndex,						// Record index
 	const TCHAR* szInputFormat,				// Three character image format
-	long nLength,							// Data length
+	int nLength,							// Data length
 	void* pData,							// Pointer to binary data
 	const TCHAR* szStorageFormat,			// Three character extension of stored format type
 	float fCompression						// Image compression value
@@ -338,7 +363,7 @@ OPENEBTS_API int WINAPI IWImportImage(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	int nRecordType,						// Record type
 	int nRecordIndex,						// Record index
-	const TCHAR* szPath,					// Path name to file
+	const TCHARPATH* szPath,				// Path name to file
 	const TCHAR* szStorageFormat,			// Three character extension of stored format type
 	float fCompression,						// Image compression value
 	const TCHAR* szInputFormat				// Three character extension for input image format
@@ -348,7 +373,7 @@ OPENEBTS_API int WINAPI IWExportImage(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	int nRecordType,						// Record type
 	int nRecordIndex,						// Record index
-	const TCHAR* szPath,					// Path name to file
+	const TCHARPATH* szPath,				// Path name to file
 	const TCHAR* szOutputFormat				// Three character extension for input image format
 );
 
@@ -357,9 +382,9 @@ OPENEBTS_API int WINAPI IWGetImageInfo(
 	int nRecordType,						// Record type 
 	int nRecordIndex,						// Record index 
 	const TCHAR** pszStorageFormat,			// Three character extension of stored format type 
-	long* pnLength,							// Data length 
-	long* pnHLL,							// Horizontal line length 
-	long* pnVLL,							// Vertical line length 
+	int* pnLength,							// Data length
+	int* pnHLL,								// Horizontal line length
+	int* pnVLL,								// Vertical line length
 	int* pnBitsPerPixel						// Number of bits per image pixel 
 );
 
@@ -375,26 +400,23 @@ OPENEBTS_API int WINAPI IWDeleteRecord(
 //                                                            /
 //************************************************************/
 
-OPENEBTS_API int WINAPI RAWtoWSQ(BYTE* pImageIn, long lWidth, long lHeight, long lDPI, float fRate, BYTE** ppImageOut, long *plLengthOut);
-OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, long lLengthIn, float fRate, BYTE** ppImageOut, long *plLengthOut);
+OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut, int *pWidth, int *pHeight, int *pDPI);
+OPENEBTS_API int WINAPI RAWtoBMP(int width, int height, int DPI, int depth, BYTE* pImageIn, BYTE** ppImageOut, int *pcbOut);
 
-OPENEBTS_API int WINAPI WSQtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI);
-OPENEBTS_API int WINAPI WSQtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut);
+OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, int cbIn, float fRate, BYTE** ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI WSQtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
 
-OPENEBTS_API int WINAPI RAWtoBMP(int nWidth, int nHeight, int nDPI, int nDepth, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut);
-OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI);
+OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, int cbIn, int nCompression, BYTE **ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
 
-OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut);
-OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, long lLengthIn, long nCompression, BYTE **ppImageOut, long *plLengthOut);
+OPENEBTS_API int WINAPI BMPtoJP2(BYTE* pImageIn, int cbIn, float fRate, BYTE **ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI JP2toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
 
-OPENEBTS_API int WINAPI JP2toBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut);
-OPENEBTS_API int WINAPI BMPtoJP2(BYTE* pImageIn, long lLengthIn, float fRate, BYTE **ppImageOut, long *plLengthOut);
+OPENEBTS_API int WINAPI BMPtoFX4(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI FX4toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
 
-OPENEBTS_API int WINAPI RAWtoFX4(int nWidth, int nHeight, int nDPI, BYTE* pImageIn, BYTE** ppImageOut, long *plLengthOut);
-OPENEBTS_API int WINAPI FX4toRAW(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut, long *plWidth, long *plHeight, long *plDPI);
-
-OPENEBTS_API int WINAPI BMPtoFX4(BYTE* pImageIn, long lLengthIn, BYTE** ppImageOut, long *plLengthOut);
-OPENEBTS_API int WINAPI FX4toBMP(BYTE* pImageIn, long lLengthIn, BYTE **ppImageOut, long *plLengthOut);
+OPENEBTS_API int WINAPI PNGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI BMPtoPNG(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, int *pcbOut);
 
 OPENEBTS_API int WINAPI MemFree(BYTE* pImage);
 

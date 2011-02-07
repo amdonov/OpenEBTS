@@ -1,48 +1,27 @@
-#include "stdafx.h"
-#include <mbstring.h>
-#include "common.h"
+#include "Includes.h"
+#include "Common.h"
+#include "UTF8.h"
 
 #define MAX_LOGFILE_SIZE (long)500000
 
-bool g_bTraceOn = false;
-bool g_bLogErrors = false;
+bool g_bLogToFile = true;
 
-TCHAR g_LogFilePath[_MAX_PATH+1] = { '\0', };
+TCHARPATH g_LogFilePath[_MAX_PATH+1] = { '\0', };
 CStdString BuildDateTimeString();
 void InitializePath();
-void LogMessage(CStdString& str);
-int GetRegInt(TCHAR* szKey, int nDefault);
-CStdString GetRegString(TCHAR* szKey, TCHAR* szValue, bool bSetValue = false);
-CStdString WriteRegString(TCHAR* szKey, TCHAR* szValue);
-
-void SetLogFlags()
-{
-	g_bTraceOn = (GetRegInt(_T("TraceMessages"), 0) != 0);
-	g_bLogErrors = (GetRegInt(_T("LogMessages"), 1) != 0);
-}
-
-void TraceMsg(CStdString& sTraceMsg)
-{
-	if (g_bTraceOn)
-		LogMessage(sTraceMsg);
-}
-
-void LogFile(CStdString& sException)
-{
-	if (g_bLogErrors)
-		LogMessage(sException);
-}
 
 void LogMessage(CStdString& str)
 {
+	if (!g_bLogToFile) return;
+
 	FILE* logFile;
 	CStdString csString = str;
 
 	InitializePath();
 
-	CStdString csPath = g_LogFilePath; // g_csAppPath;
+	CStdStringPath csPath = g_LogFilePath;
 
-	if (csPath == _T(""))
+	if (csPath.IsEmpty())
 		return;
 
 	//Prepend the date and time
@@ -51,9 +30,9 @@ void LogMessage(CStdString& str)
 
 	if (csOutput.GetLength())
 	{
-		csOutput += _T("\r\n");
+		csOutput += _T("\n");
 
-		logFile = _tfopen(csPath, _T("a+t"));
+		logFile = _tfopenpath(csPath, _TPATH("a+t"));
 		if (logFile != NULL)
 		{
 			try
@@ -67,23 +46,35 @@ void LogMessage(CStdString& str)
 						rename LogName.txt to LogNameOld.txt and re-open LogName.txt */
 					fclose(logFile);
 
-					CStdString csPathBackup = csPath.Left(csPath.ReverseFind('.')) + "Old.log";
+					CStdStringPath csPathBackup = csPath.Left(csPath.ReverseFind('.')) + "Old.log";
 					
 					//Open the old backup file in case it needs to be created
-					logFile = _tfopen(csPathBackup, _T("a+t"));
+					logFile = _tfopenpath(csPathBackup, _TPATH("a+t"));
 					fclose(logFile);
 
 					//Delete the backup file
-					DeleteFile(csPathBackup);
+					_tremovepath(csPathBackup);
 
 					//Rename the log file to the backup name
-					MoveFile(csPath, csPathBackup);
+					_trenamepath(csPath, csPathBackup);
 
 					//Re-open the log file
-					logFile = _tfopen(csPath, _T("a+t"));
+					logFile = _tfopenpath(csPath, _TPATH("a+t"));
 				}
 
+				// In UNICODE, let's write the log file as UTF-8, otherwise let's use regular ASCII
+#ifdef UNICODE
+				int nLen = 0;
+				char *szOutTemp;
+				if (UCStoUTF8(csOutput, &szOutTemp, &nLen))
+				{
+					// (don't include the null-terminator)
+					fwrite(szOutTemp, 1, nLen-1, logFile);
+					delete szOutTemp;
+				}
+#else
 				fwrite(csOutput, 1, csOutput.GetLength(), logFile);
+#endif
 			}
 			catch (...)
 			{	
@@ -94,23 +85,28 @@ void LogMessage(CStdString& str)
 	}
 }
 
+#ifdef WIN32
+
 void InitializePath()
 {
-	TCHAR szPath[_MAX_PATH+1];
+	TCHARPATH *szPath = NULL;
+
+	// Write the logfile to the temporary folder
 
 	if (g_LogFilePath[0] == '\0')
 	{
-		DWORD dwLen = GetTempPath(sizeof(szPath)/sizeof(TCHAR), szPath);
+		szPath = _ttempnam(_T("C:\\"), NULL);
 
-		// I can't live without a log file....
-		if (dwLen)
+		if (szPath)
 		{
-			TCHAR *pFName = _tcsrchr(szPath, _T('\\'));
+			// In Win32 we must use splitpath()
+			TCHAR szDir[_MAX_DIR];
+			_tsplitpath(szPath, NULL, szDir, NULL, NULL);
 
-			*(pFName+1) = '\0';
+			_tcscpypath(g_LogFilePath, szDir);
+			_tcscatpath(g_LogFilePath, LF_OPENEBTS);
 
-			_tcscpy_s(g_LogFilePath, _MAX_PATH+1, szPath);
-			_tcscat_s(g_LogFilePath, _MAX_PATH+1, LF_OPENEBTS);
+			free(szPath);	// _ttempnam allocated szPath
 		}
 		else
 		{
@@ -119,16 +115,45 @@ void InitializePath()
 	}
 }
 
+#else
+
+// Under *nix we use tmpnam() and dirnam() which make things easy
+
+void InitializePath()
+{
+	TCHARPATH *szPath;
+
+	// Write the logfile to the temporary folder
+
+	if (g_LogFilePath[0] == '\0')
+	{
+		szPath = tmpnam(NULL);
+
+		if (szPath)
+		{
+			_tcscpypath(g_LogFilePath, dirname(szPath));
+			_tcscatpath(g_LogFilePath, _TPATH("/"));
+			_tcscatpath(g_LogFilePath, LF_OPENEBTS);
+		}
+		else
+		{
+			g_LogFilePath[0] = '\0';
+		}
+	}
+}
+
+#endif
+
 CStdString BuildDateTimeString()
 {
-	struct tm when;
+	struct tm *when;
 	time_t now;
 
 	time(&now);
-	localtime_s(&when,&now);
+	when = localtime(&now);
 
-	char szTime[80];
-	asctime_s(szTime,sizeof(szTime),&when);
+	char *szTime;
+	szTime = asctime(when);
 
 	if (szTime[strlen(szTime)-1] == '\n')
 		szTime[strlen(szTime)-1] = '\0';
@@ -136,112 +161,33 @@ CStdString BuildDateTimeString()
 	return CStdString(szTime);
 }
 
-CStdString GetRegString(TCHAR *szKey, TCHAR *szValue, bool bSetValue)
-{
-	DWORD	dwType = REG_SZ;
-	TCHAR	szRegValue[80];
-	DWORD	dwValueLength = sizeof(szRegValue);
-	HKEY	hKey = 0;
-	unsigned long lDisposition = 0;
-	LONG lResult;	// result of registry operation
-	CStdString sRet;
-
-	try
-	{
-		CStdString csKey = _T("SOFTWARE\\ImageWare Systems\\OpenEBTS");
-
-		lResult = RegCreateKeyEx(HKEY_LOCAL_MACHINE, csKey, 0, 
-				NULL,REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hKey, &lDisposition);
-
-		if (lDisposition == REG_OPENED_EXISTING_KEY || lDisposition == REG_CREATED_NEW_KEY)  //if opened get value
-		{
-			lResult = RegQueryValueEx(hKey, szKey, NULL, &dwType, (LPBYTE)szRegValue, &dwValueLength); //Try to get value
-
-			if (lResult == ERROR_SUCCESS && bSetValue)
-			{
-				//Make value and set it to default argument
-				lResult = RegSetValueEx(hKey, szKey, 0, REG_SZ, (unsigned char *)szValue, _tcslen(szValue));
-				sRet = szValue;
-			}
-			else if (lResult != ERROR_SUCCESS)  //No value by that name, create it
-			{
-				if (1) //pszDefault)
-				{
-					TCHAR szDefaultValue[2] = { '\0', };
-					TCHAR *pDefValue = (szValue ? szValue : szDefaultValue);
-					//Make value and set it to default argument or empty
-					lResult = RegSetValueEx(hKey, szKey, 0, REG_SZ, (unsigned char *)pDefValue, _tcslen(pDefValue)+1);
-
-					sRet = pDefValue;
-				}
-			}
-			else
-				sRet = (char*)szRegValue; // just return value
-		}
-		else
-		{
-			CStdString sErr;
-
-//			sErr.Format("Error reading registry entry for HKEY_LOCAL_MACHINE\\SOFTWARE\\ImageWare Systems\\OpenEBTS\\%s", pszKey);
-//			AfxMessageBox(sErr,MB_ICONEXCLAMATION|MB_OK);
-		}
- 
-		if (sRet == _T("") && szValue && _tcslen(szValue))
-			sRet = szValue;
-
-		if (hKey)
-			RegCloseKey(hKey);
-	}
-	catch (...)
-	{
-		;
-	}
-
-	return sRet;
-}
-
-int GetRegInt(TCHAR* szKey, int nDefault)
-{
-	int nRet = -1;
-	TCHAR szValue[20] = { '\0', };
-	TCHAR szDefault[20] = { '\0', };
-
-	if (nDefault != -1)
-		_stprintf(szValue, _T("%d"), nDefault);
-
-	CStdString sRet = GetRegString(szKey, szValue);
-
-	if (sRet != _T(""))
-		nRet = _ttoi(sRet);
-
-	return nRet;
-}
-
-CStdString WriteRegString(TCHAR* szKey, TCHAR* szValue)
-{
-	return GetRegString(szKey, szValue, true);
-}
-
-bool UTF8toUCS2(const char *pIn, wchar_t **ppOut)
+bool UTF8toUCS(const char *pIn, wchar_t **ppOut)
 // Do a UTF-8 to wide char conversion. Caller must delete[] returned pointer
 // if function returns true (based on the main UTF8-CPP sample).
+// Note the returned wide chars will be 4-bytes on Unix.
 {
 	std::string							utf8string(pIn);
-	vector<unsigned short>				utf16string;
+	vector<unsigned short>				utf16or32string;
 	int									nChars;
 	int									i;
 
 	try
 	{
+#ifdef WIN32
 		// Convert it to utf-16
-		utf8::utf8to16(utf8string.begin(), utf8string.end(), back_inserter(utf16string));
+		utf8::utf8to16(utf8string.begin(), utf8string.end(), back_inserter(utf16or32string));
+#else
+		// Convert it to utf-32
+		utf8::utf8to32(utf8string.begin(), utf8string.end(), back_inserter(utf16or32string));
+
+#endif
 	}
 	catch (utf8::invalid_utf8)
 	{
 		return false;
 	}
 
-	nChars = utf16string.size();
+	nChars = utf16or32string.size();
 
 	// Allocate space for new wchar_t*, including null-terminator
 	*ppOut = new wchar_t[nChars + 1];
@@ -249,34 +195,40 @@ bool UTF8toUCS2(const char *pIn, wchar_t **ppOut)
 	// Copy UTF-16 (really a UCS2) into our wchar_t array
 	for (i = 0; i < nChars; i++)
 	{
-		(*ppOut)[i] = utf16string.at(i);
+		(*ppOut)[i] = utf16or32string.at(i);
 	}
 	(*ppOut)[nChars] = '\0';
 
 	return true;
 }
 
-bool UCS2toUTF8(const wchar_t *wIn, char **ppOut, int *pnLength)
+bool UCStoUTF8(const wchar_t *wIn, char **ppOut, int *pnLength)
 // Do a wide char to UTF-8 conversion. Caller must delete[] returned pointer
 // if function returns true (based on the main UTF8-CPP sample).
+// Note that in windows wchar_t will be 16-bits and under Unix wchar_t will be 32-bits,
+// but in both cases this function will convert down to UTF-8.
 {
 	std::string							utf8string;
-	vector<unsigned short>				utf16string;
+	vector<unsigned short>				utf16or32string;
 	int									nChars;
 	vector<unsigned short>::iterator	iter;
 	int									i;
 
-	// Form utf16string from wchat_t array
+	// Form utf16or32string from wchat_t array
 	nChars = wcslen(wIn);
 	for (i = 0; i < nChars; i++)
 	{
-		utf16string.push_back(wIn[i]);
+		utf16or32string.push_back(wIn[i]);
 	}
 
 	try
 	{
 		// Convert it to utf-8
-		utf8::utf16to8(utf16string.begin(), utf16string.end(), back_inserter(utf8string));
+#ifdef WIN32
+		utf8::utf16to8(utf16or32string.begin(), utf16or32string.end(), back_inserter(utf8string));
+#else
+		utf8::utf32to8(utf16or32string.begin(), utf16or32string.end(), back_inserter(utf8string));
+#endif
 	}
 	catch (utf8::invalid_utf8)
 	{
@@ -298,3 +250,4 @@ bool UCS2toUTF8(const wchar_t *wIn, char **ppOut, int *pnLength)
 
 	return true;
 }
+

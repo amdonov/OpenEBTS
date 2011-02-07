@@ -1,17 +1,13 @@
-
-
-#include "stdafx.h"
-#include "common.h"
+#include "Includes.h"
+#include "Common.h"
 #include "TransactionDef.h"
 #include "IWVerification.h"
 #include "IWTransaction.h"
-#include "transactiondef.h"
+#include "TransactionDef.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
 #include "NISTField.h"
-#include "ruleobj.h"
-
-extern HINSTANCE g_hInstance;
+#include "RuleObj.h"
 
 // If FAIL_ON_ERROR not defined functions will return IW_SUCCESS 
 // unless we're unable to open or read file. Parsing errors will
@@ -60,7 +56,7 @@ CIWVerification::~CIWVerification()
 {
 }
 
-int CIWVerification::ReadVerificationFile(CStdString sPath, CStdString& sParseError)
+int CIWVerification::ReadVerificationFile(CStdStringPath sPath, CStdString& sParseError)
 {
 	int nRet = IW_ERR_READING_FILE;
 	BYTE  *pFile = NULL;
@@ -69,7 +65,7 @@ int CIWVerification::ReadVerificationFile(CStdString sPath, CStdString& sParseEr
 	m_bVerificationLoaded = false;
 	sParseError.Empty();
 
-	f = _tfopen(sPath, _T("rb"));
+	f = _tfopenpath(sPath, _TPATH("rb"));
 	if (f != NULL)
 	{
 		fseek(f, 0, SEEK_END);
@@ -79,7 +75,7 @@ int CIWVerification::ReadVerificationFile(CStdString sPath, CStdString& sParseEr
 		pFile = new BYTE[lSize + 1];
 		fread(pFile, 1, lSize, f);
 		fclose(f);
-		pFile[lSize] = '\0';	// Null terminate file, treating is as a big string
+		pFile[lSize] = '\0';	// Null terminate file, treating it as a big string
 
 #ifdef UNICODE
 		// In the UNICODE version of OpenEBTS, the Verification Files are in UTF-8,
@@ -87,9 +83,9 @@ int CIWVerification::ReadVerificationFile(CStdString sPath, CStdString& sParseEr
 		// with simple generic _T code.
 		wchar_t *pFileNew;
 
-		if (!UTF8toUCS2((const char*)pFile, &pFileNew))
+		if (!UTF8toUCS((const char*)pFile, &pFileNew))
 		{
-			return IW_ERR_READING_FILE;	// Error deconding UTF-8
+			return IW_ERR_READING_FILE;	// Error decoding UTF-8
 		}
 
 		delete pFile;
@@ -116,7 +112,6 @@ int CIWVerification::ReadVerificationFile(CStdString sPath, CStdString& sParseEr
 
 int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 {
-	int nRet = IW_ERR_READING_FILE;
 	CStdString sLine;
 	CStdString sTemp;
 	bool bFound = false;
@@ -215,9 +210,11 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 				sLongDescription = GetOptionalLongDescription(&pRule);
 			}
 #ifdef _DEBUG
-			sTemp.Format(_T("Loc: %s, MNU: %s, Type: %s, Size: %s, Occ: %s\n"), sLocationIndex,
-						 sMneumonic, sCharType, sFieldSize, sOccurrence);
-			OutputDebugString(sTemp);
+			if (g_bLogToFile)
+			{
+				sTemp.Format(IDS_LOGVERLOADRULES, sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence);
+				LogMessage(sTemp);
+			}
 #endif
 			CRuleObj ruleObj;
 			if (ruleObj.SetData(sPath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
@@ -242,7 +239,6 @@ CStdString CIWVerification::ReadLine(TCHAR **ppFile)
 {
 	TCHAR *pTemp = *ppFile;
 	CStdString sRet;
-	CStdString sErr;
 
 	if (!pTemp)
 	{
@@ -265,8 +261,12 @@ CStdString CIWVerification::ReadLine(TCHAR **ppFile)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CIWVerification::ReadLine] exception thrown"));
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERREADLINE);
+			LogMessage(sMsg);
+		}
 	}
 
 	return sRet;
@@ -280,7 +280,6 @@ TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 	CStdString sRet;
 	int ch;
 	bool bInQuote = false;
-	CStdString sErr;
 
 	if (!pTemp)
 	{
@@ -319,8 +318,12 @@ TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CIWVerification::GetRule] exception thrown"));
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERGETRULE);
+			LogMessage(sMsg);
+		}
 	}
 
 	return pRet;
@@ -329,7 +332,6 @@ TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 void CIWVerification::SkipComments(TCHAR **ppRule)
 {
 	TCHAR *pTemp = *ppRule;
-	CStdString sErr;
 
 	try
 	{
@@ -349,8 +351,12 @@ void CIWVerification::SkipComments(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CIWVerification::SkipComment] exception thrown"));
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERSKIPCOMMENTS);
+			LogMessage(sMsg);
+		}
 	}
 
 	*ppRule = pTemp;
@@ -360,7 +366,6 @@ CStdString CIWVerification::GetTransactionList(TCHAR **ppRule)
 {
 	CStdString sRet;
 	TCHAR *pTemp = *ppRule;
-	CStdString sErr;
 
 	if (!pTemp)
 		return sRet;
@@ -395,8 +400,12 @@ CStdString CIWVerification::GetTransactionList(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CIWVerification::GetTransactionList] exception thrown"));
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERGETTRANSLIST);
+			LogMessage(sMsg);
+		}
 	}
 
 	return sRet;
@@ -587,14 +596,14 @@ CStdString CIWVerification::ExtractAdvancedTagValue(TCHAR **ppRule, const TCHAR 
 	sString = *ppRule;												// Copy string into a CStdString
 
 	sFullTag = szTag;
-	sFullTag += "(";
+	sFullTag += _T("(");
 	lPosStart = sString.Find(sFullTag);								// Find beginning of tag
 
 	// Note that it's possible that there is no such tag, which is fine, we just return ""
 	if (lPosStart != -1)
 	{
 		lPosCurr = lPosStart + sFullTag.GetLength();				// Jump to actual tag contents
-		lPosEnd = sString.Find(_T(")"), lPosCurr);					// Find closing bracker
+		lPosEnd = sString.Find(_T(")"), lPosCurr);					// Find closing bracket
 
 		if (lPosEnd != -1)
 		{
@@ -627,7 +636,7 @@ CStdString CIWVerification::ExtractTagValue(TCHAR **ppRule, const TCHAR *szTag)
 	sString = *ppRule;												// Copy string into a CStdString
 
 	sFullTag = szTag;
-	sFullTag += "=\"";												// e.g. desc --> desc="
+	sFullTag += _T("=\"");												// e.g. desc --> desc="
 	lPosStart = sString.Find(sFullTag);								// Find beginning of tag
 
 	// Note that it's possible that there is no such tag, which is fine, we just return ""
@@ -648,7 +657,6 @@ CStdString CIWVerification::GetRangeToken(TCHAR **ppRule)
 {
 	CStdString sRet;
 	TCHAR *pTemp = *ppRule;
-	CStdString sErr;
 
 	if (!pTemp)
 		return sRet;
@@ -729,8 +737,12 @@ CStdString CIWVerification::GetRangeToken(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CIWVerification::GetRangeToken] exception thrown"));
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERGETRANGETOKEN);
+			LogMessage(sMsg);
+		}
 	}
 
 	return sRet;
@@ -740,7 +752,6 @@ CStdString CIWVerification::GetNextToken(TCHAR **ppRule)
 {
 	CStdString sRet;
 	TCHAR *pTemp = *ppRule;
-	CStdString sErr;
 
 	if (!pTemp)
 		return sRet;
@@ -774,14 +785,18 @@ CStdString CIWVerification::GetNextToken(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CIWVerification::GetNextToken] exception thrown"));
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERGETNEXTTOKEN);
+			LogMessage(sMsg);
+		}
 	}
 
 	return sRet;
 }
 
-int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
+int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdStringPath sPath)
 {
 	CTransactionDefinition *pTransDef = NULL;
 	int			nRet = IW_ERR_READING_FILE;
@@ -940,6 +955,9 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 						}
 					}
 					break;
+
+				default:
+					;
 			}
 		}
 
@@ -957,7 +975,7 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 			delete pTransDef;
 			pTransDef = NULL;
 
-			// There may be multiple definitions with a TRANSACTIONS setion, create 
+			// There may be multiple definitions with a TRANSACTIONS section, create
 			// a new object for the next TOT def, if there is only 1 definition 
 			// this object will be deleted 
 			pTransDef = new CTransactionDefinition; 
@@ -965,10 +983,9 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 		}
 		else if (enState == enStError)
 		{
-			CStdString sTraceMsg;
-			
-			sTraceMsg.Format(_T("[CIWVerification::ReadVerificationFile] Error reading verification file %s"), sPath);
-			LogFile(sTraceMsg);
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERREADVERFILE, sPath);
+			LogMessage(sMsg);
 
 			delete pTransDef;
 			pTransDef = NULL;
@@ -985,19 +1002,22 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 		pTransDef = NULL;
 	}
 
-	CStdString sTraceMsg;
 
-	sTraceMsg.Format(_T("[CIWVerification::LoadTOTDefinitions] %ld TOT definitions in file"), m_transactionDefAry.size());
-	TraceMsg(sTraceMsg);
-
-	/*
-	for (UINT i = 0; i < m_transactionDefAry.size(); i++)
+	if (g_bLogToFile)
 	{
-		CTransactionDefinition *pTrans = &m_transactionDefAry.at(i);
-		sTraceMsg.Format("[CIWVerification::LoadTOTDefinitions] (%s, %s)", pTrans->m_sCategory, pTrans->GetRuleString());
-		TraceMsg(sTraceMsg);
+		CStdString sMsg;
+		sMsg.Format(IDS_LOGVERLOADTOTDEFS, m_transactionDefAry.size());
+		LogMessage(sMsg);
+
+#ifdef _DEBUG
+		for (UINT i = 0; i < m_transactionDefAry.size(); i++)
+		{
+			CTransactionDefinition *pTrans = &m_transactionDefAry.at(i);
+			sMsg.Format(IDS_LOGVERLOADTOTDEFSDBG, pTrans->m_sCategory, pTrans->GetRuleString());
+			LogMessage(sMsg);
+		}
+#endif
 	}
-	*/
 
 	return nRet;
 }
@@ -1005,7 +1025,8 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdString sPath)
 void CIWVerification::DebugOutputVerification()
 // This function summarizes the entire contents of the Verification file as loaded into our structures.
 {
-	CStdString sTraceMsg;
+	CStdString sMsg;
+	CStdString sTmp;
 	long nCount;
 	CTransactionDefinition *pTrans;
 	std::vector<CRecordTypeCount> recTypeCountAry;
@@ -1015,8 +1036,8 @@ void CIWVerification::DebugOutputVerification()
 	CStdString sMin;
 	CStdString sMax;
 
-	sTraceMsg = _T("%%%%%%%%%%%%%%%%%%%%\n");
-	OutputDebugString(sTraceMsg);
+	sMsg = IDS_LOGVERDBGOUTDELIM;
+	LogMessage(sMsg);
 
 	nCount = m_transactionDefAry.size();
 
@@ -1025,22 +1046,22 @@ void CIWVerification::DebugOutputVerification()
 	{
 		pTrans = &m_transactionDefAry.at(i);
 
-		// Output all TOTs for this transation list
+		// Output all TOTs for this transaction list
+		sMsg.Empty();
 		for (j = 0; j < (int)pTrans->m_TOTArray.size(); j++)
 		{
-			sTraceMsg.Format(_T("%s"), pTrans->m_TOTArray[j]);
-			OutputDebugString(sTraceMsg);
-			if (j != pTrans->m_TOTArray.size()-1)
+			sMsg += pTrans->m_TOTArray[j];
+			if (j != (long)pTrans->m_TOTArray.size()-1)
 			{
-				sTraceMsg = _T(", ");
-				OutputDebugString(sTraceMsg);
+				sMsg += _T(", ");
 			}
 		}
+		if (!sMsg.IsEmpty()) LogMessage(sMsg);
 
-		OutputDebugString(_T(" --> "));
 
 		// Output record type counts for this transaction list
 		recTypeCountAry = pTrans->GetRecTypeCountAry();
+		sMsg.Empty();
 		for (j=0; j<(int)recTypeCountAry.size(); j++)
 		{
 			CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
@@ -1053,39 +1074,40 @@ void CIWVerification::DebugOutputVerification()
 
 				if (pRecTypeCount->nMin == pRecTypeCount->nMax)
 				{
-					sTraceMsg.Format(_T("%ld:%s "), pRecTypeCount->nRecordType, sMin);
+					sTmp.Format(IDS_LOGVERDBGOUTMIN, pRecTypeCount->nRecordType, sMin);
+					sMsg += sTmp;
 				}
 				else
 				{
-					sTraceMsg.Format(_T("%ld:%s-%s "), pRecTypeCount->nRecordType, sMin, sMax);
+					sTmp.Format(IDS_LOGVERDBGOUTMINMAX, pRecTypeCount->nRecordType, sMin, sMax);
+					sMsg += sTmp;
 				}
-				OutputDebugString(sTraceMsg);
 			}
 		}
-		OutputDebugString(_T("\n"));
+		if (!sMsg.IsEmpty()) LogMessage(sMsg);
 	}
 
-	sTraceMsg = _T("%%%%%%%%%%%%%%%%%%%%\n");
-	OutputDebugString(sTraceMsg);
+	sMsg = IDS_LOGVERDBGOUTDELIM;
+	LogMessage(sMsg);
 
 	// FIELDS section of Verification file
 	nCount = m_rulesAry.size();
 	for (i = 0; i < nCount; i++)
 	{
 		pRule = &m_rulesAry.at(i);
-		sTraceMsg.Format(_T("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%s) sca(%s) date(%s) map(%s) Trans %s\n"),
-						 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
-						 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(), pRule->GetMinOccurrences(),
-						 pRule->GetMaxOccurrences(), pRule->GetDescription(), pRule->GetSpecialChars(),
-						 pRule->GetDateFormat(), pRule->GetMMap(), pRule->GetTransactionListString());
-		OutputDebugString(sTraceMsg);
+		sMsg.Format(IDS_LOGVERDBGOUTFIELD,
+					pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
+					pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(), pRule->GetMinOccurrences(),
+					pRule->GetMaxOccurrences(), pRule->GetDescription(), pRule->GetSpecialChars(),
+					pRule->GetDateFormat(), pRule->GetMMap(), pRule->GetTransactionListString());
+		LogMessage(sMsg);
 	}
 
-	sTraceMsg = _T("%%%%%%%%%%%%%%%%%%%%\n");
-	OutputDebugString(sTraceMsg);
+	sMsg = IDS_LOGVERDBGOUTDELIM;
+	LogMessage(sMsg);
 }
 
-int CIWVerification::GetNumRulesPerMNU(CStdString &sMNU)
+int CIWVerification::GetNumRulesPerMNU(CStdString sMNU)
 {
 	int			nRules = 0;
 	CRuleObj	*pRule;
@@ -1176,9 +1198,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						if (nRecTypeCount < pRecTypeCount->nMin)
 						{
 							// Transaction Type %s must contain at least %ld Type %ld records: it only contains %ld.
-							sRes.Load(IDS_TOTRECORDSMIN, g_hInstance);
-							sErr.Format(sRes, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
-							pTrans->AddError(sErr, 0);
+							sErr.Format(IDS_TOTRECORDSMIN, sTOT, pRecTypeCount->nMin, pRecTypeCount->nRecordType, nRecTypeCount);
+							pTrans->AddError(sErr, IW_WARN_REQ_RECORD_MISSING);
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 					}
@@ -1187,15 +1208,14 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						if (nRecTypeCount > pRecTypeCount->nMax)
 						{
 							// Transaction Type %s may contain at most %ld Type %ld records: it contains %ld
-							sRes.Load(IDS_TOTRECORDSMAX, g_hInstance);
-							sErr.Format(sRes, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
-							pTrans->AddError(sErr, 0);
+							sErr.Format(IDS_TOTRECORDSMAX, sTOT, pRecTypeCount->nMax, pRecTypeCount->nRecordType, nRecTypeCount);
+							pTrans->AddError(sErr, IW_WARN_REQ_RECORD_MISSING);
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 					}
 
 					// Populate our array of allowed record types. Later we will use this
-					// to ensure there are no stray records of unallowed record types.
+					// to ensure there are no stray records of disallowed record types.
 					rgiRecordTypes.push_back(pRecTypeCount->nRecordType);
 				}
 				else if (sRecordType.GetLength() == 3 || sRecordType.GetLength() == 4)
@@ -1210,8 +1230,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 					sRecordType2 = sRecordType.Right(2);							// The right 2 digits
 					sRecordType1 = sRecordType.Left(sRecordType.GetLength() - 2);	// The left 1 or 2 digits
 
-					iRecType1 = _ttol(sRecordType1);
-					iRecType2 = _ttol(sRecordType2);
+					iRecType1 = (int)_tcstol(sRecordType1, NULL, 10);
+					iRecType2 = (int)_tcstol(sRecordType2, NULL, 10);
 
 					// Now we check for compliance against the *sum* of the record types
 					pTrans->GetRecordTypeCount(iRecType1, &nRecTypeCount1);
@@ -1222,9 +1242,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						if (nRecTypeCount1 + nRecTypeCount2 < pRecTypeCount->nMin)
 						{
 							// Transaction Type %s must contain at least %ld Type %ld and Type %ld records: it only contains %ld.
-							sRes.Load(IDS_TOTRECORDSMIN2, g_hInstance);
-							sErr.Format(sRes, sTOT, pRecTypeCount->nMin, iRecType1, iRecType2, nRecTypeCount1 + nRecTypeCount2);
-							pTrans->AddError(sErr, 0);
+							sErr.Format(IDS_TOTRECORDSMIN2, sTOT, pRecTypeCount->nMin, iRecType1, iRecType2, nRecTypeCount1 + nRecTypeCount2);
+							pTrans->AddError(sErr, IW_WARN_REQ_RECORD_MISSING);
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 					}
@@ -1233,9 +1252,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 						if (nRecTypeCount1 + nRecTypeCount2 > pRecTypeCount->nMax)
 						{
 							// Transaction Type %s may contain at most %ld Type %ld and Type %ld records: it contains %ld
-							sRes.Load(IDS_TOTRECORDSMAX2, g_hInstance);
-							sErr.Format(sRes, sTOT, pRecTypeCount->nMax, iRecType1, iRecType2, nRecTypeCount1 + nRecTypeCount2);
-							pTrans->AddError(sErr, 0);
+							sErr.Format(IDS_TOTRECORDSMAX2, sTOT, pRecTypeCount->nMax, iRecType1, iRecType2, nRecTypeCount1 + nRecTypeCount2);
+							pTrans->AddError(sErr, IW_WARN_REQ_RECORD_MISSING);
 							nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 						}
 					}
@@ -1275,9 +1293,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 					// We have a record of an unsupported Record-Type
 					{
 						// Transaction Type %s may not contain Type %ld records: it contains %ld of them.
-						sRes.Load(IDS_TOTRECORDUNSUPPORTED, g_hInstance);
-						sErr.Format(sRes, sTOT, iRecType, nRecTypeCount);
-						pTrans->AddError(sErr, 0);
+						sErr.Format(IDS_TOTRECORDUNSUPPORTED, sTOT, iRecType, nRecTypeCount);
+						pTrans->AddError(sErr, IW_WARN_UNSUPPORT_RECORD_PRESENT);
 						nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 					}
 				}
@@ -1292,12 +1309,15 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				pRule = &m_rulesAry.at(i);
 
 #ifdef _DEBUG
-				sTraceMsg.Format(_T("applying %s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %s\n"),
-								 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
-								 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(),
-								 pRule->GetMinOccurrences(), pRule->GetMaxOccurrences(),
-								 pRule->GetTransactionListString());
-				OutputDebugString(sTraceMsg);
+				if (g_bLogToFile)
+				{
+					sTraceMsg.Format(IDS_LOGVERVERIFYTRANS,
+									 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
+									 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(),
+									 pRule->GetMinOccurrences(), pRule->GetMaxOccurrences(),
+									 pRule->GetTransactionListString());
+					LogMessage(sTraceMsg);
+				}
 #endif
 
 				bFieldsOK = true;
@@ -1310,8 +1330,8 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 					case LOC_FORM_5: bFieldsOK = VerifyFieldsForm5(sTOT, pTrans, pRule); break;
 					case LOC_FORM_6: bFieldsOK = VerifyFieldsForm6(sTOT, pTrans, pRule); break;
 					case LOC_FORM_7: bFieldsOK = VerifyFieldsForm7(sTOT, pTrans, pRule); break;
-					default:		 sErr = _T("VerifyTransaction: invalid Location Form Type");
-									 LogFile(sErr);
+					default:		 sErr = IDS_LOGVERVERIFYTRANSERR;
+									 LogMessage(sErr);
 				}
 				if (!bFieldsOK) nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 
@@ -1376,17 +1396,15 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 		else
 		{
 			// Verification file does not contain Transaction Type %s
-			sRes.Load(IDS_VERTOTUNK, g_hInstance);
-			sErr.Format(sRes, sTOT);
-			pTrans->AddError(sErr, 0);
+			sErr.Format(IDS_VERTOTUNK, sTOT);
+			pTrans->AddError(sErr, IW_WARN_UNKNOWN_TOT);
 			nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 		}
 	}
 	else
 	{
 		// Failed to find TOT field in Record 1
-		sErr.Load(IDS_NOTOTFIELD, g_hInstance);
-		pTrans->AddError(sErr, 0);
+		pTrans->AddError(IDS_NOTOTFIELD, IW_WARN_REQ_FIELD_MISSING);
 		nRet = IW_WARN_TRANSACTION_FAILED_VERIFICATION;
 	}
 
@@ -1477,7 +1495,7 @@ bool CIWVerification::VerifyFieldsForm2(CStdString& sTOT, CIWTransaction *pTrans
 bool CIWVerification::VerifyFieldsForm3(CStdString& sTOT, CIWTransaction *pTrans, CRuleObj *pRule)
 // <RECORD TYPE>.<FIELD NUMBER>.<SUBFIELD NUMBER>.<ITEM NUMBER>
 // This means that rule applies to the specified item in the specified subfield.
-// The ‘occurrences’ value is meaningless in this context.
+// The ï¿½occurrencesï¿½ value is meaningless in this context.
 {
 	bool bRet = true;
 
@@ -1855,10 +1873,8 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	bool		bRet = true;
 	CStdString	sCharType;
 	CStdString	sSpecialChars;
-	CStdString	sErr;
 	DWORD		dwVal;
 	DWORD		dwValMax;
-	CStdString sDataErrString;
 
 	sCharType = pRule->GetCharType();
 	sSpecialChars = pRule->GetSpecialChars();
@@ -1866,15 +1882,12 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	// "P" = Printable and "PC" = Control chars are supersets of all other chartypes so we check
 	// for the presence of those char codes first, then we explicitly look for the other code types.
 
-	// truncate long strings so we don't overrun err msg buffers down the line
-	sDataErrString.append(sData,512);
-
 	if (sCharType.Find(_T("PC")) != -1)
 	{
 		if (!IsPrintable(sData, true))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINT, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINT, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}		
 	}
@@ -1883,7 +1896,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsPrintable(sData, false))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINTCTRL, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_PRINTCTRL, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}		
 	}
@@ -1892,7 +1905,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlpha(sData))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1901,7 +1914,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsNumeric(sData))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1910,7 +1923,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlphaNumeric(sData))
 		{
 			// Invalid value '%s' for CharType '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, IDS_CHARINVALIDVALUE, sDataErrString.c_str(), sCharType.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC, IDS_CHARINVALIDVALUE, sData.c_str(), sCharType.c_str());
 			bRet = false;
 		}
 	}
@@ -1919,7 +1932,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlphaSpecial(sData, sSpecialChars))
 		{
 			// Invalid value '%s' for CharType '%s', Special Chars '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sDataErrString.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHA_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1928,7 +1941,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsNumericSpecial(sData, sSpecialChars))
 		{
 			// Invalid value '%s' for CharType '%s', Special Chars '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sDataErrString.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_NUMERIC_SPECIAL, IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1937,7 +1950,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 		if (!IsAlphaNumericSpecial(sData, sSpecialChars))
 		{
 			// Invalid value '%s' for CharType '%s', Special Chars '%s'
-			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL,IDS_CHARINVALIDVALUESPECIAL, sDataErrString.c_str(), sCharType.c_str(), sSpecialChars.c_str());
+			FlagFieldError(pTrans, pRule, IW_WARN_DATA_NOT_ALPHANUMERIC_SPECIAL,IDS_CHARINVALIDVALUESPECIAL, sData.c_str(), sCharType.c_str(), sSpecialChars.c_str());
 			bRet = false;
 		}
 	}
@@ -1946,9 +1959,9 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	{
 		if (sCharType.GetAt(1) == _T('1')) dwValMax = 255;
 		if (sCharType.GetAt(1) == _T('2')) dwValMax = 65535;
-		if (sCharType.GetAt(1) == _T('4')) dwValMax = 4294967295;
+		if (sCharType.GetAt(1) == _T('4')) dwValMax = 2147483647;
 
-		dwVal = _ttol(sData);
+		dwVal = _tcstol(sData, NULL, 10);
 		if (dwVal > dwValMax)
 		{
 			// Invalid value %ld for CharType '%s'
@@ -1959,9 +1972,12 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	else
 	{
 		// Unknown CharType code
-		sErr.Format(_T("[CIWVerification::VerifyField] %s, unknown CharType: %s\n"), pRule->GetMNU(), sCharType);
-		LogFile(sErr);
-		OutputDebugString(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGVERVERIFYFIELDCHARS, pRule->GetMNU(), sCharType);
+			LogMessage(sMsg);
+		}
 	}
 
 	return bRet;
@@ -2006,11 +2022,11 @@ bool CIWVerification::VerifyFieldDateFormat(CIWTransaction *pTrans, CRuleObj *pR
 
 	sY = sData.Mid(iY, 4);	// extract year string
 	sM = sData.Mid(iM, 2);	// extract month string
-	sD = sData.Mid(iD, 2);	// extract day stting
+	sD = sData.Mid(iD, 2);	// extract day string
 
-	lY = _ttol(sY.c_str());	// extract year number
-	lM = _ttol(sM.c_str());	// extract month number
-	lD = _ttol(sD.c_str());	// extract day number
+	lY = _tcstol(sY.c_str(), NULL, 10);	// extract year number
+	lM = _tcstol(sM.c_str(), NULL, 10);	// extract month number
+	lD = _tcstol(sD.c_str(), NULL, 10);	// extract day number
 
 	// Year must be anywhere from 1900 to 2099
 	if (lY < 1900 || lY > 2099)
@@ -2049,7 +2065,7 @@ long CIWVerification::DaysInMonth(long y, long m)
 	else if (m == 2)
 	{
 		bool isLeapYear;
-		isLeapYear = (y % 4 == 0 && y % 100 != 0 || (y % 400 == 0));
+		isLeapYear = ((y % 4 == 0) && ((y % 100 != 0) || (y % 400 == 0)));
 		if (isLeapYear)
 			numberOfDays = 29;
 		else
@@ -2087,7 +2103,7 @@ bool CIWVerification::VerifyFieldValue(CIWTransaction *pTrans, CRuleObj *pRule, 
 	if (!bFound)
 	{
 		// '%s': invalid data from mandatory map
-		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, IDS_INVALIDMMAP, sData.c_str());
+		FlagFieldError(pTrans, pRule, IW_WARN_INVALID_DATA, IDS_INVALIDMMAPDATA, sData.c_str());
 	}
 
 	return bFound;
@@ -2309,25 +2325,31 @@ bool CIWVerification::IsAlphaNumericSpecial(CStdString& s, CStdString& sSpecial)
 	return bRet;
 }
 
-extern HINSTANCE g_hInstance;
-
-void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, int nIDC, ...)
+void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, int nErrCode, CStdString sErr, ...)
 {
 	TCHAR szErr[1024];
-	TCHAR szFormat[1024];
 	CStdString sMsg;
 
-	::LoadString(g_hInstance, nIDC, szFormat, 1024);
-
 	va_list args;
-	va_start(args, nIDC);
-	_vsntprintf_s(szErr, 1024, 1024, szFormat, args);
+	va_start(args, sErr);
+
+#ifdef WIN32
+	// Microsoft screwed up with the compiler under VS2008, see
+	// https://connect.microsoft.com/VisualStudio/feedback/details/465591/vswprintf-yields-either-error-or-warning
+	_vstprintf_s(szErr, 1024, sErr, args);
+#else
+	_vstprintf(szErr, 1024, sErr, args);
+#endif
+
 	va_end(args);
 
-	sMsg.Format(_T("Field %s (%s): %s"), pRule->GetMNU().c_str(), pRule->GetLocation().c_str(), szErr);
-
+	sMsg.Format(IDS_FLAGFIELDERROR, pRule->GetMNU().c_str(), pRule->GetLocation().c_str(), szErr);
 	pTrans->AddError(sMsg, nErrCode);
-	OutputDebugString(sMsg);
+
+	if (g_bLogToFile)
+	{
+		LogMessage(sMsg);
+	}
 }
 
 CRuleObj *CIWVerification::GetRule(CStdString sMNU)
@@ -2372,9 +2394,6 @@ int CIWVerification::GetTransactionCategories(int DataArraySize, const TCHAR **p
 	int nSize = m_transactionDefAry.size();
 	CTransactionDefinition *pTransDef = NULL; 
 
-	DebugOutputVerification();
-	
-	const TCHAR *pCat = ppDataArray ? *ppDataArray : NULL;
 	int nPos = 0;
 	bool bCopy = DataArraySize > 0;
 	std::vector<CStdString> sCategoryAry; // hack to workaround poor logic in parsing

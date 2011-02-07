@@ -1,8 +1,11 @@
-
-#include "stdafx.h"
+#include "Includes.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
 #include "OpenEBTS.h"
+extern "C"
+{
+#include <wsq.h>
+}
 
 
 CNISTRecord::CNISTRecord()
@@ -30,13 +33,11 @@ void CNISTRecord::InitializeNewRecord(int nRecordType)
 	CStdString	sData;
 	int nRet;
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTRecord::InitializeNewRecord");
-		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] RecordType %d"), sTraceFrom, nRecordType);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGRECINITNEW, nRecordType);
+		LogMessage(sLogMessage);
 	}
 
 	m_nRecordType = nRecordType;
@@ -109,13 +110,11 @@ int CNISTRecord::ReadLogicalRecordLen(BYTE* pTransactionData, int nRecordType, i
 		}
 	}
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTRecord::ReadLogicalRecordLen");
-		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] RecordType %d, Index %d, Length %ld"), sTraceFrom, nRecordType, nRecordIndex, nRet);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGRECREADRECLEN, nRecordType, nRecordIndex, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
@@ -125,13 +124,11 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 {
 	int nRet = IW_SUCCESS;
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTRecord::ReadRecord");
-		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] RecordType %d"), sTraceFrom, nRecordType);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGRECREADREC, nRecordType);
+		LogMessage(sLogMessage);
 	}
 
 	m_nRecordType = nRecordType;
@@ -147,12 +144,10 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 		{
 			int			nField;
 			BYTE		*pFieldData;
-			BYTE		*pContent = NULL;
 			CStdString	sErr;
 			CNISTField	*pField;
 			BYTE		*pTemp;
 			bool		bEndofRecord = false;
-			int			nFieldPos = 1;
 
 			memcpy(pRecord, pTransactionData, m_nRecordLen * sizeof(BYTE));
 
@@ -221,9 +216,9 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 								// Field data may be in UTF-8, let's get it properly into wide char land
 								wchar_t *wNew;
 
-								if (!UTF8toUCS2((char*)pFieldData, &wNew))
+								if (!UTF8toUCS((char*)pFieldData, &wNew))
 								{
-									return IW_ERR_READING_FILE;	// Error deconding UTF-8
+									return IW_ERR_READING_FILE;	// Error decoding UTF-8
 								}
 								sFieldData = wNew;
 								delete wNew;
@@ -252,7 +247,7 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 }
 
 /*********************************************************/
-/* IWStrTok is NOT thread safe!
+/* IWStrTok is NOT thread safe!                          */
 /*********************************************************/
 
 char* CNISTRecord::IWStrTok(char *pInStr, char cDelim, bool *pbEndofRecord)
@@ -315,7 +310,7 @@ char* CNISTRecord::IWStrTok(char *pInStr, char cDelim, bool *pbEndofRecord)
 }
 
 /*********************************************************/
-/* Binary Record methods
+/* Binary Record methods                                 */
 /*********************************************************/
 
 int CNISTRecord::ReadBinaryRecord(BYTE* pTransactionData, int nRecordType)
@@ -323,13 +318,11 @@ int CNISTRecord::ReadBinaryRecord(BYTE* pTransactionData, int nRecordType)
 	int nRet = IW_SUCCESS;
 	BYTE bIDC;
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTRecord::ReadBinaryRecord");
-		CStdString sTraceMsg;
-		
-		sTraceMsg.Format(_T("[%s] RecordType %d"), sTraceFrom, nRecordType);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGRECREADRECBIN, nRecordType);
+		LogMessage(sLogMessage);
 	}
 
 	m_nRecordType = nRecordType;
@@ -357,7 +350,7 @@ int CNISTRecord::ReadBinaryRecord(BYTE* pTransactionData, int nRecordType)
 	sFieldData.Format(_T("%d"), GetDecimalValue(pTransactionData, 4));
 	pField->SetSubField(1, REC_TAG_LEN, sFieldData);
 	AddField(pField);
-	m_nRecordLen = _ttoi(sFieldData);
+	m_nRecordLen = (int)_tcstol(sFieldData, NULL, 10);
 
 	pField = new CNISTField(nRecordType, REC_TAG_IDC);
 	sFieldData.Format(_T("%d"), bIDC);
@@ -472,7 +465,7 @@ int CNISTRecord::GetDecimalValue(BYTE* pInStr, int nStrLen)
 	for (int i = 0; i < nStrLen; i++)
 	{
 		memset(szTemp, 0, sizeof(szTemp));
-		strcat_s(szHexStr, sizeof(szHexStr), BytetoHexString(pInStr[i], szTemp));
+		strcat(szHexStr, BytetoHexString(pInStr[i], szTemp));
 	}
 
 	return (int)strtol(szHexStr, NULL, 16);
@@ -489,7 +482,7 @@ char *CNISTRecord::BytetoHexString(BYTE lDecimalValue, char *pszHexString)
 }
 
 /*********************************************************/
-/* End Binary Record methods
+/* End Binary Record methods                             */
 /*********************************************************/
 
 int CNISTRecord::GetNextField(int nField, int *pNextField)
@@ -589,7 +582,7 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 					for (i = 0; i <= nSubFieldLen; i++)
 					{
 						// add the subfield items
-						if (*pTempSub == CHAR_US || *pTempSub == NULL) 
+						if (*pTempSub == CHAR_US || *pTempSub == 0)
 						{
 							pSubItem = new CSubFieldItem;
 							pSubItem->m_nSubField = nSubField;
@@ -620,9 +613,9 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 						// Field data may be in UTF-8, let's get it properly into wide char land
 						wchar_t *wNew;
 
-						if (!UTF8toUCS2(pTempSubItem, &wNew))
+						if (!UTF8toUCS(pTempSubItem, &wNew))
 						{
-							return IW_ERR_READING_FILE;	// Error deconding UTF-8
+							return IW_ERR_READING_FILE;	// Error decoding UTF-8
 						}
 
 						pSubItem->m_sData = wNew;
@@ -661,7 +654,6 @@ void CNISTRecord::AddField(CNISTField *pField)
 {
 	int nSize = m_FieldList.size();
 	CNISTField *pTemp = 0;
-	CNISTField *pInsertAfter = 0;
 	int nPos = 0;
 
 	for (int i = 0; i < nSize; i++)
@@ -768,13 +760,11 @@ int CNISTRecord::SetItem(CStdString sData, int Field, int Subfield, int Item)
 	int nRet = IW_SUCCESS;
 	CNISTField *pField = GetNISTField(Field);
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTRecord::SetItem");
-		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] (%ld, %ld, %ld): %s"), sTraceFrom, Field, Subfield, Item, sData);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGRECSETITEM, Field, Subfield, Item, sData);
+		LogMessage(sLogMessage);
 	}
 
 	if (pField)
@@ -796,7 +786,7 @@ int CNISTRecord::SetItem(CStdString sData, int Field, int Subfield, int Item)
 		pField = GetNISTField(GetDATField(m_nRecordType));
 		if(pField)
 		{
-			int iVal = _ttoi(sData);
+			int iVal = (int)_tcstol(sData, NULL, 10);
 			FINGERPRINT_HEADER* pHdr = (FINGERPRINT_HEADER*)pField->m_pImageData;
 			switch(Field)
 			{
@@ -821,7 +811,6 @@ int CNISTRecord::SetItem(CStdString sData, int Field, int Subfield, int Item)
 						break;
 				case 8: pHdr->bComp = iVal;				// compression algorithm used
 			}
-			long l=42;
 		}
 	}
 	else if (m_nRecordType == RECORD_TYPE8)
@@ -830,7 +819,7 @@ int CNISTRecord::SetItem(CStdString sData, int Field, int Subfield, int Item)
 		pField = GetNISTField(GetDATField(m_nRecordType));
 		if(pField)
 		{
-			int iVal = _ttoi(sData);
+			int iVal = (int)_tcstol(sData, NULL, 10);
 			SIGNATURE_HEADER* pHdr = (SIGNATURE_HEADER*)pField->m_pImageData;
 			switch(Field)
 			{
@@ -855,18 +844,18 @@ int CNISTRecord::SetItem(CStdString sData, int Field, int Subfield, int Item)
 	return nRet;
 }
 
-int CNISTRecord::GetImage(CStdString& sStorageFormat, long *pLength, const BYTE **ppData)
+int CNISTRecord::GetImage(CStdString& sStorageFormat, int *pnLength, const BYTE **ppData)
 {
 	int nRet = IW_ERR_INVALID_SUBFIELD_NUM;
 	CNISTField *pField =  GetNISTField(GetDATField(m_nRecordType));
 
 	sStorageFormat.Empty();
-	*pLength = 0;
+	*pnLength = 0;
 	*ppData = 0;
 
 	if (pField == NULL) goto done;
 
-	*pLength = pField->m_nImageLen;
+	*pnLength = pField->m_nImageLen;
 	sStorageFormat = CNISTField::ImageExtFromImageFormat(pField->m_ImageFormat);		
 
 	if (pField)
@@ -900,7 +889,7 @@ done:
 	return nRet;
 }
 
-int CNISTRecord::GetImageInfo(CStdString& sStorageFormat, long *pnLength, long *pnHLL, long *pnVLL, int *pnBitsPerPixel)
+int CNISTRecord::GetImageInfo(CStdString& sStorageFormat, int *pnLength, int *pnHLL, int *pnVLL, int *pnBitsPerPixel)
 {
 	int nRet = IW_ERR_INVALID_SUBFIELD_NUM;
 	CNISTField *pField =  GetNISTField(GetDATField(m_nRecordType));
@@ -913,9 +902,9 @@ int CNISTRecord::GetImageInfo(CStdString& sStorageFormat, long *pnLength, long *
 		CStdString sData;
 
 		FindItem(TYPE4_HLL, 1, 1, sData); // note: *_HLL are all the same
-		*pnHLL = _ttol(sData);
+		*pnHLL = (int)_tcstol(sData, NULL, 10);
 		FindItem(TYPE4_VLL, 1, 1, sData); // note: *_VLL are all the same
-		*pnVLL = _ttol(sData);
+		*pnVLL = (int)_tcstol(sData, NULL, 10);
 
 		if (m_nRecordType >= RECORD_TYPE3 && m_nRecordType <= RECORD_TYPE7)
 		// These are always all grayscale
@@ -940,7 +929,7 @@ int CNISTRecord::GetImageInfo(CStdString& sStorageFormat, long *pnLength, long *
 		// Field has bits per pixel (*_BPX)
 		{
 			FindItem(TYPE13_BPX, 1, 1, sData);  // note: *_BPX are all the same
-			*pnBitsPerPixel = _ttoi(sData);
+			*pnBitsPerPixel = (int)_tcstol(sData, NULL, 10);
 			nRet = IW_SUCCESS;
 		}
 		else
@@ -954,23 +943,22 @@ int CNISTRecord::GetImageInfo(CStdString& sStorageFormat, long *pnLength, long *
 
 int CNISTRecord::GetImageResolution(double *pdPPMM)
 {
-	int nRet = IW_ERR_INVALID_SUBFIELD_NUM;
 	CNISTField *pField =  GetNISTField(GetDATField(m_nRecordType));
 
 	if (pField)
 	{
 		CStdString	sData1;
 		CStdString	sData2;
-		long		lResCode;
-		long		lScaleUnits;
-		long		lHPixelScale;
+		int			nResCode;
+		int			nScaleUnits;
+		int			nHPixelScale;
 
 		if (m_nRecordType >= RECORD_TYPE3 && m_nRecordType <= RECORD_TYPE8)
 		{
 			FindItem(TYPE4_ISR, 1, 1, sData1);			// note: *_ISR are all the same
-			lResCode = _ttoi(sData1);
+			nResCode = _tcstol(sData1, NULL, 0);
 
-			if (lResCode == 1)
+			if (nResCode == 1)
 				*pdPPMM = m_dNativeResolutionPPMM;
 			else
 				*pdPPMM = m_dNativeResolutionPPMM/2;	// minimum is 1/2 of native (?)
@@ -984,15 +972,15 @@ int CNISTRecord::GetImageResolution(double *pdPPMM)
 			if ((FindItem(TYPE10_SLC, 1, 1, sData1) == IW_SUCCESS) &&
 				(FindItem(TYPE10_HPS, 1, 1, sData2) == IW_SUCCESS))
 			{
-				lScaleUnits = _ttoi(sData1);
-				lHPixelScale = _ttoi(sData2);
-				if (lScaleUnits == 1) // pixels per inch
+				nScaleUnits = _tcstol(sData1, NULL, 10);
+				nHPixelScale = _tcstol(sData2, NULL, 10);
+				if (nScaleUnits == 1) // pixels per inch
 				{
-					*pdPPMM = lHPixelScale / 25.4;
+					*pdPPMM = nHPixelScale / 25.4;
 				}
-				else if (lScaleUnits == 2) // pixels per cm
+				else if (nScaleUnits == 2) // pixels per cm
 				{
-					*pdPPMM = lHPixelScale * 10;
+					*pdPPMM = nHPixelScale * 10;
 				}
 				else
 				{
@@ -1011,14 +999,14 @@ int CNISTRecord::GetImageResolution(double *pdPPMM)
 	return IW_SUCCESS;
 }
 
-bool CNISTRecord::FormatSupportedInOut(CStdString sFormat)
+bool CNISTRecord::FormatSupportedInput(CStdString sFormat)
 // Currently RAW is not supported for import, because we don't have an easy way to specify
 // image properties.
 {
-	IWImageFormat fmt;
+	OpenEBTSImageFormat fmt;
 
 	fmt = CNISTField::ImageFormatFromImageExt(sFormat);
-	if (fmt == fmtBMP || fmt == fmtJPG || fmt == fmtJP2 || fmt == fmtWSQ || fmt == fmtFX4 || fmt == fmtCBEFF)
+	if (fmt == fmtBMP || fmt == fmtJPG || fmt == fmtJP2 || fmt == fmtWSQ || fmt == fmtFX4 || fmt == fmtPNG || fmt == fmtCBEFF)
 		return true;
 	else
 		return false;
@@ -1028,10 +1016,10 @@ bool CNISTRecord::FormatSupportedEBTS(CStdString sFormat)
 // This differs from the input/output formats: the EBTS file internally can support RAW, 
 // but not BMP.
 {
-	IWImageFormat fmt;
+	OpenEBTSImageFormat fmt;
 
 	fmt = CNISTField::ImageFormatFromImageExt(sFormat);
-	if (fmt == fmtRAW || fmt == fmtJPG || fmt == fmtJP2 || fmt == fmtWSQ || fmt == fmtFX4 || fmt == fmtCBEFF)
+	if (fmt == fmtRAW || fmt == fmtJPG || fmt == fmtJP2 || fmt == fmtWSQ || fmt == fmtFX4 || fmt == fmtPNG || fmt == fmtCBEFF)
 		return true;
 	else
 		return false;
@@ -1056,26 +1044,26 @@ float CNISTRecord::CompressionToRate(float fCompression)
 	return fRate;
 }
 
-int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, long nLength, BYTE *pData, 
+int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, int nLength, BYTE *pData,
 						  CStdString sStorageFormat, float fCompression)
 {
-	int				nRet = IW_ERR_IMAGE_CONVERSION;
-	CNISTField		*pField =  GetNISTField(GetDATField(m_nRecordType));
-	BYTE			*pDataTmp = NULL;
-	long			nLengthTmp;
-	BYTE			*pDataOut = NULL;
-	long			nLengthOut;
-	IWNISTImageInfo info;
-	long			lWidth;
-	long			lHeight;
-	long			lDPI;
-	IWImageFormat	fmtIn;
-	IWImageFormat	fmtOut;
+	int					nRet = IW_ERR_IMAGE_CONVERSION;
+	CNISTField			*pField =  GetNISTField(GetDATField(m_nRecordType));
+	BYTE				*pDataTmp = NULL;
+	int					nLengthTmp;
+	BYTE				*pDataOut = NULL;
+	int					nLengthOut;
+	OpenEBTSImageInfo	info;
+	int					width;
+	int					height;
+	int					DPI;
+	OpenEBTSImageFormat	fmtIn;
+	OpenEBTSImageFormat	fmtOut;
 
 	// Check for invalid inputs
 	if (!pData || nLength == 0) return IW_ERR_NULL_POINTER;
 	// Check for supported formats
-	if (!CNISTRecord::FormatSupportedInOut(sInputFormat))  return IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
+	if (!CNISTRecord::FormatSupportedInput(sInputFormat))  return IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
 	if (!CNISTRecord::FormatSupportedEBTS(sStorageFormat)) return IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
 
 	fmtIn = CNISTField::ImageFormatFromImageExt(sInputFormat);
@@ -1111,33 +1099,38 @@ int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, long nLengt
 	if (fmtIn != fmtOut)
 	{
 		// Possible combinations at this point are:
-		// BMP -> RAW, FX4, JPG, JP2 or WSQ
-		// JPG -> RAW, JP2 or WSQ
-		// JP2 -> RAW, JPG or WSQ
-		// WSQ -> RAW, JPG or JP2
-		// FX4 -> RAW
+		// BMP -> RAW, FX4, JPG, JP2, PNG or WSQ
+		// JPG -> RAW, JP2, PNG or WSQ
+		// JP2 -> RAW, JPG, PNG or WSQ
+		// PNG -> RAW, JPG, JP2 or WSQ
+		// WSQ -> RAW, JPG, JP2 or PNG
+		// FX4 -> RAW, PNG
 
 		if (fmtIn == fmtBMP)
 		{
 			if (fmtOut == fmtRAW)
 			{
-				if (BMPtoRAW((BYTE*)pData, nLength, &pDataOut, &nLengthOut, &lWidth, &lHeight, &lDPI)) goto done;
+				if (BMPtoRAW(pData, nLength, &pDataOut, &nLengthOut, &width, &height, &DPI)) goto done;
 			}
 			else if (fmtOut == fmtJPG)
 			{
-				if (BMPtoJPG((BYTE*)pData, nLength, (long)fCompression, &pDataOut, &nLengthOut)) goto done;
+				if (BMPtoJPG(pData, nLength, (int)fCompression, &pDataOut, &nLengthOut)) goto done;
 			}
 			else if (fmtOut == fmtJP2)
 			{	
-				if (BMPtoJP2((BYTE*)pData, nLength, fCompression, &pDataOut, &nLengthOut)) goto done;
+				if (BMPtoJP2(pData, nLength, fCompression, &pDataOut, &nLengthOut)) goto done;
 			}
 			else if (fmtOut == fmtWSQ)
 			{
-				if (BMPtoWSQ((BYTE*)pData, nLength, CompressionToRate(fCompression), &pDataOut, &nLengthOut)) goto done;
+				if (BMPtoWSQ(pData, nLength, CompressionToRate(fCompression), &pDataOut, &nLengthOut)) goto done;
 			}
 			else if (fmtOut == fmtFX4)
 			{
-				if (BMPtoFX4((BYTE*)pData, nLength, &pDataOut, &nLengthOut)) goto done;
+				if (BMPtoFX4(pData, nLength, &pDataOut, &nLengthOut)) goto done;
+			}
+			else if (fmtOut == fmtPNG)
+			{
+				if (BMPtoPNG(pData, nLength, &pDataOut, &nLengthOut)) goto done;
 			}
 			else // (shouldn't happen)
 			{
@@ -1145,101 +1138,66 @@ int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, long nLengt
 				goto done;
 			}
 		}
-		else if (fmtIn == fmtJPG)
+		else
 		{
-			// Format must be converted to BMP first
-			if (JPGtoBMP((BYTE*)pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
+			// This will be a 2-step process, format must be converted to BMP first
+
+			if (fmtIn == fmtJPG)
+			{
+				if (JPGtoBMP(pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
+			}
+			else if (fmtIn == fmtJP2)
+			{
+				if (JP2toBMP(pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
+			}
+			else if (fmtIn == fmtPNG)
+			{
+				if (PNGtoBMP(pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
+			}
+			else if (fmtIn == fmtFX4)
+			{
+				if (FX4toBMP(pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
+			}
+			else if (fmtIn == fmtWSQ)
+			{
+				if (WSQtoBMP(pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
+			}
+
+			// And now convert from BMP to the final format
+
 			if (fmtOut == fmtRAW)
 			{
-				if (BMPtoRAW(pDataTmp, nLengthTmp, &pDataOut, &nLengthOut, &lWidth, &lHeight, &lDPI)) goto done;
-				// ditch the temp image, pDataOut now owns the output image
-				delete [] pDataTmp;
-				pDataTmp = NULL;	
+				if (BMPtoRAW(pDataTmp, nLengthTmp, &pDataOut, &nLengthOut, &width, &height, &DPI)) goto done;
+			}
+			else if (fmtOut == fmtJPG)
+			{
+				if (BMPtoJPG(pDataTmp, nLengthTmp, (int)fCompression, &pDataOut, &nLengthOut)) goto done;
 			}
 			else if (fmtOut == fmtJP2)
 			{	
 				if (BMPtoJP2(pDataTmp, nLengthTmp, fCompression, &pDataOut, &nLengthOut)) goto done;
 			}
+			else if (fmtOut == fmtFX4)
+			{
+				if (BMPtoFX4(pDataTmp, nLengthTmp, &pDataOut, &nLengthOut)) goto done;
+			}
+			else if (fmtOut == fmtPNG)
+			{
+				if (BMPtoPNG(pDataTmp, nLengthTmp, &pDataOut, &nLengthOut)) goto done;
+			}
 			else if (fmtOut == fmtWSQ)
 			{
 				if (BMPtoWSQ(pDataTmp, nLengthTmp, CompressionToRate(fCompression), &pDataOut, &nLengthOut)) goto done;
-				// ditch the temp image, pDataOut now owns the output image
-				delete [] pDataTmp;
-				pDataTmp = NULL;
 			}
 			else // (shouldn't happen)
 			{
 				nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
 				goto done;
 			}
-		}
-		else if (fmtIn == fmtJP2)
-		{
-			// Format must be converted to BMP first
-			if (JP2toBMP((BYTE*)pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
-			if (fmtOut == fmtRAW)
-			{
-				if (BMPtoRAW(pDataTmp, nLengthTmp, &pDataOut, &nLengthOut, &lWidth, &lHeight, &lDPI)) goto done;
-				// ditch the temp image, pDataOut now owns the output image
-				delete [] pDataTmp;
-				pDataTmp = NULL;	
-			}
-			else if (fmtOut == fmtJPG)
-			{	
-				if (BMPtoJPG(pDataTmp, nLengthTmp, (long)fCompression, &pDataOut, &nLengthOut)) goto done;
-			}
-			else if (fmtOut == fmtWSQ)
-			{
-				if (BMPtoWSQ(pDataTmp, nLengthTmp, CompressionToRate(fCompression), &pDataOut, &nLengthOut)) goto done;
-				// ditch the temp image, pDataOut now owns the output image
-				delete [] pDataTmp;
-				pDataTmp = NULL;
-			}
-			else // (shouldn't happen)
-			{
-				nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
-				goto done;
-			}
-		}
-		else if (fmtIn == fmtWSQ)
-		{
-			if (fmtOut == fmtRAW)
-			{
-				if (WSQtoRAW((BYTE*)pData, nLength, &pDataOut, &nLengthOut, &lWidth, &lHeight, &lDPI)) goto done;
-			}
-			else if (fmtOut == fmtJPG)
-			{
-				if (WSQtoBMP((BYTE*)pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
-				if (BMPtoJPG(pDataTmp, nLengthTmp, (long)fCompression, &pDataOut, &nLengthOut)) goto done;
-				// ditch the temp image, pDataOut now owns the output image
-				delete [] pDataTmp;
-				pDataTmp = NULL;
-			}
-			else if (fmtOut == fmtJP2)
-			{
-				if (WSQtoBMP((BYTE*)pData, nLength, &pDataTmp, &nLengthTmp)) goto done;
-				if (BMPtoJP2(pDataTmp, nLengthTmp, fCompression, &pDataOut, &nLengthOut)) goto done;
-				// ditch the temp image, pDataOut now owns the output image
-				delete [] pDataTmp;
-				pDataTmp = NULL;
-			}
-			else
-			{
-				nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
-				goto done;
-			}
-		}
-		else if  (fmtIn == fmtFX4)
-		{
-			if (fmtOut == fmtRAW)
-			{
-				if (FX4toRAW((BYTE*)pData, nLength, &pDataOut, &nLengthOut, &lWidth, &lHeight, &lDPI)) goto done;
-			}
-			else
-			{
-				nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
-				goto done;
-			}
+
+			// ditch the temp image, pDataOut now owns the output image
+			delete [] pDataTmp;
+			pDataTmp = NULL;
 		}
 	}
 	else
@@ -1271,19 +1229,18 @@ int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, long nLengt
 	// otherwise directly on the output image.
 	if (pField->m_ImageFormat == fmtRAW)
 	{
-		nRet = GetInfoFromImage((BYTE*)pData, nLength, sInputFormat, &info);
+		nRet = GetInfoFromImage(pData, nLength, sInputFormat, &info);
 		if (nRet != IW_SUCCESS) goto done;
 		// For RAW, we must change a few props
-		strcpy_s(info.szCompression, 10, "NONE");
-		strcpy_s(info.szColorSpace, 10, (info.lBitsPerPixel == 24 ? "RGB" : "GRAY"));
+		strcpy(info.szCompression, "NONE");
+		strcpy(info.szColorSpace, (info.bitsPerPixel == 24 ? "RGB" : "GRAY"));
 		// 2:Gray Scale (Mono) raw image format
 		// 4:RGB (color) raw image format
-		info.lImageFormat = (info.lBitsPerPixel == 8 ? 2 : 4);
-		info.lCompressionAlgo = 0; // no compression
+		info.compressionAlgo = GCA_NONE; // no compression
 	}
 	else
 	{
-		nRet = GetInfoFromImage((BYTE*)pDataOut, nLengthOut, sStorageFormat, &info);
+		nRet = GetInfoFromImage(pDataOut, nLengthOut, sStorageFormat, &info);
 		if (nRet != IW_SUCCESS) goto done;
 	}
 
@@ -1345,200 +1302,167 @@ done:
 	return nRet;
 }
 
-int CNISTRecord::GetInfoFromImage(BYTE *pImage, long lImageLength, CStdString sFmt, IWNISTImageInfo *pInfo)
-// Currently supports BMP, JPG and WSQ. Returns IW_ERR_UNSUPPORTED_IMAGE_FORMAT on most errors.
+int CNISTRecord::GetInfoFromImage(BYTE *pImage, int cbLength, CStdString sFmt, OpenEBTSImageInfo *pInfo)
+// Currently supports BMP, JPG, JP2, PNG, FX4 and WSQ. Returns IW_ERR_UNSUPPORTED_IMAGE_FORMAT on most errors.
 {
-	int	 nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
-	BYTE jpgHdr[4] = { 0xFF, 0xD8, 0xFF, 0xE0 };
-	BYTE exfHdr[4] = { 0xFF, 0xD8, 0xFF, 0xE1 };
-	BYTE wsqHdr[2] = { 0xFF, 0xA0 };
-	BYTE bmpHdr[2] = { 0x42, 0x4D };
-	BYTE jp2Hdr[23] = { 0x00, 0x00, 0x00, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A, 
-						0x00, 0x00, 0x00, 0x14, 0x66, 0x74, 0x79, 0x70, 0x6A, 0x70, 0x32 };
-	BYTE jp2IHDR[4] = { 0x69, 0x68, 0x64, 0x72 }; // "ihdr" precedes the jp2_ihdr_t struct
+	int	 				nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
+	FIBITMAP			*fibmp = NULL;
+	FREE_IMAGE_FORMAT	fifmt;
+	BYTE 				wsqHdr[2] = { 0xFF, 0xA0 };
+	char				szErr[FREEIMAGEERRSIZE] = { '\0' };
 
 	IWS_BEGIN_EXCEPTION_METHOD("CNISTRecord::GetInfoFromImage")
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-	memset(pInfo, 0, sizeof(IWNISTImageInfo));
+	memset(pInfo, 0, sizeof(OpenEBTSImageInfo));
 
-	sFmt.ToLower();
-
-	if (sFmt == _T("bmp"))
+	// WSQ must be handled separately
+	if (sFmt == _T("wsq"))
 	{
-		// Check header to make sure format is really what caller claims it is
-		if (!memcmp(pImage, bmpHdr, 2))
+		// Verify that we really have a WSQ file
+		if (memcmp(pImage, wsqHdr, 2)) goto Exit;
+
+		// Use code adapted from wsq_decode_mem to determine WSQ's dimensions
+		unsigned short marker;         /* WSQ marker */
+		unsigned char *cbufptr;        /* points to current byte in buffer */
+		unsigned char *ebufptr;        /* points to end of buffer */
+
+		init_wsq_decoder_resources();
+
+		// Set memory buffer pointers
+		cbufptr = pImage;
+		ebufptr = pImage + cbLength;
+
+		// Read the SOI marker
+		if (getc_marker_wsq(&marker, SOI_WSQ, &cbufptr, ebufptr))
 		{
-			BITMAPINFOHEADER *pBMP = (BITMAPINFOHEADER*)(pImage + sizeof(BITMAPFILEHEADER));
-
-			pInfo->lWidth = pBMP->biWidth;
-			pInfo->lHeight = pBMP->biHeight;
-			pInfo->lScaleUnits = 2; // = pixels/centimeter
-			pInfo->lHPS = (long)((float)pBMP->biXPelsPerMeter/100+0.5);
-			pInfo->lVPS = (long)((float)pBMP->biYPelsPerMeter/100+0.5);
-			strcpy_s(pInfo->szCompression, 10, "NONE");
-			strcpy_s(pInfo->szColorSpace, 10, (pBMP->biBitCount == 24 ? "RGB" : "GRAY"));
-			pInfo->lBitsPerPixel = pBMP->biBitCount;
-			// Looks like BMP isn't really supported: for now use "4", "RGB (color) raw image format"
-			pInfo->lImageFormat = 4;
-			pInfo->lCompressionAlgo = 0;
-
-			nRet = IW_SUCCESS;
+			free_wsq_decoder_resources();
+			goto Exit;
 		}
-	}
-	else if (sFmt == _T("jpg"))
-	{
-		// Check header to make sure format is really what caller claims it is
-		if ((!memcmp(pImage, jpgHdr, 4) && !memcmp(pImage+6, "JFIF", 4)) ||
-			(!memcmp(pImage, exfHdr, 4) && !memcmp(pImage+6, "Exif", 4)))
+
+		// Read in supporting tables up to the SOF marker
+		if (getc_marker_wsq(&marker, TBLS_N_SOF, &cbufptr, ebufptr))
 		{
-			IWJPGINFO jInfo = { 0, };
-			HGLOBAL hJPG = GlobalAlloc(GPTR, lImageLength);
-
-			if (hJPG)
+			free_wsq_decoder_resources();
+			goto Exit;
+		}
+		while (marker != SOF_WSQ)
+		{
+			if (getc_table_wsq(marker, &dtt_table, &dqt_table, dht_table, &cbufptr, ebufptr))
 			{
-				BYTE *pJPG = (BYTE*)GlobalLock(hJPG);
-
-				if (pJPG)
-				{
-					memcpy(pJPG, pImage, lImageLength);
-					GlobalUnlock(hJPG);
-					JPG_GetInfo(hJPG, &jInfo);
-					GlobalFree(hJPG);
-
-					pInfo->lWidth = jInfo.lWidth;
-					pInfo->lHeight = jInfo.lHeight;
-					pInfo->lScaleUnits = jInfo.lScaleUnits;
-					pInfo->lHPS = jInfo.lHPS;
-					pInfo->lVPS = jInfo.lVPS;
-					strcpy_s(pInfo->szCompression, 10, (jInfo.lCompression == 1 ? "JPEGB" : "JPEGL"));
-					strcpy_s(pInfo->szColorSpace, 10, (jInfo.lColorSpace == CS_YCbCr ? "YCC" : "UNK"));
-					pInfo->lBitsPerPixel = (jInfo.lColorSpace == CS_GRAYSCALE ? 8 : 24);
-					pInfo->lImageFormat = (jInfo.lColorSpace == CS_GRAYSCALE ? 6 : 8);
-					pInfo->lCompressionAlgo = 1;
-
-					nRet = IW_SUCCESS;
-				}
-				else
-				{
-					GlobalFree(hJPG);
-					nRet = IW_ERR_OUT_OF_MEMORY;
-				}
+				free_wsq_decoder_resources();
+				goto Exit;
 			}
-			else
+			if (getc_marker_wsq(&marker, TBLS_N_SOF, &cbufptr, ebufptr))
 			{
-				nRet = IW_ERR_OUT_OF_MEMORY;
+				free_wsq_decoder_resources();
+			 	goto Exit;
 			}
 		}
-	}
-	else if (sFmt == _T("jp2"))
-	{
-		// Check header to make sure format is really what caller claims it is
-		if (!memcmp(pImage, jp2Hdr, 23))
+
+		// Read in the Frame Header
+		if (getc_frame_header_wsq(&frm_header_wsq, &cbufptr, ebufptr))
 		{
-			char* p = (char*)pImage;
+			free_wsq_decoder_resources();
+			goto Exit;
+		}
 
-			// Struct follows "ihdr" (=image header), seek to it
-			while((p - (char*)pImage < lImageLength) && (memcmp(p, jp2IHDR, 4)))
-				p++;
+		free_wsq_decoder_resources();
 
-			p += sizeof(jp2IHDR);
+		pInfo->width = frm_header_wsq.width;
+		pInfo->height = frm_header_wsq.height;
+		// Assume 500 DPI for WSQ files for now
+		pInfo->scaleUnits = 1; // = pixels/inch
+		pInfo->HPS = 500;
+		pInfo->VPS = 500;
+		strcpy(pInfo->szCompression, "WSQ20");
+		strcpy(pInfo->szColorSpace, "GRAY");
+		pInfo->bitsPerPixel = 8;
+		pInfo->compressionAlgo = GCA_WSQ;
+	}
+	else
+	{
+		fifmt = FreeImage_GetImageFormat(pImage, cbLength);
+		if (FreeImageError(szErr)) goto Exit;
+		fibmp = FreeImage_LoadImageFromMem(pImage, cbLength, fifmt);
+		if (FreeImageError(szErr)) goto Exit;
 
-			jp2_ihdr_t ihdr;
+		// Make sure image format is the same as the format specified
+		sFmt.ToLower();
+		if (sFmt == _T("bmp") && fifmt != FIF_BMP) goto Exit;
+		if (sFmt == _T("jpg") && fifmt != FIF_JPEG) goto Exit;
+		if (sFmt == _T("jp2") && fifmt != FIF_JP2) goto Exit;
+		if (sFmt == _T("png") && fifmt != FIF_PNG) goto Exit;
+		if (sFmt == _T("fx4") && fifmt != FIF_TIFF) goto Exit;	// TOD: test with Group 4 Fax format
 
-			ihdr.width = MAKELONG(MAKEWORD(*(p+3), *(p+2)), MAKEWORD(*(p+1), *p));
-			p += sizeof(ihdr.width);
-			ihdr.height = MAKELONG(MAKEWORD(*(p+3), *(p+2)), MAKEWORD(*(p+1), *p));
-			p += sizeof(ihdr.height);
-			ihdr.numcmpts = MAKEWORD(*(p+1), *p);
-			p += sizeof(ihdr.numcmpts);
+		// Set common properties
+		pInfo->width = FreeImage_GetWidth(fibmp);
+		pInfo->height = FreeImage_GetHeight(fibmp);
+		pInfo->bitsPerPixel = FreeImage_GetBPP(fibmp);
+		pInfo->scaleUnits = 2; // = pixels/centimeter
+		pInfo->HPS = (int)((float)FreeImage_GetDotsPerMeterX(fibmp)/100+0.5);
+		pInfo->VPS = (int)((float)FreeImage_GetDotsPerMeterY(fibmp)/100+0.5);
 
-			pInfo->lWidth = ihdr.width;
-			pInfo->lHeight = ihdr.height;
-			// For now let's assume 500dpi, in the future we could search for the "res" header
-			pInfo->lScaleUnits = 1; // = pixels/inch
-			pInfo->lHPS = 500;
-			pInfo->lVPS = 500;
-			strcpy_s(pInfo->szCompression, 10, "JP2");
-			strcpy_s(pInfo->szColorSpace, 10, (ihdr.numcmpts == 3 ? "RGB" : "GRAY"));
-			pInfo->lBitsPerPixel = 8*ihdr.numcmpts;
-			//Note: lCompressionAlgo does not apply
-			//Note: lImageFormat not set since Type-16, which requires a "lImageFormat" can't have JP2
-
-			nRet = IW_SUCCESS;
+		if (fifmt == FIF_BMP)
+		{
+			strcpy(pInfo->szCompression, "NONE");
+			strcpy(pInfo->szColorSpace, (pInfo->bitsPerPixel == 24 ? "RGB" : "GRAY"));
+			pInfo->compressionAlgo = GCA_NONE;
+		}
+		else if (fifmt == FIF_JPEG)
+		{
+			//TODO? Support "JPEGL" for lossless jpegs - how to tell?
+			strcpy(pInfo->szCompression, "JPEGB");
+			strcpy(pInfo->szColorSpace, (pInfo->bitsPerPixel == 8 ? "GRAY" : "YCC"));
+			pInfo->compressionAlgo = GCA_JPEG;
+		}
+		else if (fifmt == FIF_JP2)
+		{
+			strcpy(pInfo->szCompression, "JP2");
+			strcpy(pInfo->szColorSpace, (pInfo->bitsPerPixel == 8 ? "GRAY" : "SYCC"));
+			pInfo->compressionAlgo = GCA_JPEG2K;
+		}
+		else if (fifmt == FIF_TIFF)
+		{
+			// Facsimile ANSI/EIA 538-1988 algorithm
+			// Apparently the compression string is not defined by any standard, but the DOD EBTS uses this format.
+			// (perhaps this is because 1 bit depth images do not use the compression string but just the binary
+			// compression algorithm number)
+			strcpy(pInfo->szCompression, "FAX");
+			strcpy(pInfo->szColorSpace, "UNK");	// "GRAY" seems wrong
+			pInfo->compressionAlgo = 1;	// for binary fields 1 means "compressed"
+		}
+		else if (fifmt == FIF_PNG)
+		{
+			strcpy(pInfo->szCompression, "PNG");
+			strcpy(pInfo->szColorSpace, (pInfo->bitsPerPixel == 8 ? "GRAY" : "RGB"));
+			pInfo->compressionAlgo = GCA_PNG;
+		}
+		else
+		{
+			goto Exit;	// unsupported format
 		}
 	}
-	else if (sFmt == _T("wsq"))
-	{
-		// Check header to make sure format is really what caller claims it is
-		if (!memcmp(pImage, wsqHdr, 2))
-		{
-			char* p = (char*)pImage;
 
-			// seek out the frame header (SOF)
-			while((p - (char*)pImage < lImageLength) && (MAKEWORD(*(p+1), *p) != 0xFFA2))
-				p++;
-
-			// advance data pointer and verify position in buffer
-			if((p += sizeof(WORD)) - (char*)pImage < lImageLength)
-			{
-				FRM_HEADER_WSQ frm_header_wsq;
-
-				WORD hdr_len = MAKEWORD(*(p+1), *p);
-				p += sizeof(hdr_len);
-
-				frm_header_wsq.black = (BYTE) *p;
-				p += sizeof(frm_header_wsq.black);
-				frm_header_wsq.white = (BYTE) *p;
-				p += sizeof(frm_header_wsq.white);
-				frm_header_wsq.height = MAKEWORD(*(p+1), *p);
-				p += sizeof(frm_header_wsq.height);
-				frm_header_wsq.width = MAKEWORD(*(p+1), *p);
-
-				pInfo->lWidth = frm_header_wsq.width;
-				pInfo->lHeight = frm_header_wsq.height;
-				// Assume 500 DPI for WSQ files for now
-				pInfo->lScaleUnits = 1; // = pixels/inch
-				pInfo->lHPS = 500;
-				pInfo->lVPS = 500;
-				strcpy_s(pInfo->szCompression, 10, "WSQ");
-				strcpy_s(pInfo->szColorSpace, 10, "GRAY");
-				pInfo->lBitsPerPixel = 8;
-				pInfo->lCompressionAlgo = 1;
-				//Note: lImageFormat not set since Type-16, which requires a "lImageFormat" can't have WSQ
-
-				nRet = IW_SUCCESS;
-			}
-		}
-	}
-	else if (sFmt == _T("fx4"))
-	{
-		// Use our tifflib library to get dimensions ans resolution
-		if (LIBTIFFGetInfo((char*)pImage, lImageLength, &pInfo->lWidth, &pInfo->lHeight, &pInfo->lHPS))
-		{
-			pInfo->lHPS = pInfo->lVPS;
-			strcpy_s(pInfo->szCompression, 10, "FAX538"); // does not apply
-			strcpy_s(pInfo->szColorSpace, 10, ""); // does not apply
-			pInfo->lBitsPerPixel = 1;
-			pInfo->lCompressionAlgo = 1;
-			//Note: lImageFormat not set since Type-16, which requires a "lImageFormat" can't have FX4
-
-			nRet = IW_SUCCESS;
-		}
-	}
+	nRet = IW_SUCCESS;
 
 	IWS_END_CATCHEXCEPTION_BLOCK()
+
+Exit:
+	if (fibmp != NULL) FreeImage_Unload(fibmp);
+
+	if (szErr[0] != '\0' && g_bLogToFile)
+	{
+		CStdString sMsg;
+		sMsg.Format(_T("[CNISTRecord::GetInfoFromImage] FreeImage_LoadImageFromMem returns: %s"), szErr);
+		LogMessage(sMsg);
+	}
 
 	return nRet;
 }
 
-void CNISTRecord::SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInfo& info, long lRecordIndex, long lFieldLength)
+void CNISTRecord::SetMandatoryImageFields(CNISTField *pNISTField, OpenEBTSImageInfo& info, int recordIndex, int fieldLength)
 {
-	BYTE jpgHdr[4] = { 0xFF, 0xD8, 0xFF, 0xE0 };
-	BYTE exfHdr[4] = { 0xFF, 0xD8, 0xFF, 0xE1 };
-	BYTE wsqHdr[2] = { 0xFF, 0xA0 };
-	BYTE bmpHdr[2] = { 0x42, 0x4D };
-
 	IWS_BEGIN_EXCEPTION_METHOD("CNISTRecord::SetMandatoryImageFields")
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
@@ -1559,10 +1483,10 @@ void CNISTRecord::SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInf
 		// BYTE bVLL[2]; // Vert line length
 		// BYTE bComp; // compression algorithm used
 
-		sData.Format(_T("%ld"), lFieldLength);
+		sData.Format(_T("%ld"), fieldLength);
 		SetItem(sData, TYPE4_LEN, 1, 1);
 
-		sData.Format(_T("%ld"), lRecordIndex);
+		sData.Format(_T("%ld"), recordIndex);
 		SetItem(sData, TYPE4_IDC, 1, 1);
 
 		SetItem(_T("0"), TYPE4_IMP, 1, 1); // default impression to 0="Live-scan Plain"
@@ -1572,16 +1496,16 @@ void CNISTRecord::SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInf
 
 		// For now if the compression if 500dpi or more, we use 1 (Native Scanning Resolution), 
 		// 0 (Minimum Scanning Resolution) otherwise
-		sData.Format(_T("%ld"), (info.lHPS >= 500 ? 1 : 0));
+		sData.Format(_T("%ld"), (info.HPS >= 500 ? 1 : 0));
 		SetItem(sData, TYPE4_ISR, 1, 1);
 
-		sData.Format(_T("%ld"), info.lWidth);
+		sData.Format(_T("%ld"), info.width);
 		SetItem(sData, TYPE4_HLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHeight);
+		sData.Format(_T("%ld"), info.height);
 		SetItem(sData, TYPE4_VLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lCompressionAlgo);
+		sData.Format(_T("%ld"), info.compressionAlgo);
 		SetItem(sData, TYPE4_GCA, 1, 1);
 	}
 	else if (pNISTField->m_nRecordType == RECORD_TYPE8)
@@ -1595,46 +1519,46 @@ void CNISTRecord::SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInf
 		// BYTE bHLL[2]; // Horiz line length
 		// BYTE bVLL[2]; // Vert line length
 
-		sData.Format(_T("%ld"), lFieldLength);
+		sData.Format(_T("%ld"), fieldLength);
 		SetItem(sData, TYPE8_LEN, 1, 1);
 
-		sData.Format(_T("%ld"), lRecordIndex);
+		sData.Format(_T("%ld"), recordIndex);
 		SetItem(sData, TYPE8_IDC, 1, 1);
 
 		SetItem(_T("0"), TYPE8_SIG, 1, 1); // default signature type, 0="subject's signature" 
 
-		// TYPE8_SRT: “0” if the image is scanned and not compressed, a binary “1” if the
-		// image is scanned and compressed, and the binary equivalent of “2” if the image
+		// TYPE8_SRT: "0" if the image is scanned and not compressed, a binary "1" if the
+		// image is scanned and compressed, and the binary equivalent of "2" if the image
 		// is vector data. We don't support vector data yet, so it's either 0 or 1.
-		sData.Format(_T("%ld"), info.lCompressionAlgo);
+		sData.Format(_T("%ld"), info.compressionAlgo);
 		SetItem(sData, TYPE8_SRT, 1, 1);
 
 		// For now if the compression if 500dpi or more, we use 1 (Native Scanning Resolution), 
 		// 0 (Minimum Scanning Resolution) otherwise
-		sData.Format(_T("%ld"), (info.lHPS >= 500 ? 1 : 0));
+		sData.Format(_T("%ld"), (info.HPS >= 500 ? 1 : 0));
 		SetItem(sData, TYPE8_ISR, 1, 1);
 
-		sData.Format(_T("%ld"), info.lWidth);
+		sData.Format(_T("%ld"), info.width);
 		SetItem(sData, TYPE8_HLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHeight);
+		sData.Format(_T("%ld"), info.height);
 		SetItem(sData, TYPE8_VLL, 1, 1);
 	}
 	else if (pNISTField->m_nRecordType == RECORD_TYPE10)
 	{
-		sData.Format(_T("%ld"), info.lWidth);
+		sData.Format(_T("%ld"), info.width);
 		SetItem(sData, TYPE10_HLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHeight);
+		sData.Format(_T("%ld"), info.height);
 		SetItem(sData, TYPE10_VLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lScaleUnits);
+		sData.Format(_T("%ld"), info.scaleUnits);
 		SetItem(sData, TYPE10_SLC, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHPS);
+		sData.Format(_T("%ld"), info.HPS);
 		SetItem(sData, TYPE10_HPS, 1, 1);
 
-		sData.Format(_T("%ld"), info.lVPS);
+		sData.Format(_T("%ld"), info.VPS);
 		SetItem(sData, TYPE10_VPS, 1, 1);
 
 		SetItem(CStdString(info.szCompression), TYPE10_CGA, 1, 1);
@@ -1644,71 +1568,68 @@ void CNISTRecord::SetMandatoryImageFields(CNISTField *pNISTField, IWNISTImageInf
 	{
 		// Note, we use the Type-14 constants, but they are the same for Type-13 and Type-15
 
-		sData.Format(_T("%ld"), info.lWidth);
+		sData.Format(_T("%ld"), info.width);
 		SetItem(sData, TYPE14_HLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHeight);
+		sData.Format(_T("%ld"), info.height);
 		SetItem(sData, TYPE14_VLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lScaleUnits);
+		sData.Format(_T("%ld"), info.scaleUnits);
 		SetItem(sData, TYPE14_SLC, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHPS);
+		sData.Format(_T("%ld"), info.HPS);
 		SetItem(sData, TYPE14_HPS, 1, 1);
 
-		sData.Format(_T("%ld"), info.lVPS);
+		sData.Format(_T("%ld"), info.VPS);
 		SetItem(sData, TYPE14_VPS, 1, 1);
 
 		SetItem(CStdString(info.szCompression), TYPE14_CGA, 1, 1);
 
-		sData.Format(_T("%ld"), info.lBitsPerPixel);
+		sData.Format(_T("%ld"), info.bitsPerPixel);
 		SetItem(sData, TYPE14_BPX, 1, 1);
 	}
 	else if (pNISTField->m_nRecordType == RECORD_TYPE16)
 	{
-		sData.Format(_T("%ld"), info.lWidth);
+		sData.Format(_T("%ld"), info.width);
 		SetItem(sData, TYPE16_HLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHeight);
+		sData.Format(_T("%ld"), info.height);
 		SetItem(sData, TYPE16_VLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lScaleUnits);
+		sData.Format(_T("%ld"), info.scaleUnits);
 		SetItem(sData, TYPE16_SLC, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHPS);
+		sData.Format(_T("%ld"), info.HPS);
 		SetItem(sData, TYPE16_HPS, 1, 1);
 
-		sData.Format(_T("%ld"), info.lVPS);
+		sData.Format(_T("%ld"), info.VPS);
 		SetItem(sData, TYPE16_VPS, 1, 1);
 
 		SetItem(info.szCompression, TYPE16_CGA, 1, 1);
 
-		sData.Format(_T("%ld"), info.lBitsPerPixel);
+		sData.Format(_T("%ld"), info.bitsPerPixel);
 		SetItem(sData, TYPE16_BPX, 1, 1);
-
-		sData.Format(_T("%ld"), info.lImageFormat);
-		SetItem(sData, TYPE16_IFM, 1, 1);
 	}
 	else if (pNISTField->m_nRecordType == RECORD_TYPE17)
 	{
-		sData.Format(_T("%ld"), info.lWidth);
+		sData.Format(_T("%ld"), info.width);
 		SetItem(sData, TYPE17_HLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHeight);
+		sData.Format(_T("%ld"), info.height);
 		SetItem(sData, TYPE17_VLL, 1, 1);
 
-		sData.Format(_T("%ld"), info.lScaleUnits);
+		sData.Format(_T("%ld"), info.scaleUnits);
 		SetItem(sData, TYPE17_SLC, 1, 1);
 
-		sData.Format(_T("%ld"), info.lHPS);
+		sData.Format(_T("%ld"), info.HPS);
 		SetItem(sData, TYPE17_HPS, 1, 1);
 
-		sData.Format(_T("%ld"), info.lVPS);
+		sData.Format(_T("%ld"), info.VPS);
 		SetItem(sData, TYPE17_VPS, 1, 1);
 
 		SetItem(info.szCompression, TYPE17_CGA, 1, 1);
 
-		sData.Format(_T("%ld"), info.lBitsPerPixel);
+		sData.Format(_T("%ld"), info.bitsPerPixel);
 		SetItem(sData, TYPE17_BPX, 1, 1);
 
 		SetItem(CStdString(info.szColorSpace), TYPE17_CSP, 1, 1);
@@ -1815,13 +1736,11 @@ int CNISTRecord::GetRecordLen()
 		pField->SetSubField(1, 1, szLen);
 	}
 
-	if (g_bTraceOn)
+	if (g_bLogToFile)
 	{
-		CStdString sTraceFrom("CNISTRecord::GetRecordLen");
-		CStdString sTraceMsg;
-
-		sTraceMsg.Format(_T("[%s] Recordtype %d, Len %ld"), sTraceFrom, m_nRecordType, nLen);
-		TraceMsg(sTraceMsg);
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGRECGETRECLEN, m_nRecordType, nLen);
+		LogMessage(sLogMessage);
 	}
 
 	return nLen;
@@ -1861,7 +1780,7 @@ int CNISTRecord::WriteBinary(FILE *pFile)
 		}
 	}
 
-	return NO_ERROR;
+	return IW_SUCCESS;
 }
 
 int CNISTRecord::WriteBinary(BYTE **ppData, int *poffset)
@@ -1876,7 +1795,7 @@ int CNISTRecord::WriteBinary(BYTE **ppData, int *poffset)
 		}
 	}
 
-	return NO_ERROR;
+	return IW_SUCCESS;
 }
 
 int CNISTRecord::Write(TCHAR **ppData, int *poffset)

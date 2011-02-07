@@ -1,16 +1,19 @@
 
-#include "stdafx.h"
+#include "Includes.h"
 #include "RuleObj.h"
 #include "NISTField.h"
 #include "NISTRecord.h"
 #include "Common.h"
 
+#ifdef WIN32
 #pragma warning(disable : 4786)
+#endif
+
 #include <boost/regex.hpp>
 
-bool DownloadURLContent( std::string strUrl , std::string & strContent,  
-							   std::string &headers,bool grabHeaders = true,  
-							   bool grabUrl = true );   
+bool DownloadURLContent(std::string strUrl , std::string & strContent,
+						std::string &headers,bool grabHeaders = true,
+						bool grabUrl = true );
 
 
 CRuleObj::CRuleObj()
@@ -38,67 +41,67 @@ bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 	// extract the TOT's this rule applies to
 	if (!SetTransactions(sTransactionList))
 	{
-		sErr = "SetTransaction Failed";
+		sErr = IDS_SETTRANSFAILED;
 		goto done;
 	}
 	if (!SetLocation(sLocation))
 	{
-		sErr.Format(_T("Invalid location: %s"), sLocation);
+		sErr.Format(IDS_INVALIDLOCATION, sLocation);
 		goto done;
 	}
 	if (!SetMNU(sMNU))
 	{
-		sErr.Format(_T("Invalid MNU: %s"), sMNU);
+		sErr.Format(IDS_INVALIDMNU, sMNU);
 		goto done;
 	}
 	if (!SetCharType(sCharType))
 	{
-		sErr.Format(_T("%s, invalid char type: %s"), m_sMNU, sCharType);
+		sErr.Format(IDS_INVALIDCHARTYPE, m_sMNU, sCharType);
 		goto done;
 	}
 	if (!SetFieldSize(sFieldSize))
 	{
-		sErr.Format(_T("%s, invalid field size: %s"), m_sMNU, sFieldSize);
+		sErr.Format(IDS_INVALIDFIELDSIZE, m_sMNU, sFieldSize);
 		goto done;
 	}
 	if (!SetOccurrences(sOccurrences))
 	{
-		sErr.Format(_T("%s, invalid occurrence value: %s"), m_sMNU, sOccurrences);
+		sErr.Format(IDS_INVALIDOCCURRENCES, m_sMNU, sOccurrences);
 		goto done;
 	}
 	if (!SetOptionalDescription(sDescription))
 	{
-		sErr.Format(_T("%s, invalid description value: %s"), m_sMNU, sDescription);
+		sErr.Format(IDS_INVALIDDESCRIPTION, m_sMNU, sDescription);
 		goto done;
 	}
 	if (!SetOptionalLongDescription(sLongDescription))
 	{
-		sErr.Format(_T("%s, invalid long description value: %s"), m_sMNU, sDescription);
+		sErr.Format(IDS_INVALIDLONGDESCRIPTION, m_sMNU, sDescription);
 		goto done;
 	}
 	if (!SetOptionalSpecialChars(sSpecialChars))
 	{
-		sErr.Format(_T("%s, invalid sca value: %s"), m_sMNU, sSpecialChars);
+		sErr.Format(IDS_INVALIDSCA, m_sMNU, sSpecialChars);
 		goto done;
 	}
 	if (!SetOptionalDateFormat(sDateFormat))
 	{
-		sErr.Format(_T("%s, invalid date format value: %s"), m_sMNU, sDateFormat);
+		sErr.Format(IDS_INVALIDDATEFORMAT, m_sMNU, sDateFormat);
 		goto done;
 	}
 	if (!SetOptionalAdvancedRule(sAdvancedRule))
 	{
-		sErr.Format(_T("%s, invalid advanced rule: %s"), m_sMNU, sAdvancedRule);
+		sErr.Format(IDS_INVALIDADVANCEDRULE, m_sMNU, sAdvancedRule);
 		goto done;
 	}
 	if (!SetOptionalMMap(sMMap, sFilePath))
 	{
-		sErr.Format(_T("%s, invalid mmap value: %s"), m_sMNU, sMMap);
+		sErr.Format(IDS_INVALIDMMAP, m_sMNU, sMMap);
 		goto done;
 	}
 	if (!SetOptionalOMap(sOMap, sFilePath))
 	{
-		sErr.Format(_T("%s, invalid omap value: %s"), m_sMNU, sMMap);
+		sErr.Format(IDS_INVALIDOMAP, m_sMNU, sMMap);
 		goto done;
 	}
 
@@ -109,9 +112,11 @@ bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 #endif // _DEBUG
 
 done:
-	if (!sErr.IsEmpty())
+	if (!sErr.IsEmpty() && g_bLogToFile)
 	{
-		LogFile(sErr);
+		CStdString sMsg;
+		sMsg.Format(IDS_LOGRULESETDATA, sErr);
+		LogMessage(sMsg);
 	}
 
 	return bRet;
@@ -121,10 +126,9 @@ void CRuleObj::DumpObject()
 {
 	CStdString sMsg;
 
-	sMsg.Format(_T("[DumpObject] ==> MNU: %s, Location: %s, chartype %s, len min %ld, max %ld, occ min %ld, max %ld desc(%s) sca(%s) date(%s) map(%s)"),
-				m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
+	sMsg.Format(IDS_LOGRULEDUMPOBJ1, m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
 				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMMap());
-	LogFile(sMsg);
+	LogMessage(sMsg);
 
 	UINT							nKey;
 	CStdString						sTemp, sMNU;
@@ -137,13 +141,13 @@ void CRuleObj::DumpObject()
 		nKey = (*it).second;
 
 		if (count++ < 10)
-			sTemp += sMNU + ", ";
+			sTemp += sMNU + _T(", ");
 		else
 			break;
 	}
 
-	sMsg.Format(_T("[DumpObject] %s, TOT's: %s"), m_sMNU, sTemp);
-	LogFile(sMsg);
+	sMsg.Format(IDS_LOGRULEDUMPOBJ2, m_sMNU, sTemp);
+	LogMessage(sMsg);
 }
 
 CStdString CRuleObj::GetTransactionListString()
@@ -157,7 +161,7 @@ CStdString CRuleObj::GetTransactionListString()
 	if (m_transactionList.empty())
 	// No specifics, at least output default, mandatory or optional
 	{
-		sTemp += (m_transactionDefault == TRANS_MANDATORY) ? "(M)" : "(O)";
+		sTemp += (m_transactionDefault == TRANS_MANDATORY) ? _T("(M)") : _T("(O)");
 	}
 	else
 	{
@@ -167,8 +171,8 @@ CStdString CRuleObj::GetTransactionListString()
 			nMandatory = (*it).second;
 
 			sTemp += sMNU;
-			sTemp += (nMandatory == TRANS_MANDATORY) ? "(M)" : "(O)";
-			sTemp += ", ";
+			sTemp += (nMandatory == TRANS_MANDATORY) ? _T("(M)") : _T("(O)");
+			sTemp += _T(", ");
 		}
 	}
 
@@ -199,13 +203,13 @@ bool CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
 	// "PRINTCTRL" is a special code for all printable characters plus control characters.
 	if (!m_sSpecialChars.CompareNoCase(_T("PRINTCTRL")))
 	{
-		m_sCharType += "PC";
+		m_sCharType += _T("PC");
 		m_sSpecialChars.Empty();
 		m_sCharType.Remove(_T('S'));	// remove S since we don't consider "printable/control" to be so special
 	}
 	else if (!m_sSpecialChars.CompareNoCase(_T("PRINT")))
 	{
-		m_sCharType += "P";
+		m_sCharType += _T("P");
 		m_sSpecialChars.Empty();
 		m_sCharType.Remove(_T('S'));	// remove S since we don't consider "printable" to be so special
 	}
@@ -218,7 +222,7 @@ bool CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 // "MM" and "DD" and the time formats "HH", "MM", and "SS".
 {
 	TCHAR		c;
-	CStdString	sAllowed = "CYMDHMS";
+	CStdString	sAllowed = _T("CYMDHMS");
 	int			iLen = sDateFormat.GetLength();
 
 	for (int i = 0; i < iLen; i++)
@@ -290,7 +294,7 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 	if (sMap.IsEmpty()) return true;	// no map, nothing to copy
 
 	/*
-	// We no longer do this verficiation because many lines in the original verification files
+	// We no longer do this verification because many lines in the original verification files
 	// forget to include '|' but contain a carriage return instead.
 
 	int			npipes = 0;
@@ -315,9 +319,6 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 
 	if ( bfileFTP || bfileLocal )  // (starts at position 0)
 	{
-		TCHAR		szDrive[_MAX_DRIVE];
-		TCHAR		szDir[_MAX_DIR];
-		TCHAR		szPath[_MAX_DIR];
 		FILE		*f;
 		BYTE		*pFile;
 		long		lSize;
@@ -328,12 +329,35 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 		{
 			sFilename = sMap.Right(sMap.GetLength() - sFilePrefix.GetLength());
 
+#ifdef WIN32
+			TCHAR		szPath[_MAX_PATH];
+			TCHAR		szDrive[_MAX_DRIVE];
+			TCHAR		szDir[_MAX_DIR];
+
 			_tsplitpath(sFilePath, szDrive, szDir, NULL, NULL);
 			_tcscpy(szPath, szDrive);
 			_tcscat(szPath, szDir);
 			_tcscat(szPath, sFilename);
+#else
+			char		szPath[_MAX_PATH];
+			char		szFilePath[_MAX_PATH];
+			char		szFilename[_MAX_PATH];
 
-			f = _tfopen(szPath, _T("rb"));
+#ifdef UNICODE
+			wcstombs(szFilePath, sFilePath, _MAX_PATH);
+			wcstombs(szFilename, sFilename, _MAX_PATH);
+#else
+			strncpy(szFilePath, sFilePath, _MAX_PATH);
+			strncpy(szFilename, sFilename, _MAX_PATH);
+#endif
+
+			strcpy(szPath, dirname(szFilePath));
+			strcat(szPath, "/");
+			strcat(szPath, szFilename);
+#endif
+
+			f = _tfopenpath(szPath, _TPATH("rb"));
+
 			if (f != NULL)
 			{
 				fseek(f, 0, SEEK_END);
@@ -356,8 +380,8 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 
 			sFTPFilePath.assign(sFTPPrefix.begin(), sFTPPrefix.end());
 			sFTPFilePath.append(sFilename.begin(), sFilename.end());
-	
-			if(DownloadURLContent(sFTPFilePath, sContent, sHeaders))
+
+			if (DownloadURLContent(sFTPFilePath, sContent, sHeaders))
 			{  
 				//the following line is to display debugging data
 				//printf("Headers : %s \n", sHeaders.c_str()); 
@@ -370,65 +394,58 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 				return false;
 		}
 
-		//}
-
 #ifdef UNICODE
-			// In the UNICODE version of OpenEBTS, the Verification Files are in UTF-8
-			// (as are any external map files) hence we convert the buffer in-place to
-			// wide chars so we can proceed with simple generic _T code.
+		// In the UNICODE version of OpenEBTS, the Verification Files are in UTF-8
+		// (as are any external map files) hence we convert the buffer in-place to
+		// wide chars so we can proceed with simple generic _T code.
 
-			if (!UTF8toUCS2((const char*)pFile, &szFile))
-			{
-				return false;	// Error deconding UTF-8
-			}
+		if (!UTF8toUCS((const char*)pFile, &szFile))
+		{
+			return false;	// Error decoding UTF-8
+		}
 
-			delete pFile;
+		delete pFile;
 #else
-			szFile = (char*)pFile;
+		szFile = (char*)pFile;
 #endif
 
-			bInsideValue = true; // the first char of the string is the first char of the first value
+		bInsideValue = true; // the first char of the string is the first char of the first value
 
-			for (i = 0; i < (int)_tcslen(szFile); i++)
+		for (i = 0; i < (int)_tcslen(szFile); i++)
+		{
+			c = szFile[i];
+			if (c == 0x09)
 			{
-				c = szFile[i];
-				if (c == 0x09)
-				{
-					bInsideValue = false;	// end of value, about to enter description
+				bInsideValue = false;	// end of value, about to enter description
 
-					// Save current value name in array and reset it
-					sName.Trim();
-					if (!sName.IsEmpty()) mapValNames.push_back(sName);
-					sName.Empty();
-				}
-				else if (c == 0x0A)
-				{
-					bInsideValue = true;	// end of description, about to enter value
+				// Save current value name in array and reset it
+				sName.Trim();
+				if (!sName.IsEmpty()) mapValNames.push_back(sName);
+				sName.Empty();
+			}
+			else if (c == 0x0A)
+			{
+				bInsideValue = true;	// end of description, about to enter value
 
-					// save current value descriptions is array and reset it
-					sDesc.Trim();
-					if (!sDesc.IsEmpty()) mapValDescriptions.push_back(sDesc);
-					sDesc.Empty();
+				// save current value descriptions is array and reset it
+				sDesc.Trim();
+				if (!sDesc.IsEmpty()) mapValDescriptions.push_back(sDesc);
+				sDesc.Empty();
+			}
+			else
+			{
+				if (bInsideValue)
+				{
+					sName += c;		// add new char to present name
 				}
 				else
 				{
-					if (bInsideValue)
-					{
-						sName += c;		// add new char to present name
-					}
-					else
-					{
-						sDesc += c;		// add new char to present description
-					}
+					sDesc += c;		// add new char to present description
 				}
 			}
+		}
 
-			delete szFile;
-		//}
-		//else
-		//{
-		//	return false;
-		//}
+		delete szFile;
 	}
 	else
 	{
@@ -436,7 +453,7 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 
 		bInsideValue = true; // the first char of the string is the first char of the first value
 
-		sMap += "|";	// succeed string with marker to allow easy parsing of final element
+		sMap += _T("|");	// succeed string with marker to allow easy parsing of final element
 
 		for (i = 0; i < sMap.GetLength(); i++)
 		{
@@ -496,7 +513,7 @@ CStdString CRuleObj::GetMMap()
 	for (unsigned int i = 0; i < m_mmapName.size(); i++)
 	{
 		sRet += m_mmapName.at(i);
-		if (i != m_mmapName.size()-1) sRet += ",";
+		if (i != m_mmapName.size()-1) sRet += _T(",");
 	}
 
 	return sRet;
@@ -572,8 +589,6 @@ bool CRuleObj::SetRange(CStdString& sRange, int *pMin, int *pMax)
 		}
 	}
 
-	//("%s range min %ld, max %ld\n", m_sMNU, *pMin, *pMax);
-
 	return bRet;
 }
 
@@ -615,7 +630,7 @@ bool CRuleObj::GetRangeValue(CStdString& sToken, int *pValue)
 		if (bNotSpecified)
 			*pValue = RANGE_NOTSPECIFIED;
 		else
-			*pValue = _ttol(sTemp);
+			*pValue = (int)_tcstol(sTemp, NULL, 10);
 		bRet = true;
 	}
 
@@ -629,11 +644,11 @@ bool CRuleObj::SetCharType(CStdString& sCharType)
 
 	if (sCharType != _T(""))
 	{
-		int nPos = 0;
 		int nLen = sCharType.GetLength();
 		bool bErr = false;
 		CStdString sTemp(sCharType);
-		TCHAR ch, prevChar;
+		TCHAR ch;
+		TCHAR prevChar = 0;
 
 		sTemp.MakeUpper();
 		for (int i = 0; i < nLen && !bErr; i++)
@@ -676,11 +691,11 @@ bool CRuleObj::SetCharType(CStdString& sCharType)
 	return bRet;
 }
 
-/* No longer used because this approch makes little sense with UNICODE charsets
+/* No longer used because this approach makes little sense with UNICODE charsets
 
 void CRuleObj::SetAllowedChars()
 // Sets m_sAllowedChars based on m_sCharType and m_sSpecialChars.
-// It's just a list of all alowed characters.
+// It's just a list of all allowed characters.
 {
 	char c;
 	bool bA;		// Alpha
@@ -863,10 +878,6 @@ bool CRuleObj::SetLocation(CStdString& sLocation)
 		bRet = true;
 	}
 
-	sErr.Format(_T("Loc: %s (form %d), rec: %ld, field: %ld, subfield: %ld, item: %ld, offset: %ld\n"),
-				sLocation, m_nLocFormType, m_nRecordType, m_nField, m_nSubField, m_nItem, m_nOffset);
-	OutputDebugString(sErr);
-
 	if (bRet)
 		m_sLocation = sLocation;
 
@@ -876,7 +887,6 @@ bool CRuleObj::SetLocation(CStdString& sLocation)
 bool CRuleObj::SetTransactions(CStdString& sTransactionList)
 {
 	CStdString sTemp;
-	CStdString sErr;
 	bool bRet = true;
 
 	sTemp = sTransactionList;
@@ -950,11 +960,17 @@ bool CRuleObj::SetTransactions(CStdString& sTransactionList)
 					}
 			
 					if (isalpha(sMNU.GetAt(0)))	// MNU must begin with a char
+					{
 						m_transactionList[sMNU]= nMandatoryOverride;
+					}
 					else
 					{
-						sErr.Format(_T("[CRuleObj::SetTransactions] Invalid MNU: %s"), sMNU);
-						LogFile(sErr);
+						if (g_bLogToFile)
+						{
+							CStdString sMsg;
+							sMsg.Format(IDS_LOGRULESETTRANS, sMNU);
+							LogMessage(sMsg);
+						}
 						bRet = false;
 					}
 				}
@@ -968,21 +984,6 @@ bool CRuleObj::SetTransactions(CStdString& sTransactionList)
 		}
 	}		
 
-/*
-	int nCount = m_transactionList.GetCount();
-	POSITION pos = m_transactionList.GetStartPosition();
-	UINT nKey;
-	CStdString sMNU;
-
-	OutputDebugString("Trans count %ld\n",nCount);
-	while (pos != NULL)
-	{
-		m_transactionList.GetNextAssoc( pos, sMNU, nKey );
-
-		OutputDebugString("%s = %ld\n",sMNU,nKey);
-	}
-*/
-
 	return bRet;
 }
 
@@ -995,7 +996,6 @@ bool CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
 	typedef	std::string stdstring;
 	boost::regex	e;
 #endif
-	CStdString		sErr;
 	stdstring		input;
 	bool			bRet = false;
 
@@ -1007,8 +1007,12 @@ bool CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CRuleObj::TestRegEx] Exception thrown. %s. Maybe an invalid mask defined."), sRegEx);
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGRULETESTREGEX, sRegEx);
+			LogMessage(sMsg);
+		}
 	}
 
 	try
@@ -1032,8 +1036,12 @@ bool CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
 	}
 	catch (...)
 	{
-		sErr.Format(_T("[CRuleObj::TestRegEx] Exception thrown 2. %s. Maybe an invalid mask defined."), sRegEx);
-		LogFile(sErr);
+		if (g_bLogToFile)
+		{
+			CStdString sMsg;
+			sMsg.Format(IDS_LOGRULETESTREGEX, sRegEx);
+			LogMessage(sMsg);
+		}
 	}
 
 	return bRet;
@@ -1046,7 +1054,7 @@ bool CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 
 	if (sTemp != _T(""))
 	{
-		sTemp += ".";
+		sTemp += _T(".");
 
 		CStdString sCopy(sTemp);
 		CStdString sToken;
@@ -1057,7 +1065,7 @@ bool CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 		{
 			sToken = sCopy.Left(nPos);
 
-			nVal = _ttol(sToken);
+			nVal = (int)_tcstol(sToken, NULL, 10);
 			pNumAry->push_back(nVal);
 
 			if (nPos+1 == sCopy.GetLength())
@@ -1072,7 +1080,7 @@ bool CRuleObj::ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry)
 }
 
 bool CRuleObj::IsMandatory(CStdString& sTOT)
-// Given the Type Of Transaction, return is the field the rule refers to is mandatory for this type
+// Given the Type Of Transaction, return if the field the rule refers to is mandatory for this type
 // of record.
 {
 	bool bRet = false;
@@ -1111,7 +1119,7 @@ bool CRuleObj::IsOptional(CStdString& sTOT)
 	map<CStdString, UINT>::iterator it;
 
 	// Kludge: In ebts1_2.txt, 10.999 is not marked for DPRS as it should be, but this
-	// is not coherent as any binary record  is useless without it's DAT field. We simply
+	// is not coherent as any binary record is useless without it's DAT field. We simply
 	// let all binary fields be optional for all records, at least as a temporary fix.
 	if (CNISTRecord::IsDATField(m_nRecordType, m_nField)) return true;
 
@@ -1214,7 +1222,7 @@ bool CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 			{
 				// <RECORD TYPE>.<FIELD NUMBER>.<SUBFIELD NUMBER>.<ITEM NUMBER>
 				// This means that rule applies to the specified item in the specified
-				// subfield. The ‘occurrences’ value is meaningless in this context.
+				// subfield. The ï¿½occurrencesï¿½ value is meaningless in this context.
 				// When a rule uses this form, the index parameter of the
 				// Specification based data access functions (Index and
 				// StartIndex) is ignored.
@@ -1257,12 +1265,12 @@ bool CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				// This means that the rule applies to all items numbered by {ITEM
 				// NUMBER} in all the subfields. The occurrence value is
 				// meaningless in this context. This type of location index is usually
-				// used in conjunction with the location index of type “{RECORD TYPE}.{FIELD NUMBER}:”.
+				// used in conjunction with the location index of type ï¿½{RECORD TYPE}.{FIELD NUMBER}:ï¿½.
 				// When a rule uses this form, the index parameter of the
 				// Specification based data access functions (Index and
 				// StartIndex) will refer to subfield number.
 
-				// eg 4.03…5 T4_IMP B1 1 1;
+				// eg 4.03ï¿½5 T4_IMP B1 1 1;
 				// This rule applies to records of Type 4. The third field is located at
 				// an offset of 4 bytes from the start of the record. It will store a 1
 				// byte (indicated by B1 data type) binary value there. One and only
@@ -1293,7 +1301,7 @@ bool CRuleObj::GetLocation(int inputIndex, int inputRecordIndex, int *recordType
 				// Specification based data access functions (Index and
 				// StartIndex) will refer to subfield number.
  
-				// eg 4.03…5 T4_IMP B1 1 1;
+				// eg 4.03ï¿½5 T4_IMP B1 1 1;
 				// This rule applies to records of Type 4. The third field is located at
 				// an offset of 4 bytes from the start of the record. It will store a 1
 				// byte (indicated by B1 data type) binary value there. One and only

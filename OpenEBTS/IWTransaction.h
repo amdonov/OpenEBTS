@@ -16,7 +16,7 @@ class CIWTransaction
 {
 private:
 	BYTE			*m_pTransactionData;
-	CStdString		m_sFilePath;
+	CStdStringPath	m_sFilePath;
 	int				m_nIDCDigits;
 	double			m_dNativeResolutionPPMM;
 	CIWVerification *m_pVerification;
@@ -34,7 +34,7 @@ private:
 	int Type1AddRecordIDC(CNISTRecord *pRecord, int nRecordType, int nIDC);
 	int Type1UpdateIDC(CNISTRecord *pRecord, int nIDC);
 	int Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC);
-	int DebugOutRecords(CStdString sContext);
+	void DebugOutRecords(CStdString sContext);
 	int SetRecordLengths();
 	int GetRecordLengths();
 
@@ -44,7 +44,7 @@ public:
 
 	TCHAR* CreateNewStringSlot(CStdString s) { return m_stringSlots.AddNew(s); };
 
-	int ReadTransactionFile(CStdString sFilePath);
+	int ReadTransactionFile(CStdStringPath sFilePath);
 	int ReadTransactionFileMem(const BYTE* pMemFile, int MemFileSize);
 	int GetRecords();
 	bool IsTransactionLoaded() { return m_bTransactionLoaded; } 
@@ -63,16 +63,16 @@ public:
 	int AddRecord(int RecordType, int *pRecordIndex);
 	int DeleteRecord(int RecordType, int RecordIndex);
 
-	int Write(CStdString sPath);
-	int WriteBinary(CStdString sPath);
-	int WriteXML(CStdString sPath, bool bValidate);
+	int Write(CStdStringPath sPath);
+	int WriteBinary(CStdStringPath sPath);
+	int WriteXML(CStdStringPath sPath, bool bValidate);
     int WriteMem(BYTE** ppBuffer, int *pSize);
 
 	/************************************************************/
 	/*                   XML Specific (2-2008)                  */
 	/************************************************************/
 
-	int  GetXML(BYTE **ppXML, bool bValidate, long *plLengthXML, CStdString& sErr);
+	int  GetXML(BYTE **ppXML, bool bValidate, int *pnLengthXML, CStdString& sErr);
 	/*
 
 	For future use
@@ -137,11 +137,11 @@ public:
 	/*                                                          */
 	/************************************************************/
 
-	int GetImage(int RecordType,int RecordIndex, CStdString& sStorageFormat, long *pLength, const BYTE **ppData);
-	int SetImage(int RecordType, int RecordIndex, CStdString sInputFormat, long Length, BYTE *pData, CStdString sStorageFormat, float Compression);
-	int	ImportImage(int RecordType, int RecordIndex, CStdString sPath, CStdString sStorageFormat, float Compression, CStdString sInputFormat);
-	int ExportImage(int RecordType, int RecordIndex, CStdString sPath, CStdString sOutputFormat);
-	int GetImageInfo(int RecordType, int RecordIndex, CStdString& sStorageFormat, long *pnLength, long *pnHLL, long *pnVLL, int *pnBitsPerPixel);
+	int GetImage(int RecordType,int RecordIndex, CStdString& sStorageFormat, int *pLength, const BYTE **ppData);
+	int SetImage(int RecordType, int RecordIndex, CStdString sInputFormat, int nLength, BYTE *pData, CStdString sStorageFormat, float Compression);
+	int	ImportImage(int RecordType, int RecordIndex, CStdStringPath sPath, CStdString sStorageFormat, float Compression, CStdString sInputFormat);
+	int ExportImage(int RecordType, int RecordIndex, CStdStringPath sPath, CStdString sOutputFormat);
+	int GetImageInfo(int RecordType, int RecordIndex, CStdString& sStorageFormat, int *pnLength, int *pnHLL, int *pnVLL, int *pnBitsPerPixel);
 };
 
 #endif // _IWTRANSACTION_H_
