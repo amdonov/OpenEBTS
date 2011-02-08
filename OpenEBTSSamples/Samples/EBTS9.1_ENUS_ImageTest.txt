@@ -2719,10 +2719,10 @@ TPFS M, TPIS]
 			these four information items. But each feature block must be separated by the RS separator \
 			character. The maximum number of feature points shall be 88, with the use of 84 MPEG4 feature \
 			points and 4 additional eye and nostril center feature points.";
-	10.029..1:	T10_SFP_TYP		N		1		1		desc="Feature Point Type"	mmap="1:1";
-	10.029..2:	T10_SFP_FPC		NS		3-5		1		desc="Feature Point Code"	sca=".";
-	10.029..3:	T10_SFP_X		N		1-4		1		desc="Feature Point X Coordinate";
-	10.029..4:	T10_SFP_Y		N		1-4		1		desc="Feature Point Y Coordinate";
+	10.029..1	T10_SFP_TYP		N		1		1		desc="Feature Point Type"	mmap="1:1";
+	10.029..2	T10_SFP_FPC		NS		3-5		1		desc="Feature Point Code"	sca=".";
+	10.029..3	T10_SFP_X		N		1-4		1		desc="Feature Point X Coordinate";
+	10.029..4	T10_SFP_Y		N		1-4		1		desc="Feature Point Y Coordinate";
 
 [O]
 	10.030	T10_DMM	A		7-10	1		desc="Device Monitoring Mode"
