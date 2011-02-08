@@ -61,6 +61,8 @@ int CIWTransaction::New(CStdString sTransactionType, CIWVerification *pIWVer)
 		m_pVerification = pIWVer;
 		m_bTransactionLoaded = true;
 
+		m_nIDCSequence = 0; // reset the IDC sequence
+
 #ifdef UNICODE
 		// In the UNICODE version we specify that we will be writing UTF-8 chars into fields
 		Set(L"T1_DCS_CSI", L"003", 1, 1);	// Character Set Index is "003" for UTF-8
@@ -360,6 +362,43 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 	{
 		int nIDC = 0;
 		CStdString sIDC;
+		int recordIndex = 0;
+
+		// According to the NIST spec the IDC is a sequentially incrementing value,
+		// starting with the type 2 record which has a IDC of '00'. 
+		// Just like Aware, record deletes will blow a hole in the seq and 
+		// it is the responsiblity of the user to reorder the IDC sequentially. 
+		// Similarly, if 2 or more records share a relationship it is the users 
+		// responsiblity to ensure they share the same IDC value.
+
+		if (RecordType > 1)
+		{
+			nIDC = m_nIDCSequence;
+			m_nIDCSequence++;
+		}
+
+		// return the record index within this record type
+		GetRecordTypeMaxIndex(RecordType, &recordIndex);
+
+		recordIndex++;
+		sIDC.Format(_T("%02d"), nIDC);
+
+		pRec->InitializeNewRecord(RecordType);
+
+		// by default set the IDC field to the next ID, application can modify
+		pRec->SetItem(sIDC, REC_TAG_IDC, 1, 1);
+		m_RecordAry.push_back(pRec);
+
+		*pRecordIndex = recordIndex;
+
+		Type1AddRecordIDC(pRec, RecordType, nIDC);
+	}
+/*
+
+	if (pRec)
+	{
+		int nIDC = 0;
+		CStdString sIDC;
 
 		GetRecordTypeMaxIndex(RecordType, &nIDC);
 
@@ -376,7 +415,7 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 
 		Type1AddRecordIDC(pRec, RecordType, nIDC);
 	}
-
+*/
 	if (g_bLogToFile)
 	{
 		CStdString sLogMessage;

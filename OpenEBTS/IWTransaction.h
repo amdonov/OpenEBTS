@@ -21,6 +21,7 @@ private:
 	double			m_dNativeResolutionPPMM;
 	CIWVerification *m_pVerification;
 	bool			m_bTransactionLoaded;		// Indicates the transaction file was successfully read
+	int				m_nIDCSequence;
 
 	CStringSlots	m_stringSlots;
 
