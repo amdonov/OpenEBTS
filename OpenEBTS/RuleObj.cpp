@@ -385,7 +385,7 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 			{  
 				//the following line is to display debugging data
 				//printf("Headers : %s \n", sHeaders.c_str()); 
-				lSize = sContent.length();
+				lSize = (long)sContent.length();
 				pFile = new BYTE[lSize + 2];
 				memset(pFile, '\0', lSize + 2);
 				memcpy(pFile, sContent.c_str(), lSize);
@@ -848,7 +848,7 @@ bool CRuleObj::SetLocation(CStdString& sLocation)
 
 	if (m_nLocFormType != LOC_FORM_UNKOWN && ExtractValues(sTemp ,&numAry))
 	{
-		int nCount = numAry.size();
+		int nCount = (int)numAry.size();
 
 		m_nRecordType = nCount > 0 ? numAry.at(0) : 1;
 		m_nField = nCount > 1 ? numAry.at(1) : 1;

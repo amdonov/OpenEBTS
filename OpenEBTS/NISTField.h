@@ -77,7 +77,7 @@ public:
 
 	int SetImageData(BYTE* pImage, int nImageLen);
 
-	int GetSubfieldCount() { return m_SubFieldAry.size(); }
+	int GetSubfieldCount() { return (int)m_SubFieldAry.size(); }
 	CSubFieldItem *GetSubfieldItem(int nSubfield, int nItem);
 	int FindItem(int nSubfield, int Item, CStdString& sData);
 	int GetNumItems(int nSubfield, int* pnCount);

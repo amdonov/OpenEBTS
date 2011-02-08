@@ -30,10 +30,10 @@ CIWTransaction::~CIWTransaction()
 		m_pTransactionData = NULL;
 	}
 
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 		if (pRec) delete pRec;
@@ -251,7 +251,7 @@ int CIWTransaction::GetRecords()
 								{
 									pRec = new CNISTRecord;
 
-									pRec->SetRecordOffset(pRecordData - m_pTransactionData);
+									pRec->SetRecordOffset((int)(pRecordData - m_pTransactionData));
 									nRet = pRec->ReadBinaryRecord(pRecordData, nRecordType);
 
 									// Types 3 to 8 need to know the Native Scanning Resolution
@@ -394,7 +394,7 @@ void CIWTransaction::DebugOutRecords(CStdString sContext)
 #ifdef _DEBUG
 	if (!g_bLogToFile) return;
 
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	CNISTRecord *pType1Rec = GetRecord(RECORD_TYPE1, 1);
 	CStdString sData;
@@ -432,7 +432,7 @@ void CIWTransaction::DebugOutRecords(CStdString sContext)
 		}
 	}
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 		sFoo.Format(IDS_LOGTRANSDEBUGRECORD, i, pRec->GetRecordType());
@@ -446,13 +446,13 @@ void CIWTransaction::DebugOutRecords(CStdString sContext)
 int CIWTransaction::DeleteRecord(int RecordType, int RecordIndex)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	CNISTRecord *pRecTmp = 0;
 
 	pRec = GetRecord(RecordType, RecordIndex);
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRecTmp = m_RecordAry.at(i);
 
@@ -518,10 +518,10 @@ int CIWTransaction::Type1UpdateIDC(CNISTRecord *pRecord, int nIDC)
 	if (pType1Rec)
 	{
 		int nRecPos = 0;
-		int nSize = m_RecordAry.size();
+		size_t nSize = m_RecordAry.size();
 		CNISTRecord *pRec = 0;
 
-		for (int i = 0; i < nSize; i++)
+		for (unsigned int i = 0; i < nSize; i++)
 		{
 			pRec = m_RecordAry.at(i);
 
@@ -558,11 +558,11 @@ int CIWTransaction::Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC)
 		int nCount = 0;
 		CStdString sData;
 		int nRecPos = 0;
-		int nSize = m_RecordAry.size();
+		size_t nSize = m_RecordAry.size();
 		CNISTRecord *pRec = 0;
 		CStdString sCount;
 
-		for (int i = 0; i < nSize; i++)
+		for (unsigned int i = 0; i < nSize; i++)
 		{
 			pRec = m_RecordAry.at(i);
 
@@ -595,12 +595,12 @@ int CIWTransaction::Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC)
 
 CNISTRecord *CIWTransaction::GetRecord(int nRecordType, int nRecordIndex)
 {
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRet = 0;
 	CNISTRecord *pRec = 0;
 	int nIndex = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
@@ -716,13 +716,13 @@ int CIWTransaction::RemoveItem(int RecordType, int RecordIndex, int Field, int S
 int CIWTransaction::GetRecordTypeCount(int RecordType, int *pRecordTypeCount)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	int nCount = 0;
 
 	*pRecordTypeCount = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
@@ -744,11 +744,11 @@ int CIWTransaction::GetRecordTypeCount(int RecordType, int *pRecordTypeCount)
 
 int CIWTransaction::GetRecordTypeMaxIndex(int RecordType, int *pIndex)
 {
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	int nIndex = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
@@ -768,7 +768,7 @@ int CIWTransaction::GetRecordTypeMaxIndex(int RecordType, int *pIndex)
 
 int CIWTransaction::GetNumRecords(int *pRecords)
 {
-	*pRecords = m_RecordAry.size();
+	*pRecords = (int)m_RecordAry.size();
 
 	return IW_SUCCESS;
 }
@@ -966,11 +966,11 @@ done:
 
 int CIWTransaction::SetRecordLengths()
 {
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	int nRet = IW_SUCCESS;
 
-	for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+	for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
@@ -985,12 +985,12 @@ int CIWTransaction::SetRecordLengths()
 
 int CIWTransaction::GetRecordLengths()
 {
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	int nRet = IW_SUCCESS;
 	int nRecordLengths = 0;
 
-	for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+	for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
@@ -1005,7 +1005,7 @@ int CIWTransaction::GetRecordLengths()
 
 int CIWTransaction::Write(CStdStringPath sPath)
 {
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
 	int nRet = IW_SUCCESS;
 	FILE *f = NULL;
@@ -1015,7 +1015,7 @@ int CIWTransaction::Write(CStdStringPath sPath)
 	f = _tfopenpath(sPath, _TPATH("wb"));
 	if (f != NULL)
 	{
-		for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+		for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
 		{
 			pRec = m_RecordAry.at(i);
 
@@ -1049,7 +1049,7 @@ int CIWTransaction::Write(CStdStringPath sPath)
 
 int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 {
-	int nSize = m_RecordAry.size();
+	size_t nSize = m_RecordAry.size();
 	int nCurrentSize = 0;
 	CNISTRecord *pRec = 0;
 	int nRet = IW_SUCCESS;
@@ -1060,7 +1060,7 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 
 	if (ppBuffer != NULL)
 	{
-		for (int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+		for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
 		{
 			pRec = m_RecordAry.at(i);
 
@@ -1326,7 +1326,7 @@ void CIWTransaction::AddError(CStdString sErr, int nCode)
 
 int CIWTransaction::GetErrorCount()
 {
-	return m_ErrAry.size();
+	return (int)m_ErrAry.size();
 }
 
 int CIWTransaction::GetError(int Index, int* Code, CStdString& sDesc)

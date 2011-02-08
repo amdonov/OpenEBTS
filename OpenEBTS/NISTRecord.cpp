@@ -16,10 +16,10 @@ CNISTRecord::CNISTRecord()
 
 CNISTRecord::~CNISTRecord()
 {
-	int nSize = m_FieldList.size();
+	size_t nSize = m_FieldList.size();
 	CNISTField *pField;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pField = m_FieldList.at(i);
 		if (pField) delete pField;
@@ -195,7 +195,7 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 						{
 							if (pFieldData)
 							{
-								int nOffset = pFieldData - pRecord;
+								int nOffset = (int)(pFieldData - pRecord);
 								BYTE *pImage = (BYTE*)pTransactionData + nOffset;
 								int nImageLen = m_nRecordLen - nOffset - 1;
 
@@ -266,7 +266,7 @@ char* CNISTRecord::IWStrTok(char *pInStr, char cDelim, bool *pbEndofRecord)
 	{
 		pCurPos = pString = pInStr;
 		nCurPos = 0;
-		int nLen = strlen(pInStr);
+		size_t nLen = strlen(pInStr);
 		pEndString = pString+nLen;
 	}
 	
@@ -487,13 +487,13 @@ char *CNISTRecord::BytetoHexString(BYTE lDecimalValue, char *pszHexString)
 
 int CNISTRecord::GetNextField(int nField, int *pNextField)
 {
-	int nSize = m_FieldList.size();
+	size_t nSize = m_FieldList.size();
 	CNISTField *pField;
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
 
 	*pNextField = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pField = m_FieldList.at(i);
 
@@ -526,11 +526,11 @@ int CNISTRecord::GetNumSubfields(int nField, int *pCount)
 
 CNISTField *CNISTRecord::GetNISTField(int nField)
 {
-	int nSize = m_FieldList.size();
+	size_t nSize = m_FieldList.size();
 	CNISTField *pRetField = 0;
 	CNISTField *pField = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pField = m_FieldList.at(i);
 
@@ -555,7 +555,7 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 
 	if (szFieldData && *szFieldData)
 	{
-		int nLen = strlen(szFieldData);
+		int nLen = (int)strlen(szFieldData);
 
 		if (nLen)
 		{
@@ -578,7 +578,7 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 				if (strchr(pTempSub, CHAR_US))
 				{
 					nSubFieldItem = 1;
-					nSubFieldLen = strlen(pTempSub);
+					nSubFieldLen = (int)strlen(pTempSub);
 					for (i = 0; i <= nSubFieldLen; i++)
 					{
 						// add the subfield items
@@ -587,7 +587,7 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 							pSubItem = new CSubFieldItem;
 							pSubItem->m_nSubField = nSubField;
 							pSubItem->m_nSubFieldItem = nSubFieldItem++;
-							nSubFieldItemLen = pTempSub-pTempSubItem;
+							nSubFieldItemLen = (int)(pTempSub - pTempSubItem);
 
 							if (nSubFieldItemLen)
 							{
@@ -606,7 +606,7 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 					pSubItem = new CSubFieldItem;
 					pSubItem->m_nSubField = nSubField;
 					pSubItem->m_nSubFieldItem = 1;
-					nSubFieldItemLen = strlen(pTemp);
+					nSubFieldItemLen = (int)strlen(pTemp);
 					if (nSubFieldItemLen)
 					{
 #ifdef UNICODE
@@ -652,11 +652,11 @@ int CNISTRecord::GetNumItems(int Field, int Subfield, int* Count)
 
 void CNISTRecord::AddField(CNISTField *pField)
 {
-	int nSize = m_FieldList.size();
+	size_t nSize = m_FieldList.size();
 	CNISTField *pTemp = 0;
 	int nPos = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pTemp = m_FieldList.at(i);
 
@@ -677,14 +677,14 @@ int CNISTRecord::RemoveItem(int Field, int Subfield, int Item)
 {
 	int nRet = IW_SUCCESS;
 
-	int nSize = m_FieldList.size();
+	size_t nSize = m_FieldList.size();
 	int nPos = -1;
 	CNISTField *pTemp;
 
 	// KAS 6/22/10
 	// For now we simply remove the entire field and
 	// ignore the subfield and item values
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pTemp = m_FieldList.at(i);
 
@@ -695,7 +695,7 @@ int CNISTRecord::RemoveItem(int Field, int Subfield, int Item)
 		}
 	}
 
-	if (nPos > -1 && nPos < nSize)
+	if (nPos > -1 && nPos < (int)nSize)
 		m_FieldList.erase(m_FieldList.begin()+nPos);
 
 	return nRet;
@@ -737,10 +737,10 @@ int CNISTRecord::FindItem(int Field, int Subfield, int Item, CStdString& sData)
 int CNISTRecord::DeleteSubfield(int Field, int Subfield)
 {
 	int nRet = IW_ERR_INVALID_SUBFIELD_NUM;
-	int nSize = m_FieldList.size();
+	size_t nSize = m_FieldList.size();
 	CNISTField *pField = 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pField = m_FieldList.at(i);
 
@@ -1686,14 +1686,14 @@ bool CNISTRecord::IsBinaryType(int nRecordType)
 
 int CNISTRecord::GetRecordLen()
 {
-	int nFields = m_FieldList.size();
+	size_t nFields = m_FieldList.size();
 	CNISTField *pField;
 	int nLen = 0;
 	int nImagePos = 0;
 	bool bImage = false;
 
 	// get length of all fields except for .01 field
-	for (int i = 0; i < nFields; i++)
+	for (unsigned int i = 0; i < nFields; i++)
 	{
 		pField = m_FieldList.at(i);
 
@@ -1726,7 +1726,7 @@ int CNISTRecord::GetRecordLen()
 	char szLen[30];
 
 	sprintf(szLen, "%d", nLen); // get the length of the len field
-	nLen += strlen(szLen);
+	nLen += (int)strlen(szLen);
 
 	pField = GetNISTField(REC_TAG_LEN);
 
@@ -1748,11 +1748,11 @@ int CNISTRecord::GetRecordLen()
 
 int CNISTRecord::Write(FILE *pFile)
 {
-	int nFields = m_FieldList.size();
+	size_t nFields = m_FieldList.size();
 	CNISTField *pField;
 	int nRet = IW_SUCCESS;
 
-	for (int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
+	for (unsigned int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
 	{
 		pField = m_FieldList.at(i);
 
@@ -1800,11 +1800,11 @@ int CNISTRecord::WriteBinary(BYTE **ppData, int *poffset)
 
 int CNISTRecord::Write(TCHAR **ppData, int *poffset)
 {
-	int nFields = m_FieldList.size();
+	size_t nFields = m_FieldList.size();
 	CNISTField *pField;
 	int nRet = IW_SUCCESS;
 
-	for (int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
+	for (unsigned int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
 	{
 		pField = m_FieldList.at(i);
 

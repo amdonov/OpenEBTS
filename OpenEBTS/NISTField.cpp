@@ -123,10 +123,10 @@ void CNISTField::InitVars()
 
 CNISTField::~CNISTField() 
 { 
-	int nCount = m_SubFieldAry.size();
+	size_t nCount = m_SubFieldAry.size();
 	CSubFieldItem *pTemp;
 
-	for (int i = 0; i < nCount; i++)
+	for (unsigned int i = 0; i < nCount; i++)
 	{
 		pTemp = m_SubFieldAry.at(i);
 		if (pTemp) delete pTemp;
@@ -143,12 +143,12 @@ CNISTField::~CNISTField()
 
 int CNISTField::SetSubField(int nSubField, int nSubFieldItem, CStdString sData)
 {
-	int nCount = m_SubFieldAry.size();
+	size_t nCount = m_SubFieldAry.size();
 	int nRet = IW_SUCCESS;
 	bool bFound = false;
 	CSubFieldItem* pItem;
 
-	for (int i = 0; i < nCount && !bFound; i++)
+	for (unsigned int i = 0; i < nCount && !bFound; i++)
 	{
 		pItem = m_SubFieldAry.at(i);
 		
@@ -171,14 +171,14 @@ int CNISTField::SetSubField(int nSubField, int nSubFieldItem, CStdString sData)
 
 int CNISTField::RemoveSubField(int nSubField)
 {
-	int nCount = m_SubFieldAry.size();
+	size_t nCount = m_SubFieldAry.size();
 	int nRet = IW_SUCCESS;
 	bool bFound = false;
 	CSubFieldItem *pItem;
 	std::vector<WORD> wSubFieldIndex;
 	WORD wLastIndexDeleted;
 	WORD index;
-	int i;
+	unsigned int i;
 
 	// Form a list of all Item indexes in the SubField array to remove
 	for (i = 0; i < nCount; i++)
@@ -196,7 +196,7 @@ int CNISTField::RemoveSubField(int nSubField)
 	{
 		// First delete the items to delete, but backwards (!) to keep the indexes
 		// in wSubFieldIndex pertinent.
-		for (i = wSubFieldIndex.size()-1; i >= 0; i--)
+		for (i = (int)wSubFieldIndex.size()-1; i >= 0; i--)
 		{
 			index = wSubFieldIndex.at(i);
 			pItem = m_SubFieldAry.at(index);
@@ -220,8 +220,8 @@ int CNISTField::RemoveSubField(int nSubField)
 int CNISTField::GetNumSubfields()
 {
 	int nRet = 0;
-	int nCount = m_SubFieldAry.size();
-	int i;
+	size_t nCount = m_SubFieldAry.size();
+	unsigned int i;
 
 	if (nCount == 1) // usual case
 		nRet = 1;
@@ -311,10 +311,10 @@ int CNISTField::FindItem(int nSubfield, int nItem, CStdString& sData)
 
 	sData.Empty();
 
-	int nCount = m_SubFieldAry.size();
+	size_t nCount = m_SubFieldAry.size();
 	CSubFieldItem *pSubfield;
 
-	for (int i = 0; i < nCount; i++)
+	for (unsigned int i = 0; i < nCount; i++)
 	{
 		pSubfield = m_SubFieldAry.at(i);
 
@@ -421,12 +421,12 @@ OpenEBTSImageFormat CNISTField::GetImageFormatFromHeader(int nRecordType, const 
 int CNISTField::GetNumItems(int Subfield, int *pCount)
 {
 	int nRet = IW_SUCCESS;
-	int nCount = m_SubFieldAry.size();
+	size_t nCount = m_SubFieldAry.size();
 	CSubFieldItem *pTemp;
 
 	*pCount = 0;
 
-	for (int i = 0; i < nCount; i++)
+	for (unsigned int i = 0; i < nCount; i++)
 	{
 		pTemp = m_SubFieldAry.at(i);
 		if (pTemp->m_nSubField == Subfield) (*pCount)++;
@@ -437,11 +437,11 @@ int CNISTField::GetNumItems(int Subfield, int *pCount)
 
 int CNISTField::GetWriteLen()
 {
-	int nLen = 0;
-	int nCount = m_SubFieldAry.size();
+	size_t nLen = 0;
+	size_t nCount = m_SubFieldAry.size();
 
 	char szFieldLabel[20];
-	char nLabelLen = 0;
+	size_t nLabelLen = 0;
 
 	// Note: these ALWAYS get written in ASCII, so we use good'ole char functions
 	if (m_nRecordType == 1)
@@ -454,7 +454,7 @@ int CNISTField::GetWriteLen()
 	{
 		CSubFieldItem *pSubField;
 
-		for (int i = 0; i < nCount; i++)
+		for (unsigned int i = 0; i < nCount; i++)
 		{
 			pSubField = m_SubFieldAry.at(i);
 
@@ -481,7 +481,7 @@ int CNISTField::GetWriteLen()
 		LogMessage(sLogMessage);
 	}
 
-	return nLen;
+	return (int)nLen;
 }
 
 struct SubfieldItemSort
@@ -527,7 +527,7 @@ struct SubfieldItemSort
 int CNISTField::Write(FILE *pFile)
 {
 	int nRet = IW_ERR_WRITING_FILE;
-	int nCount;
+	size_t nCount;
 
 	if (g_bLogToFile)
 	{
@@ -571,7 +571,7 @@ int CNISTField::Write(FILE *pFile)
 		{
 			CSubFieldItem *pSubField, *pNextSubField;
 
-			for (int i = 0; i < nCount; i++)
+			for (unsigned int i = 0; i < nCount; i++)
 			{
 				pSubField = m_SubFieldAry.at(i);
 
@@ -649,7 +649,7 @@ done:
 int CNISTField::Write(TCHAR **ppData, int *poffset)
 {
 	int nRet = IW_ERR_WRITING_FILE;
-	int nCount;
+	size_t nCount;
 
 	if (g_bLogToFile)
 	{
@@ -676,7 +676,7 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 			sprintf(szFieldLabel, "%d.%03d:%d", m_nRecordType, m_nField, m_nRecordLen);
 
 		memcpy(*ppData + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
-		*poffset = *poffset + strlen(szFieldLabel);
+		*poffset = *poffset + (int)strlen(szFieldLabel);
 
 	}
 	else
@@ -690,13 +690,13 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 			sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
 
 		memcpy(*ppData + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
-		*poffset = *poffset + strlen(szFieldLabel);
+		*poffset = *poffset + (int)strlen(szFieldLabel);
 
 		if (nCount)
 		{
 			CSubFieldItem *pSubField, *pNextSubField;
 
-			for (int i = 0; i < nCount; i++)
+			for (unsigned int i = 0; i < nCount; i++)
 			{
 				pSubField = m_SubFieldAry.at(i);
 
@@ -746,12 +746,12 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 						if (pSubField->m_nSubField == pNextSubField->m_nSubField)
 						{
 							memcpy(*ppData + *poffset, g_szUS, strlen(g_szUS));
-							*poffset = *poffset + strlen(g_szUS);
+							*poffset = *poffset + (int)strlen(g_szUS);
 						}
 						else
 						{
 							memcpy(*ppData + *poffset, g_szRS, strlen(g_szRS));
-							*poffset = *poffset + strlen(g_szRS);
+							*poffset = *poffset + (int)strlen(g_szRS);
 						}
 					}
 				}
@@ -769,12 +769,12 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 	if (m_bWriteRecordSeperator)
 	{
 		memcpy(*ppData + *poffset, g_szFS, strlen(g_szFS));
-		*poffset = *poffset + strlen(g_szFS);
+		*poffset = *poffset + (int)strlen(g_szFS);
 	}
 	else
 	{
 		memcpy(*ppData + *poffset, g_szGS, strlen(g_szGS));
-		*poffset = *poffset + strlen(g_szGS);
+		*poffset = *poffset + (int)strlen(g_szGS);
 	}
 
 	nRet = IW_SUCCESS;

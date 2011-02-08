@@ -187,7 +187,7 @@ bool UTF8toUCS(const char *pIn, wchar_t **ppOut)
 		return false;
 	}
 
-	nChars = utf16or32string.size();
+	nChars = (int)utf16or32string.size();
 
 	// Allocate space for new wchar_t*, including null-terminator
 	*ppOut = new wchar_t[nChars + 1];
@@ -215,7 +215,7 @@ bool UCStoUTF8(const wchar_t *wIn, char **ppOut, int *pnLength)
 	int									i;
 
 	// Form utf16or32string from wchat_t array
-	nChars = wcslen(wIn);
+	nChars = (int)wcslen(wIn);
 	for (i = 0; i < nChars; i++)
 	{
 		utf16or32string.push_back(wIn[i]);
@@ -246,7 +246,7 @@ bool UCStoUTF8(const wchar_t *wIn, char **ppOut, int *pnLength)
 	(*ppOut)[utf8string.size()] = '\0';
 
 	// Return length of all allocated *bytes*
-	*pnLength = utf8string.size() + 1;
+	*pnLength = (int)utf8string.size() + 1;
 
 	return true;
 }

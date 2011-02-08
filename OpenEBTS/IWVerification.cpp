@@ -1027,15 +1027,14 @@ void CIWVerification::DebugOutputVerification()
 {
 	CStdString sMsg;
 	CStdString sTmp;
-	long nCount;
+	size_t nCount;
 	CTransactionDefinition *pTrans;
 	std::vector<CRecordTypeCount> recTypeCountAry;
 	CRuleObj *pRule;
-	long i;
-	long j;
 	CStdString sMin;
 	CStdString sMax;
-
+	unsigned int i;
+	unsigned int j;
 	sMsg = IDS_LOGVERDBGOUTDELIM;
 	LogMessage(sMsg);
 
@@ -1062,7 +1061,7 @@ void CIWVerification::DebugOutputVerification()
 		// Output record type counts for this transaction list
 		recTypeCountAry = pTrans->GetRecTypeCountAry();
 		sMsg.Empty();
-		for (j=0; j<(int)recTypeCountAry.size(); j++)
+		for (j = 0; j < (int)recTypeCountAry.size(); j++)
 		{
 			CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
 			if (pRecTypeCount)
@@ -1092,7 +1091,7 @@ void CIWVerification::DebugOutputVerification()
 
 	// FIELDS section of Verification file
 	nCount = m_rulesAry.size();
-	for (i = 0; i < nCount; i++)
+	for (unsigned i = 0; i < nCount; i++)
 	{
 		pRule = &m_rulesAry.at(i);
 		sMsg.Format(IDS_LOGVERDBGOUTFIELD,
@@ -2355,10 +2354,10 @@ void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, in
 CRuleObj *CIWVerification::GetRule(CStdString sMNU)
 {
 	CRuleObj *pRet = NULL;
-	int nCount = m_rulesAry.size();
+	size_t nCount = m_rulesAry.size();
 	CRuleObj *pTemp;
 
-	for (int i = 0; i < nCount; i++)
+	for (unsigned int i = 0; i < nCount; i++)
 	{
 		pTemp = &m_rulesAry.at(i);
 		if (pTemp)
@@ -2391,16 +2390,17 @@ int CIWVerification::GetMNULocation(CStdString sMNU, int inputIndex, int inputRe
 int CIWVerification::GetTransactionCategories(int DataArraySize, const TCHAR **ppDataArray, int *pEntries)
 {
 	int nRet = IW_SUCCESS;
-	int nSize = m_transactionDefAry.size();
+	size_t nSize = m_transactionDefAry.size();
 	CTransactionDefinition *pTransDef = NULL; 
 
 	int nPos = 0;
 	bool bCopy = DataArraySize > 0;
 	std::vector<CStdString> sCategoryAry; // hack to workaround poor logic in parsing
-	int nCount, j;
+	size_t nCount;
+	unsigned int  j;
 	bool bFound = false;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pTransDef = &m_transactionDefAry.at(i);
 
@@ -2440,13 +2440,13 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const TCHAR **ppData
 										 const TCHAR **ppDescArray, int *pEntries, const TCHAR *pCategory)
 {
 	int						nRet = IW_SUCCESS;
-	int						nSize = m_transactionDefAry.size();
+	size_t					nSize = m_transactionDefAry.size();
 	CTransactionDefinition	*pTransDef = NULL; 
 	CStdString				sCategory(pCategory);
 	int						nPos = 0;
 	bool					bCopy = DataArraySize > 0;
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pTransDef = &m_transactionDefAry.at(i);
 
@@ -2500,7 +2500,7 @@ int CIWVerification::GetRecordTypeOccurrences(int DataArraySize, int *piRecordTy
 											 int *pEntries, const TCHAR *pTOT)
 {
 	int								nRet = IW_SUCCESS;
-	int								nSize = m_transactionDefAry.size();
+	size_t							nSize = m_transactionDefAry.size();
 	CTransactionDefinition			*pTransDef = NULL; 
 	std::vector<CRecordTypeCount>	recTypeCountAry;
 	bool							bCopy = DataArraySize > 0;
@@ -2516,7 +2516,7 @@ int CIWVerification::GetRecordTypeOccurrences(int DataArraySize, int *piRecordTy
 		}
 	}
 
-	for (int i = 0; i < nSize; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pTransDef = &m_transactionDefAry.at(i);
 
@@ -2712,7 +2712,7 @@ int CIWVerification::GetValueList(const TCHAR* TransactionType, const TCHAR* pMn
 				}
 				// The names and descriptions arrays are parallel, so should have the
 				// same size; we just do this for safety.
-				*pEntries = min(names.size(), descriptions.size());
+				*pEntries = (int)min(names.size(), descriptions.size());
 
 				if (bCopy)
 				{

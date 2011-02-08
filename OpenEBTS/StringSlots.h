@@ -13,10 +13,10 @@ public:
 	{
 		// Delete all strings in string array
 
-		int nSize = m_rgszStrings.size();
+		size_t nSize = m_rgszStrings.size();
 		TCHAR* sz = NULL;
 
-		for (int i = 0; i < nSize; i++)
+		for (unsigned int i = 0; i < nSize; i++)
 		{
 			sz = m_rgszStrings.at(i);
 			if (sz) delete sz;
