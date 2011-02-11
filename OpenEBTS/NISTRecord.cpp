@@ -1316,6 +1316,8 @@ int CNISTRecord::GetInfoFromImage(BYTE *pImage, int cbLength, CStdString sFmt, O
 
 	memset(pInfo, 0, sizeof(OpenEBTSImageInfo));
 
+	sFmt.ToLower();
+
 	// WSQ must be handled separately
 	if (sFmt == _T("wsq"))
 	{
@@ -1388,7 +1390,6 @@ int CNISTRecord::GetInfoFromImage(BYTE *pImage, int cbLength, CStdString sFmt, O
 		if (FreeImageError(szErr)) goto Exit;
 
 		// Make sure image format is the same as the format specified
-		sFmt.ToLower();
 		if (sFmt == _T("bmp") && fifmt != FIF_BMP) goto Exit;
 		if (sFmt == _T("jpg") && fifmt != FIF_JPEG) goto Exit;
 		if (sFmt == _T("jp2") && fifmt != FIF_JP2) goto Exit;
