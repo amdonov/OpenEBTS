@@ -97,10 +97,10 @@
 #define IDS_LOGVERDBGOUTDELIM		_T("%%%%%%%%%%%%%%%%%%%%")
 #define IDS_LOGVERDBGOUTMIN			_T("%ld:%ls ")
 #define IDS_LOGVERDBGOUTMINMAX		_T("%ld:%ls-%ls ")
-#define IDS_LOGVERDBGOUTFIELD		_T("%ls\t%ls\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%ls) sca(%ls) date(%ls) map(%ls) Trans %ls\n")
+#define IDS_LOGVERDBGOUTFIELD		_T("%ls\t%ls\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%ls) sca(%ls) date(%ls) map(%ls) Trans %ls")
 #define IDS_LOGVERVERIFYTRANS		_T("[CIWVerification::VerifyTransaction] Applying %ls\t%ls\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %ls")
 #define IDS_LOGVERVERIFYTRANSERR	_T("[CIWVerification::VerifyTransaction] Invalid Location Form Type")
-#define IDS_LOGVERVERIFYFIELDCHARS	_T("[CIWVerification::VerifyFieldChars] %ls, unknown CharType: %ls\n")
+#define IDS_LOGVERVERIFYFIELDCHARS	_T("[CIWVerification::VerifyFieldChars] %ls, unknown CharType: %ls")
 
 #else
 
@@ -194,9 +194,9 @@
 #define IDS_LOGVERDBGOUTDELIM		_T("%%%%%%%%%%%%%%%%%%%%")
 #define IDS_LOGVERDBGOUTMIN			_T("%ld:%s ")
 #define IDS_LOGVERDBGOUTMINMAX		_T("%ld:%s-%s ")
-#define IDS_LOGVERDBGOUTFIELD		_T("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%s) sca(%s) date(%s) map(%s) Trans %s\n")
+#define IDS_LOGVERDBGOUTFIELD		_T("%s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Desc(%s) sca(%s) date(%s) map(%s) Trans %s")
 #define IDS_LOGVERVERIFYTRANS		_T("[CIWVerification::VerifyTransaction] Applying %s\t%s\t%3s Len(%2ld..%2ld) Occ(%2ld..%2ld) Trans %s")
 #define IDS_LOGVERVERIFYTRANSERR	_T("[CIWVerification::VerifyTransaction] Invalid Location Form Type")
-#define IDS_LOGVERVERIFYFIELDCHARS	_T("[CIWVerification::VerifyFieldChars] %s, unknown CharType: %s\n")
+#define IDS_LOGVERVERIFYFIELDCHARS	_T("[CIWVerification::VerifyFieldChars] %s, unknown CharType: %s")
 
 #endif
