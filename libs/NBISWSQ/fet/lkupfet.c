@@ -50,6 +50,8 @@ identified are necessarily the best available for the purpose.
 #include <string.h>
 #ifndef WIN32			//DJD
 #include <strings.h>	//DJD
+#else					//DJD
+#define strdup _strdup	//DJD
 #endif					//DJD
 #include <fet.h>
 #include <defs.h>
