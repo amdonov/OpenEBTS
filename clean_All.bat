@@ -33,8 +33,8 @@ rd /S /Q x64
 cd ..
 cd OpenEBTSSamples
 del /S *.pdb
-rd /S /Q OpenEBTSSample1/x64
-rd /S /Q OpenEBTSSample2/x64
+rd /S /Q OpenEBTSSample1\x64
+rd /S /Q OpenEBTSSample2\x64
 cd ..
 cd OpenEBTSViewer
 del /S *.pdb
