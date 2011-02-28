@@ -24,14 +24,19 @@ del /S OpenEBTSa.dll
 del /S OpenEBTSa.lib
 del /S OpenEBTSSample*.exe
 del /S OpenEBTSViewer*.exe
-// Leave the NBISWSQ pdb files alone so we can link against them for debug info but
+// Leave the library pdb files alone so we can link against them for debug info but
 // ditch all the others, which means going into each of the 3 folders explicitly.
+// We also delete any x64 folder that may be present
 cd OpenEBTS
 del /S *.pdb
+rd /S /Q x64
 cd ..
 cd OpenEBTSSamples
 del /S *.pdb
+rd /S /Q OpenEBTSSample1/x64
+rd /S /Q OpenEBTSSample2/x64
 cd ..
 cd OpenEBTSViewer
 del /S *.pdb
+rd /S /Q x64
 cd ..
