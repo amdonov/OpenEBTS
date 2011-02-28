@@ -375,8 +375,8 @@ done:
 BYTE* ReadBLOBFromFile(const TCHARPATH *szFilename, long *plFileSize)
 {
 	FILE	*f;
-	long	cbFile;
-	long	cbRead;
+	size_t	cbFile;
+	size_t	cbRead;
 	BYTE	*pBuf = NULL;
 
 	f = _tfopenpath(szFilename, _TPATH("rb"));
@@ -399,7 +399,7 @@ BYTE* ReadBLOBFromFile(const TCHARPATH *szFilename, long *plFileSize)
 		}
 		else
 		{
-			if (plFileSize != NULL) *plFileSize = cbFile;
+			if (plFileSize != NULL) *plFileSize = (long)cbFile;
 		}
 	}
 	else
@@ -414,7 +414,7 @@ bool WriteBLOBToFile(const TCHARPATH *szFilename, BYTE* pBlob, long lBlobLen)
 {
 	bool	bRet = false;
 	FILE	*f;
-	long	cbWritten;
+	size_t	cbWritten;
 
 	f = _tfopenpath(szFilename, _TPATH("wb"));
 	if (f != NULL)
