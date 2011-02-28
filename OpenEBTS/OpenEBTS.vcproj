@@ -12,6 +12,9 @@
 		<Platform
 			Name="Win32"
 		/>
+		<Platform
+			Name="x64"
+		/>
 	</Platforms>
 	<ToolFiles>
 	</ToolFiles>
@@ -42,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
-				PreprocessorDefinitions="WIN32;_DEBUG;UNICODE;OPENEBTS_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -55,13 +58,14 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcurl_imp.lib FreeImage.lib nbiswsq.lib"
+				AdditionalDependencies="libcurld.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib libboost_regex-vc90-mt-gd-1_35.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="./../libs/FreeImage;./../libs/NBISWSQ/Debug;./../libs/Boost/libs/regex;./../libs/cURL"
 				GenerateDebugInformation="true"
@@ -88,7 +92,83 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
+				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
+				PreprocessorDefinitions="WIN32;_DEBUG;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;_WIN64;_DEBUG"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libcurld.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib libboost_regex-vc90-mt-gd-1_35.lib"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="./../libs/FreeImage/x64;./../libs/NBISWSQ/x64/Debug;./../libs/Boost/libs/regex/x64;./../libs/cURL/x64"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 				CommandLine=""
 			/>
 		</Configuration>
@@ -120,7 +200,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
-				PreprocessorDefinitions="WIN32;UNICODE;OPENEBTS_EXPORTS"
+				PreprocessorDefinitions="WIN32;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
@@ -138,7 +218,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcurl_imp.lib FreeImage.lib nbiswsq.lib"
+				AdditionalDependencies="libcurl.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib  libboost_regex-vc90-mt-1_35.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="./../libs/FreeImage;./../libs/NBISWSQ/Release;./../libs/Boost/libs/regex;./../libs/cURL"
 				GenerateDebugInformation="true"
@@ -167,7 +247,86 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
+				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|x64"
+			OutputDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
+				PreprocessorDefinitions="WIN32;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="2"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_UNICODE;UNICODE;_WIN64"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libcurl.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib libboost_regex-vc90-mt-1_35.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="./../libs/FreeImage/x64;./../libs/NBISWSQ/x64/Release;./../libs/Boost/libs/regex/x64;./../libs/cURL/x64"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 				CommandLine=""
 			/>
 		</Configuration>
@@ -197,7 +356,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
-				PreprocessorDefinitions="WIN32;_DEBUG;OPENEBTS_EXPORTS"
+				PreprocessorDefinitions="WIN32;_DEBUG;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -210,13 +369,14 @@
 			/>
 			<Tool
 				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
 			/>
 			<Tool
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcurl_imp.lib FreeImage.lib nbiswsq.lib"
+				AdditionalDependencies="libcurld.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib libboost_regex-vc90-mt-gd-1_35.lib"
 				OutputFile="$(OutDir)\$(ProjectName)a.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="./../libs/FreeImage;./../libs/NBISWSQ/Debug;./../libs/Boost/libs/regex;./../libs/cURL"
@@ -244,7 +404,84 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
+				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="DebugA|x64"
+			OutputDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
+				PreprocessorDefinitions="WIN32;_DEBUG;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_WIN64;_DEBUG"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libcurld.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib libboost_regex-vc90-mt-gd-1_35.lib"
+				OutputFile="$(OutDir)\$(ProjectName)a.dll"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="./../libs/FreeImage/x64;./../libs/NBISWSQ/x64/Debug;./../libs/Boost/libs/regex/x64;./../libs/cURL/x64"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 				CommandLine=""
 			/>
 		</Configuration>
@@ -276,7 +513,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
-				PreprocessorDefinitions="WIN32;OPENEBTS_EXPORTS"
+				PreprocessorDefinitions="WIN32;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
@@ -294,7 +531,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcurl_imp.lib FreeImage.lib nbiswsq.lib"
+				AdditionalDependencies="libcurl.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib  libboost_regex-vc90-mt-1_35.lib"
 				OutputFile="$(OutDir)\$(ProjectName)a.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="./../libs/FreeImage;./../libs/NBISWSQ/Release;./../libs/Boost/libs/regex;./../libs/cURL"
@@ -324,7 +561,87 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description=""
+				CommandLine=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="ReleaseA|x64"
+			OutputDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="2"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;./../libs/Boost"
+				PreprocessorDefinitions="WIN32;OPENEBTS_EXPORTS;CURL_STATICLIB;BOOST_REGEX_NO_LIB"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="2"
+				WarningLevel="3"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_WIN64"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="libcurl.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib libboost_regex-vc90-mt-1_35.lib"
+				OutputFile="$(OutDir)\$(ProjectName)a.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="./../libs/FreeImage/x64;./../libs/NBISWSQ/x64/Release;./../libs/Boost/libs/regex/x64;./../libs/cURL/x64"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="17"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
 				CommandLine=""
 			/>
 		</Configuration>
@@ -349,7 +666,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -365,7 +698,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -385,7 +734,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -401,7 +766,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -421,7 +802,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -437,7 +834,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -457,7 +870,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -473,7 +902,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -493,7 +938,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -509,7 +970,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -529,7 +1006,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -545,7 +1038,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -565,7 +1074,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -581,7 +1106,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -601,7 +1142,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -617,7 +1174,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -637,7 +1210,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -653,7 +1242,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -673,7 +1278,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -689,7 +1310,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -709,7 +1346,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -725,7 +1378,23 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

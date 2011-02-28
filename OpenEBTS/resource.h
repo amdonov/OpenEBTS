@@ -13,3 +13,17 @@
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
+
+#ifdef _DEBUG
+	#ifdef _WIN64
+		#define OPENEBTS_CONFIG_PLATFORM "OpenEBTS Debug x64\0"
+	#else
+		#define OPENEBTS_CONFIG_PLATFORM "OpenEBTS Debug x86\0"
+	#endif
+#else
+	#ifdef _WIN64
+		#define OPENEBTS_CONFIG_PLATFORM "OpenEBTS Release x64\0"
+	#else
+		#define OPENEBTS_CONFIG_PLATFORM "OpenEBTS Release x86\0"
+	#endif
+#endif
