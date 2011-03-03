@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# clean Debug and Release flavours of NBISWSQ library
+cd ./libs/NBISWSQ/Debug
+make clean
+cd ./Release
+make clean
+cd ./../../..
+
 # clean Debug flavors
 cd ./OpenEBTS/Debug
 make clean
