@@ -1047,7 +1047,7 @@ void CIWVerification::DebugOutputVerification()
 
 		// Output all TOTs for this transaction list
 		sMsg.Empty();
-		for (j = 0; j < (int)pTrans->m_TOTArray.size(); j++)
+		for (j = 0; j < pTrans->m_TOTArray.size(); j++)
 		{
 			sMsg += pTrans->m_TOTArray[j];
 			if (j != (long)pTrans->m_TOTArray.size()-1)
@@ -1061,7 +1061,7 @@ void CIWVerification::DebugOutputVerification()
 		// Output record type counts for this transaction list
 		recTypeCountAry = pTrans->GetRecTypeCountAry();
 		sMsg.Empty();
-		for (j = 0; j < (int)recTypeCountAry.size(); j++)
+		for (j = 0; j < recTypeCountAry.size(); j++)
 		{
 			CRecordTypeCount* pRecTypeCount = &recTypeCountAry.at(j);
 			if (pRecTypeCount)

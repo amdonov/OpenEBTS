@@ -43,7 +43,7 @@ all: libOpenEBTSa.so
 libOpenEBTSa.so: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L"/home/d42/workspace/libs/NBISWSQ/Release" -shared -o"libOpenEBTSa.so" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"../../libs/NBISWSQ/Release" -shared -o"libOpenEBTSa.so" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
