@@ -3,7 +3,7 @@
 # clean Debug and Release flavours of NBISWSQ library
 cd ./libs/NBISWSQ/Debug
 make clean
-cd ./Release
+cd ./../Release
 make clean
 cd ./../../..
 

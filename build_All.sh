@@ -3,7 +3,7 @@
 # build Debug and Release flavours of NBISWSQ library
 cd ./libs/NBISWSQ/Debug
 make all
-cd ./Release
+cd ./../Release
 make all
 cd ./../../..
 
