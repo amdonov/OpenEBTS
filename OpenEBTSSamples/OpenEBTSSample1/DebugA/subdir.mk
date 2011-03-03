@@ -4,7 +4,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-/home/d42/workspace/OpenEBTSSamples/Helpers.cpp \
+../../Helpers.cpp \
 ../OpenEBTSSample1.cpp 
 
 OBJS += \
@@ -17,7 +17,7 @@ CPP_DEPS += \
 
 
 # Each subdirectory must supply rules for building sources it contributes
-Helpers.o: /home/d42/workspace/OpenEBTSSamples/Helpers.cpp
+Helpers.o: ../../Helpers.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
 	g++ -I../../../OpenEBTS -I../../.. -I../.. -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o"$@" "$<"

@@ -43,7 +43,7 @@ all: OpenEBTSSample1a
 OpenEBTSSample1a: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GCC C++ Linker'
-	g++ -L"/home/d42/workspace/OpenEBTS/ReleaseA" -o"OpenEBTSSample1a" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L"../../../OpenEBTS/ReleaseA" -o"OpenEBTSSample1a" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
