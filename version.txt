@@ -1,0 +1,24 @@
+
+OpenEBTS Version History
+========================
+
+
+Version 2.0.0.2, March 4th, 2011
+--------------------------------
+* Now also supported on 64-bit Linux. There are now 8 flavours of OpenEBTS
+based on Windows vs. Linux, MBCS vs. UNICODE, and 32-bit versus 64-bit.
+
+
+Version 2.0.0.1, February 28th 2011
+-----------------------------------
+* Now also supported on Windows x64.
+
+
+Version 2.0.0.0, February 5th 2011
+----------------------------------
+* Now also supported on Linux.
+
+
+Versions 1.0.0.0 to 1.0.0.38, 2009-2010
+--------------------------------------
+* Main feature development of OpenEBTS, supported on 32-bit Windows.
