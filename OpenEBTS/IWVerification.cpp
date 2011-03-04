@@ -2584,14 +2584,17 @@ int CIWVerification::GetMnemonics(const TCHAR* TransactionType, int DataArraySiz
 
 static const TCHAR s_rgszAutomaticMNU[][10] =
 {
-	 _T("T1_LEN"),  _T("T1_VER"),  _T("T1_CNT"),  _T("T1_TOT"), _T("T1_DCS"),
-	 _T("T2_LEN"),  _T("T2_IDC"),
-	 _T("T4_LEN"),  _T("T4_IDC"),  _T("T4_HLL"),  _T("T4_VLL"),  _T("T4_GCA"),  _T("T4_DAT"),
-	 _T("T7_LEN"),  _T("T7_IDC"),  _T("T7_HLL"),  _T("T7_VLL"),  _T("T7_GCA"),  _T("T7_DAT"),
-	 _T("T9_LEN"),  _T("T9_IDC"),
-	_T("T10_LEN"), _T("T10_IDC"), _T("T10_HLL"), _T("T10_VLL"), _T("T10_SLC"), _T("T10_HPS"), _T("T10_VPS"), _T("T10_CGA"), _T("T10_DAT"),
-	_T("T14_LEN"), _T("T14_IDC"), _T("T14_HLL"), _T("T14_VLL"), _T("T14_SLC"), _T("T14_HPS"), _T("T14_VPS"), _T("T10_CGA"), _T("T14_BPX"), _T("T10_DAT"),
-	_T("T16_LEN"), _T("T16_IDC"), _T("T16_HLL"), _T("T16_VLL"), _T("T16_SLC"), _T("T16_HPS"), _T("T16_VPS"), _T("T16_CGA"), _T("T16_BPX"), _T("T16_DAT")
+ _T("T1_LEN"),  _T("T1_VER"),  _T("T1_CNT"),  _T("T1_TOT"), _T("T1_DCS"),
+ _T("T2_LEN"),  _T("T2_IDC"),
+ _T("T4_LEN"),  _T("T4_IDC"),  _T("T4_HLL"),  _T("T4_VLL"),  _T("T4_GCA"),  _T("T4_DAT"),
+ _T("T7_LEN"),  _T("T7_IDC"),  _T("T7_HLL"),  _T("T7_VLL"),  _T("T7_GCA"),  _T("T7_DAT"),
+ _T("T9_LEN"),  _T("T9_IDC"),
+_T("T10_LEN"), _T("T10_IDC"), _T("T10_HLL"), _T("T10_VLL"), _T("T10_SLC"), _T("T10_HPS"), _T("T10_VPS"), _T("T10_CGA"), _T("T10_DAT"),
+_T("T13_LEN"), _T("T13_IDC"), _T("T13_HLL"), _T("T13_VLL"), _T("T13_SLC"), _T("T13_HPS"), _T("T13_VPS"), _T("T13_CGA"), _T("T13_BPX"), _T("T13_DAT"),
+_T("T14_LEN"), _T("T14_IDC"), _T("T14_HLL"), _T("T14_VLL"), _T("T14_SLC"), _T("T14_HPS"), _T("T14_VPS"), _T("T10_CGA"), _T("T14_BPX"), _T("T10_DAT"),
+_T("T15_LEN"), _T("T15_IDC"), _T("T15_HLL"), _T("T15_VLL"), _T("T15_SLC"), _T("T15_HPS"), _T("T15_VPS"), _T("T15_CGA"), _T("T15_BPX"), _T("T15_DAT"),
+_T("T16_LEN"), _T("T16_IDC"), _T("T16_HLL"), _T("T16_VLL"), _T("T16_SLC"), _T("T16_HPS"), _T("T16_VPS"), _T("T16_CGA"), _T("T16_BPX"), _T("T16_DAT"),
+_T("T17_LEN"), _T("T17_IDC"), _T("T17_HLL"), _T("T17_VLL"), _T("T17_SLC"), _T("T17_HPS"), _T("T17_VPS"), _T("T17_CGA"), _T("T17_BPX"), _T("T17_DAT")
 };
 
 static int s_nAutomaticMNUs = sizeof(s_rgszAutomaticMNU)/sizeof(s_rgszAutomaticMNU[0]);
