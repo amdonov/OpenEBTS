@@ -46,7 +46,7 @@
 									<listOptionValue builtIn="false" value="OpenEBTS"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1281433083" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/OpenEBTS/Debug}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/Debug&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1500231778" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -519,7 +519,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1664971357" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.498973908" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.paths.2116656201" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/OpenEBTS/Release}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/Release&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.900373956" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="OpenEBTS"/>
@@ -982,7 +982,7 @@
 									<listOptionValue builtIn="false" value="../../.."/>
 									<listOptionValue builtIn="false" value="../.."/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.711267160" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.711267160" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1290092424" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1361399710" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
@@ -996,7 +996,7 @@
 									<listOptionValue builtIn="false" value="OpenEBTSa"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1539047185" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/OpenEBTS/DebugA}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/DebugA&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.728578202" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -1456,7 +1456,7 @@
 									<listOptionValue builtIn="false" value="../../.."/>
 									<listOptionValue builtIn="false" value="../.."/>
 								</option>
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1867894939" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols"/>
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1867894939" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.881238064" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.2116429814" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
@@ -1467,7 +1467,7 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.150236401" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1853001330" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.paths.596472588" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/OpenEBTS/ReleaseA}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/ReleaseA&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.735051202" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="OpenEBTSa"/>

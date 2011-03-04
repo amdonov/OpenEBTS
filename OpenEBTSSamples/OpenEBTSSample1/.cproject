@@ -46,7 +46,7 @@
 									<listOptionValue builtIn="false" value="OpenEBTS"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1281433083" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;../../OpenEBTS/Debug&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/Debug&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1500231778" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -522,7 +522,7 @@
 									<listOptionValue builtIn="false" value="OpenEBTS"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1110786795" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;../../OpenEBTS/Release&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/Release&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1961096502" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -996,7 +996,7 @@
 									<listOptionValue builtIn="false" value="OpenEBTSa"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.1196525078" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;../../OpenEBTS/DebugA&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/DebugA&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.724781502" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -1470,7 +1470,7 @@
 									<listOptionValue builtIn="false" value="OpenEBTSa"/>
 								</option>
 								<option id="gnu.cpp.link.option.paths.775258146" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;../../OpenEBTS/ReleaseA&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../../../OpenEBTS/ReleaseA&quot;"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.2011328062" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
