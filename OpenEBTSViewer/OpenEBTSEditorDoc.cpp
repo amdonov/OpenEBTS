@@ -742,7 +742,7 @@ int COpenEBTSEditorDoc::ReadType10Records()
 					}
 				}
 
-				sLBText.Format(_T("%d\t%s%s%s\n"), FieldNum, sSubField, NumItems > 1 ? ": " : "", sData);
+				sLBText.Format(_T("%d\t%s%s%s\n"), FieldNum, sSubField, NumItems > 1 ? _T(": ") : _T(""), sData);
 				pRec->m_arrStrings.Add(sLBText);
 			}
 
