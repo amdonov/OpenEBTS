@@ -136,7 +136,7 @@ OPENEBTS_API int WINAPI IWWrite(
 OPENEBTS_API int WINAPI IWWriteXML(
 	CIWTransaction* pIWTrans,				// Transaction pointer
 	const TCHARPATH* szPath,				// Path of transaction file to create
-	bool bValidate							// Validate produced XML against NIST schemas
+	int bValidate							// Validate produced XML against NIST schemas
 );
 
 OPENEBTS_API int WINAPI IWGetNumRecords(
@@ -204,15 +204,15 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(
 	int* pnOccMin,							// Minimum number of occurrences
 	int* pnOccMax,							// Maximum number of occurrences
 	int* pnOffset,							// Item offset from record/field start
-	bool* pbAutomaticallySet,				// True if OpenEBTS handles this field
-	bool* pbMandatory						// True if field is mandatory, false if optional
+	int* pbAutomaticallySet,				// True if OpenEBTS handles this field
+	int* pbMandatory						// True if field is mandatory, false if optional
 );
 
 OPENEBTS_API int WINAPI IWGetValueList(
 	CIWVerification* pIWVer,				// Verification Pointer
 	const TCHAR* szTransactionType,			// Type of transaction
 	const TCHAR* szMnemonic,				// Field identifier
-	bool *pbMandatory,						// Field is mandatory
+	int *pbMandatory,						// Field is mandatory
 	int nDataArraySize,						// Number of string pointers in DataArray & DescArray
 	const TCHAR** rgszDataArray,			// Block of string pointers
 	const TCHAR** rgszDescArray,			// Block of string pointers to descriptions
@@ -323,6 +323,13 @@ OPENEBTS_API int WINAPI IWRemoveItem(
 	int nField,								// Field number
 	int nSubfield,							// Subfield number
 	int nItem								// Item number
+);
+
+OPENEBTS_API int WINAPI IWGetNumFields(
+	CIWTransaction* pIWTrans,				// Transaction pointer
+	int nRecordType,           				// Record type
+	int nRecordIndex,						// Record index
+	int* pnCount							// The number of fields present
 );
 
 OPENEBTS_API int WINAPI IWGetNextField(

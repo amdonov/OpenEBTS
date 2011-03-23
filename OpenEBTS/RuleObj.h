@@ -25,6 +25,8 @@ class CRuleObj
 {
 private:
 	bool SetTransactions(CStdString& sTransactionList);
+	int	 SkipOverChars(CStdString& s, TCHAR cSkip, int& nPos);
+	int	 GetLocationForm(const CStdString& sLocation);
 	bool SetLocation(CStdString& sLocation);
 	bool SetMNU(CStdString& sMNU);
 	bool SetCharType(CStdString& sCharType);
@@ -38,10 +40,7 @@ private:
 	bool SetOptionalMMap(CStdString& sMMap, CStdString& sFilePath);
 	bool SetOptionalOMap(CStdString& sOMap, CStdString& sFilePath);
 	bool SetOptionalMap(CStdString& sMap, CStdString& sFilePath, std::vector<CStdString>& mapValNames, std::vector<CStdString>& mapValDescriptions);
-
 	bool GetRangeValue(CStdString& sToken, int *pValue);
-
-	bool TestRegEx(CStdString& sInput, CStdString& sRegEx);
 	bool ExtractValues(CStdString& sLocation, std::vector<UINT> *pNumAry);
 
 	void DumpObject();

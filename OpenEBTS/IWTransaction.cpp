@@ -682,8 +682,18 @@ int CIWTransaction::GetNumItems(int RecordType, int RecordIndex, int Field, int 
 	return nRet;
 }
 
-int CIWTransaction::GetNextField(int RecordType, int RecordIndex, 
-													int Field, int *pNextField)
+int CIWTransaction::GetNumFields(int RecordType, int RecordIndex, int *pCount)
+{
+	int nRet = IW_ERR_RECORD_NOT_FOUND;
+	CNISTRecord *pRecord = GetRecord(RecordType, RecordIndex);
+
+	if (pRecord)
+		nRet = pRecord->GetNumFields(pCount);
+
+	return nRet;
+}
+
+int CIWTransaction::GetNextField(int RecordType, int RecordIndex, int Field, int *pNextField)
 {
 	int nRet = IW_ERR_RECORD_NOT_FOUND;
 	CNISTRecord *pRecord = GetRecord(RecordType, RecordIndex);

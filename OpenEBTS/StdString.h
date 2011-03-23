@@ -772,6 +772,14 @@ inline const Type& SSMAX(const Type& arg1, const Type& arg2)
 
 #endif
 
+// Some platforms don't support std:wstring
+#ifdef SS_NO_STDWCHAR
+namespace std
+{
+	typedef basic_string<wchar_t> wstring;
+}
+#endif
+
 // =============================================================================
 // UNICODE/MBCS conversion macros.  Made to work just like the MFC/ATL ones.
 // =============================================================================

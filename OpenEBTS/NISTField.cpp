@@ -522,6 +522,18 @@ struct SubfieldItemSort
 			return (rp1->m_nSubField < rp2->m_nSubField);
 		}
 	 }
+	 bool operator()(CSubFieldItem* const& rp1, CSubFieldItem* const& rp2)
+	 {
+		if (rp1->m_nSubField == rp2->m_nSubField)
+		// Subfield indices are equal, we sort by the item indices
+		{
+			return (rp1->m_nSubFieldItem < rp2->m_nSubFieldItem);
+		}
+		else
+		{
+			return (rp1->m_nSubField < rp2->m_nSubField);
+		}
+	 }
 };
 
 int CNISTField::Write(FILE *pFile)

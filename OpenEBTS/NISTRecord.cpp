@@ -508,6 +508,13 @@ int CNISTRecord::GetNextField(int nField, int *pNextField)
 	return nRet;
 }
 
+int CNISTRecord::GetNumFields(int *pCount)
+{
+	if (pCount)
+		*pCount = (int)m_FieldList.size();
+	return IW_SUCCESS;
+}
+
 int CNISTRecord::GetNumSubfields(int nField, int *pCount)
 {
 	int nRet = IW_ERR_INDEX_OUT_OF_RANGE;

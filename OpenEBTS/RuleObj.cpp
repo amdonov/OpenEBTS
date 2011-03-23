@@ -9,7 +9,6 @@
 #pragma warning(disable : 4786)
 #endif
 
-#include <boost/regex.hpp>
 
 bool DownloadURLContent(std::string strUrl , std::string & strContent,
 						std::string &headers,bool grabHeaders = true,
@@ -381,6 +380,7 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 			sFTPFilePath.assign(sFTPPrefix.begin(), sFTPPrefix.end());
 			sFTPFilePath.append(sFilename.begin(), sFilename.end());
 
+			/*DJD TODO
 			if (DownloadURLContent(sFTPFilePath, sContent, sHeaders))
 			{  
 				//the following line is to display debugging data
@@ -390,7 +390,7 @@ bool CRuleObj::SetOptionalMap(CStdString& sMap, CStdString& sFilePath,
 				memset(pFile, '\0', lSize + 2);
 				memcpy(pFile, sContent.c_str(), lSize);
 			}  
-			else
+			else*/
 				return false;
 		}
 
@@ -791,62 +791,190 @@ bool CRuleObj::SetMNU(CStdString& sMNU)
 	return bRet;
 }
 
+int CRuleObj::SkipOverChars(CStdString& s, TCHAR cSkip, int& nPos)
+// If cSkip is 0 we consider it to imply 'all digits'.
+// Return total number of chars skipped, starting at nPos.
+// Returns index directly after last cSkip char back in nPos.
+{
+	int		iMax = (int)s.length()-1;
+	int		nStartPos = nPos;
+	TCHAR	c;
+
+	for (;;)
+	{
+		if (nPos > iMax) break;
+
+		c = s.GetAt(nPos);
+
+		if (cSkip == _T('0'))
+		{
+			if (isdigit(c))
+			{
+				nPos++;
+			}
+			else
+			{
+				break;
+			}
+		}
+		else
+		{
+			if (c == cSkip)
+			{
+				nPos++;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	return nPos - nStartPos;
+}
+
+int CRuleObj::GetLocationForm(const CStdString& sLocation)
+// Possible location forms:
+//
+// LOC_FORM_1, digit . digit
+// LOC_FORM_2, digit . digit . digit
+// LOC_FORM_3, digit . digit . digit . digit
+// LOC_FORM_4, digit . digit :
+// LOC_FORM_5, digit . digit .. digit
+// LOC_FORM_6, digit . digit ... digit
+// LOC_FORM_7, digit . digit . digit . digit . digit
+{
+	// To determine which pattern matches we first traverse and first skip
+	// over the "digit . digit" markers. We add an asterisk  as an end marker
+	// so we can easily identify the end.
+
+	CStdString	s = sLocation + _T("*");
+	int			length = (int)s.length();
+	int			pos;
+	int			count;
+
+	pos = 0;
+
+	count = SkipOverChars(s, _T('0'), pos);
+	// no digits encountered, error
+	if (count == 0) return LOC_FORM_UNKOWN;
+
+	count = SkipOverChars(s, _T('.'), pos);
+	// we need exactly one period
+	if (count != 1) return LOC_FORM_UNKOWN;
+
+	count = SkipOverChars(s, _T('0'), pos);
+	// no digits encountered, error
+	if (count == 0) return LOC_FORM_UNKOWN;
+
+	// we're done, we have a type 1
+	if (pos == length-1) return LOC_FORM_1;
+
+	// try and skip over some more periods
+	count = SkipOverChars(s, _T('.'), pos);
+
+	if (count == 0)
+	{
+		// this could be a form 4, the only one that doesn't have
+		// a period at this point, let's check
+		count = SkipOverChars(s, _T(':'), pos);
+		if (count == 1 && pos == length-1)
+		{
+			return LOC_FORM_4;
+		}
+		else
+		{
+			return LOC_FORM_UNKOWN;
+		}
+	}
+	else if (count == 1)
+	{
+		// This could be location form 2, 3 or 7
+		count = SkipOverChars(s, _T('0'), pos);
+		if (count == 0) return LOC_FORM_UNKOWN;
+
+		// we're done, we have a type 2
+		if (pos == length-1) return LOC_FORM_2;
+
+		count = SkipOverChars(s, _T('.'), pos);
+		// we need exactly one period
+		if (count != 1) return LOC_FORM_UNKOWN;
+
+		count = SkipOverChars(s, _T('0'), pos);
+		if (count == 0) return LOC_FORM_UNKOWN;
+
+		// we're done, we have a type 3
+		if (pos == length-1) return LOC_FORM_3;
+		
+		count = SkipOverChars(s, _T('.'), pos);
+		// we need exactly one period
+		if (count != 1) return LOC_FORM_UNKOWN;
+
+		count = SkipOverChars(s, _T('0'), pos);
+		if (count > 0 && pos == length)
+		{
+			return LOC_FORM_7;
+		}
+		else
+		{
+			return LOC_FORM_UNKOWN;
+		}
+	}
+	else if (count == 2)
+	{
+		// This should be form 5, let's just check we finish
+		// off with a digit group
+		count = SkipOverChars(s, _T('0'), pos);
+		if (count > 0 && pos == length-1)
+		{
+			return LOC_FORM_5;
+		}
+		else
+		{
+			return LOC_FORM_UNKOWN;
+		}
+	}
+	else if (count == 3)
+	{
+		// This should be form 6, let's just check we finish
+		// off with a digit group
+		count = SkipOverChars(s, _T('0'), pos);
+		if (count > 0 && pos == length-1)
+		{
+			return LOC_FORM_6;
+		}
+		else
+		{
+			return LOC_FORM_UNKOWN;
+		}
+	}
+	else
+	{
+		// more that 3 periods? unknown
+		return LOC_FORM_UNKOWN;
+	}
+}
+
 bool CRuleObj::SetLocation(CStdString& sLocation)
 {
 	CStdString sTemp(sLocation);
+	std::vector<UINT>	numAry;
 	CStdString sErr;
 	bool bRet = true;
 
 	sTemp.TrimLeft();
 	sTemp.TrimRight();
 
-	// sTemp must be one of:
-	// 1. digit . digit
-	// 2. digit . digit . digit
-	// 3. digit . digit . digit . digit
-	// 4. digit . digit . digit . digit . digit
-	// 5. digit . digit :
-	// 6. digit . digit .. digit
-	// 7. digit . digit ... digit
+	m_nLocFormType = GetLocationForm(sTemp);
 
-	std::vector<UINT>	numAry;
-	CStdString			sRegEx;
-	struct locstruct
-	{
-		int nForm;
-		char szRegex[80];
-	} formAry[] = {
-		{ LOC_FORM_1, "^\\d+\\.\\d+$" },						// digit . digit
-		{ LOC_FORM_2, "^\\d+\\.\\d+\\.\\d+$" },					// digit . digit . digit
-		{ LOC_FORM_3, "^\\d+\\.\\d+\\.\\d+\\.\\d+$" },			// digit . digit . digit . digit
-		{ LOC_FORM_4, "^\\d+\\.\\d+\\:$" },						// digit . digit :
-		{ LOC_FORM_5, "^\\d+\\.\\d+\\.{2}\\d+$" },				// digit . digit .. digit
-		{ LOC_FORM_6, "^\\d+\\.\\d+\\.{3}\\d+$" },				// digit . digit ... digit
-		{ LOC_FORM_7, "^\\d+\\.\\d+\\.\\d+\\.\\d+\\.\\d+$" }	// digit . digit . digit . digit . digit
-	};
-	int nSize = sizeof(formAry)/sizeof(formAry[0]);
+	if (m_nLocFormType == LOC_FORM_4)
+		sTemp.Replace(_T(':'), _T(' '));
+	else if (m_nLocFormType == LOC_FORM_5)
+		sTemp.Replace(_T(".."), _T("."));
+	else if (m_nLocFormType == LOC_FORM_6)
+		sTemp.Replace(_T("..."), _T("."));
 
-	// the form types are categorized from Aware rule documentation
-	m_nLocFormType = LOC_FORM_UNKOWN;
-	for (int i = 0; i < nSize; i++)
-	{
-		sRegEx = formAry[i].szRegex;
-		if (TestRegEx(sTemp,sRegEx))
-		{
-			m_nLocFormType = formAry[i].nForm;
-			
-			if (m_nLocFormType == LOC_FORM_4)
-				sTemp.Replace(_T(':'), _T(' '));
-			else if (m_nLocFormType == LOC_FORM_5)
-				sTemp.Replace(_T(".."), _T("."));
-			else if (m_nLocFormType == LOC_FORM_6)
-				sTemp.Replace(_T("..."), _T("."));
-
-			break;
-		}
-	}
-
-	if (m_nLocFormType != LOC_FORM_UNKOWN && ExtractValues(sTemp ,&numAry))
+	if (m_nLocFormType != LOC_FORM_UNKOWN && ExtractValues(sTemp, &numAry))
 	{
 		int nCount = (int)numAry.size();
 
@@ -983,66 +1111,6 @@ bool CRuleObj::SetTransactions(CStdString& sTransactionList)
 			nPos = sCopy.Find(',');
 		}
 	}		
-
-	return bRet;
-}
-
-bool CRuleObj::TestRegEx(CStdString& sInput, CStdString& sRegEx)
-{
-#ifdef UNICODE
-	typedef	std::wstring stdstring;
-	boost::wregex	e;
-#else
-	typedef	std::string stdstring;
-	boost::regex	e;
-#endif
-	stdstring		input;
-	bool			bRet = false;
-
-	input = sInput.c_str();
-
-	try
-	{
-		e = sRegEx.c_str();
-	}
-	catch (...)
-	{
-		if (g_bLogToFile)
-		{
-			CStdString sMsg;
-			sMsg.Format(IDS_LOGRULETESTREGEX, sRegEx);
-			LogMessage(sMsg);
-		}
-	}
-
-	try
-	{
-		// return false for partial match, true for full match, or throw for
-		// impossible match based on what we have so far...
-		boost::match_results<stdstring::const_iterator> what;
-		if(0 == boost::regex_match(input, what, e, boost::match_default | boost::match_partial))
-		{
-			bRet = false;
-			// the input so far could not possibly be valid so reject it:
-	//		throw std::runtime_error("Invalid data entered - this could not possibly be a valid card number");
-		}
-		// OK so far so good, but have we finished?
-		if(what[0].matched)
-		{
-			// excellent, we have a result:
-			// return true;
-			bRet = true; // so far, so good
-		}
-	}
-	catch (...)
-	{
-		if (g_bLogToFile)
-		{
-			CStdString sMsg;
-			sMsg.Format(IDS_LOGRULETESTREGEX, sRegEx);
-			LogMessage(sMsg);
-		}
-	}
 
 	return bRet;
 }

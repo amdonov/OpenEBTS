@@ -2458,7 +2458,8 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const TCHAR **ppData
 				{
 					if (nPos < DataArraySize)
 					{
-						ppDataArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTArray.at(j));
+						if (ppDataArray)
+							ppDataArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTArray.at(j));
 						if (ppDescArray)
 							ppDescArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTLabelArray.at(j));
 					}
@@ -2478,7 +2479,8 @@ int CIWVerification::GetTransactionTypes(int DataArraySize, const TCHAR **ppData
 					{
 						if (nPos < DataArraySize)
 						{
-							ppDataArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTArray.at(j));
+							if (ppDataArray)
+								ppDataArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTArray.at(j));
 							if (ppDescArray)
 								ppDescArray[nPos] = CreateNewStringSlot(pTransDef->m_TOTLabelArray.at(j));
 						}
@@ -2565,8 +2567,8 @@ int CIWVerification::GetMnemonics(const TCHAR* TransactionType, int DataArraySiz
 			{
 				if (nPos < DataArraySize)
 				{
-					ppDataArray[nPos] = CreateNewStringSlot(pRule->GetMNU());
-					ppDescArray[nPos] = CreateNewStringSlot(pRule->GetDescription());
+					if (ppDataArray) ppDataArray[nPos] = CreateNewStringSlot(pRule->GetMNU());
+					if (ppDescArray) ppDescArray[nPos] = CreateNewStringSlot(pRule->GetDescription());
 				}
 				else
 				{

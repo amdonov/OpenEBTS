@@ -2,8 +2,17 @@
 OpenEBTS Version History
 ========================
 
+Version 2.0.0.3, March 23rd 2011
+--------------------------------
 
-Version 2.0.0.2, March 4th, 2011
+* Minor tweaks:
+* Standardized interface to C by replacing few bools with ints.
+* Added IWGetNumFields to avoid looping through all fields to get count.
+* Dealt with NULL input params smartly for IWGetTransactionTypes and IWGetMnemonics.
+* Removed Boost library from OpenEBTS, replaced Regex code with custom parsing.
+
+
+Version 2.0.0.2, March 4th 2011
 --------------------------------
 * Now also supported on 64-bit Linux. There are now 8 flavours of OpenEBTS
 based on Windows vs. Linux, MBCS vs. UNICODE, and 32-bit versus 64-bit.

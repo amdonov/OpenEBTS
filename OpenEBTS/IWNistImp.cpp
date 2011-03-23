@@ -391,7 +391,7 @@ OPENEBTS_API int WINAPI IWWrite(CIWTransaction* pIWTrans, const TCHARPATH* szPat
 	return nRet;
 }
 
-OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHARPATH* szPath, bool bValidate)
+OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHARPATH* szPath, int bValidate)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
 
@@ -400,7 +400,7 @@ OPENEBTS_API int WINAPI IWWriteXML(CIWTransaction* pIWTrans, const TCHARPATH* sz
 		IWS_BEGIN_EXCEPTION_METHOD("IWWriteXML")
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWTrans->WriteXML(szPath, bValidate);
+		nRet = pIWTrans->WriteXML(szPath, bValidate != 0);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -538,6 +538,21 @@ OPENEBTS_API int WINAPI IWRemoveItem(CIWTransaction* pIWTrans, int nRecordType,
 	return nRet;
 }
 
+OPENEBTS_API int WINAPI IWGetNumFields(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, int* pnCount)
+{
+	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
+
+	IWS_BEGIN_EXCEPTION_METHOD("IWGetNumFields")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	if (pIWTrans && pIWTrans->IsTransactionLoaded())
+		nRet = pIWTrans->GetNumFields(nRecordType, nRecordIndex, pnCount);
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	return nRet;	
+}
+
 OPENEBTS_API int WINAPI IWGetNextField(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex, int nField, int* pnNextField)
 {
 	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
@@ -629,7 +644,7 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCH
 											  int* pnRecordType, int* pnField, int* pnSubfield, int* pnItem, const TCHAR** pszDesc,
 											  const TCHAR** pszLongDesc, const TCHAR** pszCharType, const TCHAR** pszSpecialChars,
 											  const TCHAR** pszDateFormat, const TCHAR** pszAdvancedRule, int* pnSizeMin, int* pnSizeMax,
-											  int* pnOccMin, int* pnOccMax, int* pnOffset, bool* pbAutomaticallySet, bool* pbMandatory)
+											  int* pnOccMin, int* pnOccMax, int* pnOffset, int* pbAutomaticallySet, int* pbMandatory)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
 
@@ -640,7 +655,7 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCH
 
 		nRet = pIWVer->GetRuleRestrictions(szTransactionType, szMnemonic, pnRecordType, pnField, pnSubfield, pnItem, pszDesc, pszLongDesc,
 										   pszCharType, pszSpecialChars, pszDateFormat, pszAdvancedRule, pnSizeMin, pnSizeMax, pnOccMin,
-										   pnOccMax, pnOffset, pbAutomaticallySet, pbMandatory);
+										   pnOccMax, pnOffset, (bool*)pbAutomaticallySet, (bool*)pbMandatory);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}
@@ -648,7 +663,7 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCH
 	return nRet;
 }
 
-OPENEBTS_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic, bool *pbMandatory,
+OPENEBTS_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic, int *pbMandatory,
 									   int nDataArraySize, const TCHAR** rgszDataArray, const TCHAR** rgszDescArray, int *pnEntries)
 {
 	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
@@ -658,7 +673,7 @@ OPENEBTS_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const TCHAR* szT
 		IWS_BEGIN_EXCEPTION_METHOD("IWGetValueList")
 		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
 
-		nRet = pIWVer->GetValueList(szTransactionType, szMnemonic, pbMandatory, nDataArraySize, rgszDataArray, rgszDescArray, pnEntries);
+		nRet = pIWVer->GetValueList(szTransactionType, szMnemonic, (bool*)pbMandatory, nDataArraySize, rgszDataArray, rgszDescArray, pnEntries);
 
 		IWS_END_CATCHEXCEPTION_BLOCK()
 	}

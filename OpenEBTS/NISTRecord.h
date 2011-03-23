@@ -51,6 +51,7 @@ public:
 	int GetRecordOffset() { return m_nRecordOffset; }
 	int SetRecordOffset(int nRecordOffset) { m_nRecordOffset = nRecordOffset; return IW_SUCCESS; }
 
+	int GetNumFields(int *pCount);
 	int GetNumSubfields(int nField, int *pCount);
 	int GetNextField(int nField, int *pNextField);
 	int GetNumItems(int Field, int Subfield, int* Count); //  { *Count = 0; return IW_SUCCESS; }

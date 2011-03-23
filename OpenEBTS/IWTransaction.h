@@ -109,6 +109,7 @@ public:
 	/*                   NIST Data Access                       */
 	/************************************************************/
 
+	int GetNumFields(int RecordType, int RecordIndex, int *pCount);
 	int GetNextField(int RecordType, int RecordIndex, int Field, int *pNextField);
 	int GetNumSubfields(int RecordType, int RecordIndex, int Field, int *pCount);
 	int GetNumItems(int RecordType, int RecordIndex, int Field, int Subfield, int *pCount);
