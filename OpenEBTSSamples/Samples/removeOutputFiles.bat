@@ -1,3 +1,2 @@
-del OpenEBTSSample1_out*.*
+del *_out*.*
 
-del OpenEBTSSample2_out*.*
