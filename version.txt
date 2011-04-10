@@ -2,6 +2,16 @@
 OpenEBTS Version History
 ========================
 
+
+Version 2.0.0.4, April 10th 2011
+--------------------------------
+
+* JNI wrappers and Java classes for OpenEBTS.
+* Java samples demonstrating object-oriented classes.
+* OpenEBTS port to Android.
+* Android activity samples.
+
+
 Version 2.0.0.3, March 23rd 2011
 --------------------------------
 
