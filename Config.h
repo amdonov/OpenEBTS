@@ -66,6 +66,7 @@
 #define _istprint	iswprint
 #define _istspace	iswspace
 #define _tcsrchr	wcsrchr
+#define _tcscmp		wcscmp
 
 #else
 
@@ -87,6 +88,7 @@
 #define _istprint	isprint
 #define _istspace	isspace
 #define _tcsrchr	strrchr
+#define _tcscmp		strcmp
 
 #endif
 

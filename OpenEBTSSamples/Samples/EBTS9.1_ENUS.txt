@@ -66,7 +66,7 @@ TRANSACTIONS "CJIS Card Scanning Service Submissions"
   FUFC  "Federal Applicant CSS Submission (User Fee)"
   MAPC  "Miscellaneous Applicant Civil CSS Submission (No Charge)"
   NFFC  "Non-Federal Applicant CSS Submission (User Fee)"
-  NFDP  "Non-Federal Applicant CSS Submission (User Fee – Direct Payment)"
+  NFDP  "Non-Federal Applicant CSS Submission (User Fee - Direct Payment)"
         1:1 2:1 414:1-14 10:0-4 713:0-2 15:0-8;
 
 ################################################################################
@@ -168,7 +168,7 @@ TRANSACTIONS "Submission Responses"
         1:1 2:1;
   NAR   "Notification of Action Response"
         1:1 2:1;
-  SRL   "Search Result – Latent"
+  SRL   "Search Result - Latent"
         1:1 2:1 414:0-99;
   LPNR  "Latent Penetration Response"
   UULD  "Unsolicited Unsolved Latent Delete"

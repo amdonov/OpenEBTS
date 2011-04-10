@@ -76,7 +76,7 @@ TRANSACTIONS "CJIS Card Scanning Service Submissions"
   FUFC  "Federal Applicant CSS Submission (User Fee)"
   MAPC  "Miscellaneous Applicant Civil CSS Submission (No Charge)"
   NFFC  "Non-Federal Applicant CSS Submission (User Fee)"
-  NFDP  "Non-Federal Applicant CSS Submission (User Fee – Direct Payment)"
+  NFDP  "Non-Federal Applicant CSS Submission (User Fee - Direct Payment)"
         1:1 2:1 414:1-14 10:0-4 713:0-2 15:0-8;
 
 ################################################################################
@@ -178,7 +178,7 @@ TRANSACTIONS "Submission Responses"
         1:1 2:1;
   NAR   "Notification of Action Response"
         1:1 2:1;
-  SRL   "Search Result – Latent"
+  SRL   "Search Result - Latent"
         1:1 2:1 414:0-99;
   LPNR  "Latent Penetration Response"
   UULD  "Unsolicited Unsolved Latent Delete"
@@ -304,8 +304,7 @@ FIELDS
 			UULD:Unsolicited Unsolved Latent Delete|\
 			ULAR:Unsolved Latent Add Confirm Response|\
 			ULDR:Unsolved Latent Delete Response|\
-			FISR:Fingerprint Image Submission Response|\
-			TEST:Image Test to allow multiple Type-13 images only"
+			FISR:Fingerprint Image Submission Response"
 		long_desc="This mandatory field shall contain an identifier, \
 			designating the type of transaction and subsequent processing that this logical file should be \
 			given.";
@@ -1178,7 +1177,6 @@ CPD, PDR]
 		long_desc="This field contains the date of birth. It is entered as an eight-digit \
 			number in the same format as specified in Section 1.1 of this appendix. If DOB is completely \
 			unknown, enter as 00000000. Partial DOBs are not allowed. DOB shall not exceed date of \
-
 			submission after time zone adjustment. When a submission contains an unknown DOB and is a \
 			non-ident retained, that submission will be rejected, as IAFIS will not allow a master record to be \
 			created with an unknown DOB.";
@@ -2977,7 +2975,6 @@ TPFS M, TPIS]
 # The definitions for Type-13 fields are take from ANSI/NIST-ITL 1-2007.
 #
 
-
 [M]
 	13.001	T13_LEN	N		3-7		1		desc="Logical Record Length"
 		long_desc="This mandatory ASCII field shall contain the total count of the number of bytes in the Type-13 \
@@ -3083,8 +3080,7 @@ TPFS M, TPIS]
 			JPEGL:Lossless Compression|\
 			JP2:JPEG 2000 ISO/IEC 15444-1 (Lossy)|\
 			JP2L:JPEG 2000 ISO/IEC 15444-1 (Lossless)|\
-			PNG:Portable Network Graphics|\
-			FAX:Facsimile ANSI/EIA 538-1988"
+			PNG:Portable Network Graphics"
 		long_desc="This mandatory ASCII field shall specify the algorithm used to compress the transmitted \
 			grayscale images. An entry of 'NONE' in this field indicates that the data contained in this record \
 			is uncompressed. For those images that are to be losslessly compressed, this field shall contain \
@@ -3140,7 +3136,6 @@ TPFS M, TPIS]
 			finger position code (0-10) taken from Table 12. A '0' indicates that all the fingers of a possible \
 			candidate should be searched. The second information item is the code taken from Table 32 to \
 			indicate the portion of the EJI or tip image in the database to search. Latent images of full-length \
-
 			fingers use codes FV1 through FV4 as defined in Table 32. Figure 7 is an illustration of the Entire \
 			Joint Image for a middle finger with each of the full finger views and constituent parts identified. \
 			The EJI code is used for the case where all four finger images are to be considered. For the case \
@@ -3472,7 +3467,6 @@ TPFS M, TPIS]
 			15:Left and Right Thumbs|\
 			19:EJI or Tip";
 	14.014..2	T14_MCP_ETC		A		3		1		desc="Major Case Print EJI and Tip Codes"
-
 		mmap="EJI:Entire Joint Image|\
 			TIP:LRolled Tip TIP|\
 			FV1:Full Finger Rolled Image|\
@@ -3610,7 +3604,6 @@ TPFS M, TPIS]
 			the integer image quality score between 0 and 100 assigned to the image data by a quality \
 			algorithm. Higher values indicate better quality. An entry of '255' shall indicate a failed \
 			attempt to calculate a quality score. An entry of '254' shall indicate that no attempt to calculate \
-
 			a quality score was made. The use of additional values to convey other information should be \
 			harmonized with ISO/IEC 19794 standards. \
 			The third information item shall specify the integer value that is the ID of the vendor of the \
@@ -3756,7 +3749,6 @@ TPFS M, TPIS]
 			must be a legitimate date.";
 
 [M]
-
 	15.006	T15_HLL	N		3-4		1		desc="Horizontal Line Length"
 		long_desc="This mandatory ASCII field shall contain the number of pixels contained on a single horizontal line \
 			of the transmitted image.";
@@ -3909,7 +3901,6 @@ TPFS M, TPIS]
 
 [O]
 	15.030	T15_DMM	A		7-10		1		desc="Device Monitoring Mode"
-
 		mmap="CONTROLLED:Operator physically controls the subject to acquire biometric sample|\
 			ASSISTED:Person available to provide assistance to subject submitting the biometric|\
 			OBSERVED:Person present to observe operation of the device but provides no assistance|\
