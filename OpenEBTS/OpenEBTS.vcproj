@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;_DEBUG;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -122,7 +122,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;_DEBUG;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -200,7 +200,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -279,7 +279,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;UNICODE;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -356,7 +356,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;_DEBUG;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -434,7 +434,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;_DEBUG;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -513,7 +513,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -593,7 +593,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL"
+				AdditionalIncludeDirectories=".;./..;./../libs/FreeImage;./../libs/NBISWSQ/include;./../libs/cURL;Java"
 				PreprocessorDefinitions="WIN32;OPENEBTS_EXPORTS;CURL_STATICLIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1201,6 +1201,142 @@
 			</File>
 			<File
 				RelativePath=".\NISTRecord.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Java\OpenEBTSJNI.c"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="DebugA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="ReleaseA|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Java\OpenEBTSJNIHelpers.c"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"

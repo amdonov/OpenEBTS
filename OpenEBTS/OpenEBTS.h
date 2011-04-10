@@ -49,7 +49,7 @@ extern "C" {
 #endif // __cplusplus
 
 #ifndef BYTE
-typedef unsigned char BYTE;
+#define BYTE unsigned char
 #endif
 
 typedef struct _FINGERPRINT_HEADER_
