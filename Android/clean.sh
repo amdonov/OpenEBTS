@@ -1,0 +1,13 @@
+rm -rf OpenEBTS/bin
+rm -rf OpenEBTS/gen
+rm -rf OpenEBTS/assets
+rm -rf OpenEBTS/obj
+rm -rf CreateFile/bin
+rm -rf CreateFile/gen
+rm -rf CreateFile/assets
+rm -rf ReadFile/bin
+rm -rf ReadFile/gen
+rm -rf ReadFile/assets
+rm -rf ReadVer/bin
+rm -rf ReadVer/gen
+rm -rf ReadVer/assets
