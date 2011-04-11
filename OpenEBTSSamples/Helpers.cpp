@@ -422,7 +422,7 @@ bool WriteBLOBToFile(const TCHARPATH *szFilename, BYTE* pBlob, long lBlobLen)
 		cbWritten = fwrite(pBlob, 1, lBlobLen, f);
 		fclose(f);
 
-		if (cbWritten == lBlobLen)
+		if ((long)cbWritten == lBlobLen)
 		{
 			bRet = true;
 		}

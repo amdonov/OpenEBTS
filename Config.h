@@ -29,6 +29,8 @@
 
 #else
 
+#include <wchar.h>
+
 // On *nix filenames can be referred to only by char* (the filesystem is UTF-8),
 // so here we set these *path definitions to point to the char* counterparts
 // regardless of the UNICODE flag

@@ -789,7 +789,7 @@ JNIEXPORT jobjectArray JNICALL Java_com_obi_OpenEBTS_IWGetRecordTypeOccurrences
 // and max allowed occurrences arrays, respectively.
 {
  	RETVAL
- 	jobjectArray	jnaOccurrences;
+ 	jobjectArray	jnaOccurrences = NULL;
 	CIWVerification	*pVer = (CIWVerification*)nVerification;
 	int				nOccurrences = 0;
 	const TCHAR		*szTOT = NULL;

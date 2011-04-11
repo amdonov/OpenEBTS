@@ -1047,10 +1047,10 @@ void CIWVerification::DebugOutputVerification()
 
 		// Output all TOTs for this transaction list
 		sMsg.Empty();
-		for (j = 0; j < pTrans->m_TOTArray.size(); j++)
+		for (j = 0; j < (unsigned int)pTrans->m_TOTArray.size(); j++)
 		{
 			sMsg += pTrans->m_TOTArray[j];
-			if (j != (long)pTrans->m_TOTArray.size()-1)
+			if (j != (unsigned int)pTrans->m_TOTArray.size()-1)
 			{
 				sMsg += _T(", ");
 			}
