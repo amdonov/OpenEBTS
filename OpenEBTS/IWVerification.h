@@ -18,7 +18,7 @@ private:
 	// begin Rule parsing functions
 	CStdString GetTransactionList(TCHAR **ppRule);
 	CStdString GetLocationIndex(TCHAR **ppRule);
-	CStdString GetMneumonic(TCHAR **ppRule);
+	CStdString GetMnemonic(TCHAR **ppRule);
 	CStdString GetCharType(TCHAR **ppRule);
 	CStdString GetFieldSize(TCHAR **ppRule);
 	CStdString GetOccurrences(TCHAR **ppRule);
@@ -79,7 +79,6 @@ public:
 	bool IsLoaded() { return m_bVerificationLoaded; }
 
 	void DebugOutputVerification();
-
 	// Mnemonic based data access methods
 	int GetMNULocation(CStdString sMNU, int inputIndex, int inputRecordIndex, int *recordType, int *recordIndex, int *field, int *subField, int *item);
 	int GetTransactionCategories(int DataArraySize, const TCHAR **ppDataArray, int *pEntries);

@@ -39,7 +39,7 @@ enum RuleStateEnum
 	enRulePending,
 	enRuleTransactionList,
 	enRuleLocationIndex,
-	enRuleMneumonic,
+	enRuleMnemonic,
 	enRuleCharType,
 	enRuleFieldLength,
 	enRuleOccurrence,
@@ -135,7 +135,7 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 	}
 
 	TCHAR *pRule;
-	CStdString sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence;
+	CStdString sLocationIndex, sMnemonic, sCharType, sFieldSize, sOccurrence;
 	CStdString sDescription, sLongDescription, sSpecialChars, sDateFormat, sAdvancedRule, sTags;
 	CStdString sTransactionList;
 	CStdString sMMap, sOMap;
@@ -167,7 +167,7 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 			}
 			if (pRule)
 			{
-				sMneumonic = GetMneumonic(&pRule);
+				sMnemonic = GetMnemonic(&pRule);
 			}
 			if (pRule)
 			{
@@ -210,14 +210,14 @@ int CIWVerification::LoadRules(TCHAR *pFile, CStdString sPath, CStdString& sErr)
 				sLongDescription = GetOptionalLongDescription(&pRule);
 			}
 #ifdef _DEBUG
-			if (g_bLogToFile)
+			if (IsLoggingVerbose())
 			{
-				sTemp.Format(IDS_LOGVERLOADRULES, sLocationIndex, sMneumonic, sCharType, sFieldSize, sOccurrence);
-				LogMessage(sTemp);
+				sTemp.Format(IDS_LOGVERLOADRULES, sLocationIndex, sMnemonic, sCharType, sFieldSize, sOccurrence);
+				LogMessageVerbose(sTemp);
 			}
 #endif
 			CRuleObj ruleObj;
-			if (ruleObj.SetData(sPath, sTransactionList, sLocationIndex, sMneumonic, sCharType, sFieldSize,
+			if (ruleObj.SetData(sPath, sTransactionList, sLocationIndex, sMnemonic, sCharType, sFieldSize,
 								sOccurrence, sDescription, sLongDescription, sSpecialChars, sDateFormat,
 								sAdvancedRule, sMMap, sOMap, sTags, sErr))
 			{
@@ -261,7 +261,7 @@ CStdString CIWVerification::ReadLine(TCHAR **ppFile)
 	}
 	catch (...)
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERREADLINE);
@@ -318,7 +318,7 @@ TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 	}
 	catch (...)
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERGETRULE);
@@ -351,7 +351,7 @@ void CIWVerification::SkipComments(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERSKIPCOMMENTS);
@@ -400,7 +400,7 @@ CStdString CIWVerification::GetTransactionList(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERGETTRANSLIST);
@@ -416,7 +416,7 @@ CStdString CIWVerification::GetLocationIndex(TCHAR **ppRule)
 	return GetNextToken(ppRule);
 }
 
-CStdString CIWVerification::GetMneumonic(TCHAR **ppRule)
+CStdString CIWVerification::GetMnemonic(TCHAR **ppRule)
 {
 	return GetNextToken(ppRule);
 }
@@ -737,7 +737,7 @@ CStdString CIWVerification::GetRangeToken(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERGETRANGETOKEN);
@@ -785,7 +785,7 @@ CStdString CIWVerification::GetNextToken(TCHAR **ppRule)
 	}
 	catch (...)
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERGETNEXTTOKEN);
@@ -983,9 +983,12 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdStringPath sPath)
 		}
 		else if (enState == enStError)
 		{
-			CStdString sMsg;
-			sMsg.Format(IDS_LOGVERREADVERFILE, sPath);
-			LogMessage(sMsg);
+			if (IsLogging())
+			{
+				CStdString sMsg;
+				sMsg.Format(IDS_LOGVERREADVERFILE, sPath);
+				LogMessage(sMsg);
+			}
 
 			delete pTransDef;
 			pTransDef = NULL;
@@ -1002,19 +1005,18 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdStringPath sPath)
 		pTransDef = NULL;
 	}
 
-
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sMsg;
 		sMsg.Format(IDS_LOGVERLOADTOTDEFS, m_transactionDefAry.size());
-		LogMessage(sMsg);
+		LogMessageVerbose(sMsg);
 
 #ifdef _DEBUG
 		for (UINT i = 0; i < m_transactionDefAry.size(); i++)
 		{
 			CTransactionDefinition *pTrans = &m_transactionDefAry.at(i);
 			sMsg.Format(IDS_LOGVERLOADTOTDEFSDBG, pTrans->m_sCategory, pTrans->GetRuleString());
-			LogMessage(sMsg);
+			LogMessageVerbose(sMsg);
 		}
 #endif
 	}
@@ -1024,7 +1026,12 @@ int CIWVerification::LoadTOTDefinitions(TCHAR *pFile, CStdStringPath sPath)
 
 void CIWVerification::DebugOutputVerification()
 // This function summarizes the entire contents of the Verification file as loaded into our structures.
+// We only log all this in DEBUG builds and with verbose logging on.
 {
+#ifdef _DEBUG
+
+	if (!IsLoggingVerbose()) return;
+
 	CStdString sMsg;
 	CStdString sTmp;
 	size_t nCount;
@@ -1036,7 +1043,8 @@ void CIWVerification::DebugOutputVerification()
 	unsigned int i;
 	unsigned int j;
 	sMsg = IDS_LOGVERDBGOUTDELIM;
-	LogMessage(sMsg);
+
+	LogMessageVerbose(sMsg);
 
 	nCount = m_transactionDefAry.size();
 
@@ -1055,7 +1063,7 @@ void CIWVerification::DebugOutputVerification()
 				sMsg += _T(", ");
 			}
 		}
-		if (!sMsg.IsEmpty()) LogMessage(sMsg);
+		if (!sMsg.IsEmpty()) LogMessageVerbose(sMsg);
 
 
 		// Output record type counts for this transaction list
@@ -1083,11 +1091,11 @@ void CIWVerification::DebugOutputVerification()
 				}
 			}
 		}
-		if (!sMsg.IsEmpty()) LogMessage(sMsg);
+		if (!sMsg.IsEmpty()) LogMessageVerbose(sMsg);
 	}
 
 	sMsg = IDS_LOGVERDBGOUTDELIM;
-	LogMessage(sMsg);
+	LogMessageVerbose(sMsg);
 
 	// FIELDS section of Verification file
 	nCount = m_rulesAry.size();
@@ -1099,11 +1107,12 @@ void CIWVerification::DebugOutputVerification()
 					pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(), pRule->GetMinOccurrences(),
 					pRule->GetMaxOccurrences(), pRule->GetDescription(), pRule->GetSpecialChars(),
 					pRule->GetDateFormat(), pRule->GetMMap(), pRule->GetTransactionListString());
-		LogMessage(sMsg);
+		LogMessageVerbose(sMsg);
 	}
 
 	sMsg = IDS_LOGVERDBGOUTDELIM;
-	LogMessage(sMsg);
+	LogMessageVerbose(sMsg);
+#endif
 }
 
 int CIWVerification::GetNumRulesPerMNU(CStdString sMNU)
@@ -1308,14 +1317,14 @@ int CIWVerification::VerifyTransaction(CIWTransaction *pTrans)
 				pRule = &m_rulesAry.at(i);
 
 #ifdef _DEBUG
-				if (g_bLogToFile)
+				if (IsLoggingVerbose())
 				{
 					sTraceMsg.Format(IDS_LOGVERVERIFYTRANS,
 									 pRule->GetMNU(), pRule->GetLocation(), pRule->GetCharType(),
 									 pRule->GetMinFieldSize(), pRule->GetMaxFieldSize(),
 									 pRule->GetMinOccurrences(), pRule->GetMaxOccurrences(),
 									 pRule->GetTransactionListString());
-					LogMessage(sTraceMsg);
+					LogMessageVerbose(sTraceMsg);
 				}
 #endif
 
@@ -1971,7 +1980,7 @@ bool CIWVerification::VerifyFieldChars(CIWTransaction *pTrans, CRuleObj *pRule, 
 	else
 	{
 		// Unknown CharType code
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(IDS_LOGVERVERIFYFIELDCHARS, pRule->GetMNU(), sCharType);
@@ -2345,10 +2354,7 @@ void CIWVerification::FlagFieldError(CIWTransaction *pTrans, CRuleObj* pRule, in
 	sMsg.Format(IDS_FLAGFIELDERROR, pRule->GetMNU().c_str(), pRule->GetLocation().c_str(), szErr);
 	pTrans->AddError(sMsg, nErrCode);
 
-	if (g_bLogToFile)
-	{
-		LogMessage(sMsg);
-	}
+	LogMessage(sMsg);
 }
 
 CRuleObj *CIWVerification::GetRule(CStdString sMNU)

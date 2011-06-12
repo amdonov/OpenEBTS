@@ -9,6 +9,7 @@ static char g_szFS[2] = { (char)0x1C, '\0' };
 static char g_szUS[2] = { (char)0x1F, '\0' };
 static char g_szRS[2] = { (char)0x1E, '\0' };
 
+
 /************************************************************/
 /*                                                          */
 /*               CSubFieldItem Implementation               */
@@ -91,11 +92,9 @@ CNISTField::CNISTField(long lRecordType, long lFieldID)
 
 void CNISTField::CopyObj(const CNISTField& obj)
 {
-	this->m_bWriteRecordSeperator = obj.m_bWriteRecordSeperator;
 	this->m_ImageFormat = obj.m_ImageFormat;
 	this->m_nField = obj.m_nField;
 	this->m_nImageLen = obj.m_nImageLen;
-	this->m_nRecordLen = obj.m_nRecordLen;
 	this->m_nRecordType = obj.m_nRecordType;
 	this->m_SubFieldAry = obj.m_SubFieldAry;
 
@@ -116,9 +115,7 @@ void CNISTField::InitVars()
 	m_pImageData = 0;
 	m_nImageLen = 0;
 	m_ImageFormat = fmtUNK;
-	m_nRecordLen = 0;
 	m_nRecordType = 0;
-	m_bWriteRecordSeperator = false;
 }
 
 CNISTField::~CNISTField() 
@@ -284,7 +281,6 @@ int CNISTField::SetImageData(unsigned char *pImage, int nImageLen)
 
 	memcpy(m_pImageData, pImage, nImageLen);
 	m_nImageLen = nImageLen;
-	m_nRecordLen = nImageLen;
 
 	if (CNISTRecord::IsBinaryFingerType(m_nRecordType))
 	{
@@ -444,10 +440,7 @@ int CNISTField::GetWriteLen()
 	size_t nLabelLen = 0;
 
 	// Note: these ALWAYS get written in ASCII, so we use good'ole char functions
-	if (m_nRecordType == 1)
-		sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
-	else
-		sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
+	sprintf(szFieldLabel, FMT_FIELD_LABEL, m_nRecordType, m_nField);
 	nLabelLen = strlen(szFieldLabel);
 
 	if (nCount)
@@ -468,17 +461,17 @@ int CNISTField::GetWriteLen()
 	}
 	else if (m_pImageData)
 	{
-		nLen = m_nImageLen + 1; // zero based to one's based
+		nLen = m_nImageLen;
 	}
 
 	nLen += nLabelLen;
 	nLen++; // for GS field separator
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGFIELDGETWRITELEN, m_nRecordType, m_nField, nLen);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	return (int)nLen;
@@ -536,16 +529,16 @@ struct SubfieldItemSort
 	 }
 };
 
-int CNISTField::Write(FILE *pFile)
+int CNISTField::Write(BYTE *pBuffer, int *poffset, bool bRecordSeparator)
 {
 	int nRet = IW_ERR_WRITING_FILE;
 	size_t nCount;
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGFIELDWRITE, m_nRecordType, m_nField);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	IWS_BEGIN_EXCEPTION_METHOD("CNISTField::Write")
@@ -560,134 +553,11 @@ int CNISTField::Write(FILE *pFile)
 
 	if (m_nField == 1) // handle LEN field seperately
 	{
-		if (m_nRecordType == 1) // dont need this, only for testing
-			sprintf(szFieldLabel, "%d.%02d:%d", m_nRecordType, m_nField, m_nRecordLen);
-		else
-			sprintf(szFieldLabel, "%d.%03d:%d", m_nRecordType, m_nField, m_nRecordLen);
+		int len = _tcstol(m_SubFieldAry.at(0)->m_sData, NULL, 10);
 
-		fwrite(szFieldLabel, 1, strlen(szFieldLabel), pFile);	// Field tag is ALWAYS in regular ASCII
-	}
-	else
-	{
-		nCount = m_SubFieldAry.size();
+		sprintf(szFieldLabel, FMT_FIELD_LABEL_LEN, m_nRecordType, m_nField, len);
 
-		// Add the field descriptor
-		if (m_nRecordType == 1) // dont need this, only for testing
-			sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
-		else
-			sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
-
-		fwrite(szFieldLabel, 1, strlen(szFieldLabel), pFile);	// Field tag is ALWAYS in regular ASCII
-
-		if (nCount)
-		{
-			CSubFieldItem *pSubField, *pNextSubField;
-
-			for (unsigned int i = 0; i < nCount; i++)
-			{
-				pSubField = m_SubFieldAry.at(i);
-
-				pNextSubField = 0;
-				if (i+1 < nCount)
-					pNextSubField = m_SubFieldAry.at(i+1);
-
-				if (pSubField)
-				{
-					// Write textual field data. If in UNICODE, write it in UTF-8, otherwise
-					// we write it in regular ASCII.
-					if (!pSubField->m_sData.IsEmpty())
-					{
-#ifdef UNICODE
-						// In the UNICODE version of OpenEBTS, we write out UNICODE strings as UTF-8.
-						char *p = NULL;
-						int  nLength;
-
-						if (UCStoUTF8(pSubField->m_sData, &p, &nLength))
-						{
-							if (p)
-							{
-								fwrite(p, 1, nLength-1, pFile);	// write string without NULL terminator
-								delete p;
-							}
-							else
-							{
-								goto done;		// critical error
-							}
-						}
-						else
-						{
-							goto done;	// failed encoding to UTF-8
-						}
-#else
-						// Write it as regular ASCII
-						fwrite(pSubField->m_sData.c_str(), 1, pSubField->m_sData.GetLength(), pFile);
-#endif
-					}
-
-					// Separators get written as regular ASCII
-					if (pNextSubField)
-					{
-						if (pSubField->m_nSubField == pNextSubField->m_nSubField)
-							fwrite(g_szUS, 1, strlen(g_szUS), pFile);	// add subfield item seperator
-						else
-							fwrite(g_szRS, 1, strlen(g_szRS), pFile);	// add subfield item seperator
-					}
-				}
-			}
-		}
-		else if (m_pImageData)
-		{
-			// Image data also get written as regular ASCII
-			fwrite(m_pImageData, 1, m_nImageLen, pFile);
-		}
-	}
-
-	// Separators get written as regular ASCII
-	if (m_bWriteRecordSeperator)
-		fwrite(g_szFS, 1, strlen(g_szFS), pFile);	// add Record seperator
-	else
-		fwrite(g_szGS, 1, strlen(g_szGS), pFile);	// add Field seperator
-
-	nRet = IW_SUCCESS;
-
-	IWS_END_CATCHEXCEPTION_BLOCK()
-
-#ifdef UNICODE
-done:
-#endif
-	return nRet;
-}
-
-int CNISTField::Write(TCHAR **ppData, int *poffset)
-{
-	int nRet = IW_ERR_WRITING_FILE;
-	size_t nCount;
-
-	if (g_bLogToFile)
-	{
-		CStdString sLogMessage;
-		sLogMessage.Format(IDS_LOGFIELDWRITE, m_nRecordType, m_nField);
-		LogMessage(sLogMessage);
-	}
-
-	IWS_BEGIN_EXCEPTION_METHOD("CNISTField::Write")
-	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
-
-	// Before writing out all subfields and items we sort the list so we can just output them
-	// sequentially afterwards. We sort the list first by subfield index then by item index.
-	std::sort(m_SubFieldAry.begin(), m_SubFieldAry.end(), SubfieldItemSort());
-
-	// Write the field and subfield data
-	char szFieldLabel[40];
-
-	if (m_nField == 1) // handle LEN field seperately
-	{
-		if (m_nRecordType == 1) // dont need this, only for testing
-			sprintf(szFieldLabel, "%d.%02d:%d", m_nRecordType, m_nField, m_nRecordLen);
-		else
-			sprintf(szFieldLabel, "%d.%03d:%d", m_nRecordType, m_nField, m_nRecordLen);
-
-		memcpy(*ppData + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
+		memcpy(pBuffer + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
 		*poffset = *poffset + (int)strlen(szFieldLabel);
 
 	}
@@ -696,12 +566,9 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 		nCount = m_SubFieldAry.size();
 
 		// Add the field descriptor
-		if (m_nRecordType == 1) // dont need this, only for testing
-			sprintf(szFieldLabel, "%d.%02d:", m_nRecordType, m_nField);
-		else
-			sprintf(szFieldLabel, "%d.%03d:", m_nRecordType, m_nField);
+		sprintf(szFieldLabel, FMT_FIELD_LABEL, m_nRecordType, m_nField);
 
-		memcpy(*ppData + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
+		memcpy(pBuffer + *poffset, szFieldLabel, strlen(szFieldLabel));	// Field tag is ALWAYS in regular ASCII
 		*poffset = *poffset + (int)strlen(szFieldLabel);
 
 		if (nCount)
@@ -731,7 +598,7 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 						{
 							if (p)
 							{
-								memcpy(*ppData + *poffset, p, nLength-1);	
+								memcpy(pBuffer + *poffset, p, nLength-1);	
 								*poffset = *poffset + nLength-1;
 
 								delete p;
@@ -747,7 +614,7 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 						}
 #else
 						// Write it as regular ASCII
-						memcpy(*ppData + *poffset, pSubField->m_sData.c_str(), pSubField->m_sData.GetLength() );
+						memcpy(pBuffer + *poffset, pSubField->m_sData.c_str(), pSubField->m_sData.GetLength() );
 						*poffset = *poffset + pSubField->m_sData.GetLength();
 #endif
 					}
@@ -757,12 +624,12 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 					{
 						if (pSubField->m_nSubField == pNextSubField->m_nSubField)
 						{
-							memcpy(*ppData + *poffset, g_szUS, strlen(g_szUS));
+							memcpy(pBuffer + *poffset, g_szUS, strlen(g_szUS));
 							*poffset = *poffset + (int)strlen(g_szUS);
 						}
 						else
 						{
-							memcpy(*ppData + *poffset, g_szRS, strlen(g_szRS));
+							memcpy(pBuffer + *poffset, g_szRS, strlen(g_szRS));
 							*poffset = *poffset + (int)strlen(g_szRS);
 						}
 					}
@@ -772,20 +639,20 @@ int CNISTField::Write(TCHAR **ppData, int *poffset)
 		else if (m_pImageData)
 		{
 			// Image data also get written as regular ASCII
-			memcpy(*ppData + *poffset, m_pImageData, m_nImageLen);
+			memcpy(pBuffer + *poffset, m_pImageData, m_nImageLen);
 			*poffset = *poffset + m_nImageLen;
 		}
 	}
 
 	// Separators get written as regular ASCII
-	if (m_bWriteRecordSeperator)
+	if (bRecordSeparator)
 	{
-		memcpy(*ppData + *poffset, g_szFS, strlen(g_szFS));
+		memcpy(pBuffer + *poffset, g_szFS, strlen(g_szFS));
 		*poffset = *poffset + (int)strlen(g_szFS);
 	}
 	else
 	{
-		memcpy(*ppData + *poffset, g_szGS, strlen(g_szGS));
+		memcpy(pBuffer + *poffset, g_szGS, strlen(g_szGS));
 		*poffset = *poffset + (int)strlen(g_szGS);
 	}
 

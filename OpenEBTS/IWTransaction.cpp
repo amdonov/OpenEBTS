@@ -70,7 +70,7 @@ int CIWTransaction::New(CStdString sTransactionType, CIWVerification *pIWVer)
 #endif
 	}
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSNEW, nRet);
@@ -132,7 +132,7 @@ int CIWTransaction::ReadTransactionFile(CStdStringPath sFilePath)
 		m_pTransactionData = NULL;
 	}
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSREAD, sFilePath, nRet);
@@ -178,7 +178,7 @@ int CIWTransaction::ReadTransactionFileMem(const BYTE *pMemFile, int MemFileSize
 		m_pTransactionData = 0;
 	}
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSREADMEM, nRet);
@@ -219,11 +219,11 @@ int CIWTransaction::GetRecords()
 			int nRecordType, nRecordIndex;
 			int nSubField;
 
-			if (g_bLogToFile)
+			if (IsLoggingVerbose())
 			{
 				CStdString sLogMessage;
 				sLogMessage.Format(IDS_LOGTRANSRECORDSINFILE, nRecords);
-				LogMessage(sLogMessage);
+				LogMessageVerbose(sLogMessage);
 			}
 
 			for (nSubField=1;nSubField <= nRecords && nRet == IW_SUCCESS;nSubField++)
@@ -267,19 +267,18 @@ int CIWTransaction::GetRecords()
 									else
 										delete pRec;
 
-									if (g_bLogToFile)
+									if (IsLoggingVerbose())
 									{
 										CStdString sLogMessage;
 										sLogMessage.Format(IDS_LOGTRANSREADRECORDTYPE, nRecordType, nRet);
-										LogMessage(sLogMessage);
+										LogMessageVerbose(sLogMessage);
 									}
-									if (nRet != IW_SUCCESS)
+									if (nRet != IW_SUCCESS && IsLogging())
 									{
 										CStdString sLogMessage;
 										sLogMessage.Format(IDS_LOGTRANSREADRECORDFAILED, m_sFilePath, nRecordType, nRet);
 										LogMessage(sLogMessage);
 									}
-									
 								}
 								break;
 
@@ -306,19 +305,18 @@ int CIWTransaction::GetRecords()
 									else
 										delete pRec;
 
-									if (g_bLogToFile)
+									if (IsLoggingVerbose())
 									{
 										CStdString sLogMessage;
 										sLogMessage.Format(IDS_LOGTRANSREADRECORDTYPE, nRecordType, nRet);
-										LogMessage(sLogMessage);
+										LogMessageVerbose(sLogMessage);
 									}
-									if (nRet != IW_SUCCESS)
+									if (nRet != IW_SUCCESS && IsLogging())
 									{
 										CStdString sLogMessage;
 										sLogMessage.Format(IDS_LOGTRANSREADRECORDFAILED, m_sFilePath, nRecordType, nRet);
 										LogMessage(sLogMessage);
 									}
-									
 								}
 								break;
 
@@ -366,7 +364,7 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 
 		// According to the NIST spec the IDC is a sequentially incrementing value,
 		// starting with the type 2 record which has a IDC of '00'. 
-		// Just like Aware, record deletes will blow a hole in the seq and 
+		// Deleting a record will leave a hole in the sequence and 
 		// it is the responsiblity of the user to reorder the IDC sequentially. 
 		// Similarly, if 2 or more records share a relationship it is the users 
 		// responsiblity to ensure they share the same IDC value.
@@ -393,30 +391,8 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 
 		Type1AddRecordIDC(pRec, RecordType, nIDC);
 	}
-/*
 
-	if (pRec)
-	{
-		int nIDC = 0;
-		CStdString sIDC;
-
-		GetRecordTypeMaxIndex(RecordType, &nIDC);
-
-		nIDC++;
-		sIDC.Format(_T("%02d"), nIDC);
-
-		pRec->InitializeNewRecord(RecordType);
-
-		// by default set the IDC field to the next ID, application can modify
-		pRec->SetItem(sIDC, REC_TAG_IDC, 1, 1);
-		m_RecordAry.push_back(pRec);
-
-		*pRecordIndex = nIDC;
-
-		Type1AddRecordIDC(pRec, RecordType, nIDC);
-	}
-*/
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSADDRECORD, RecordType, nRet);
@@ -429,9 +405,11 @@ int CIWTransaction::AddRecord(int RecordType, int *pRecordIndex)
 }
 
 void CIWTransaction::DebugOutRecords(CStdString sContext)
+// This can output a lot of bytes, so it's only used when both logging
+// verbose AND when running a Debug build.
 {
 #ifdef _DEBUG
-	if (!g_bLogToFile) return;
+	if (!IsLoggingVerbose()) return;
 
 	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
@@ -442,32 +420,32 @@ void CIWTransaction::DebugOutRecords(CStdString sContext)
 	CStdString sFoo;
 
 	sFoo.Format(IDS_LOGTRANSDEBUGSTART, sContext);
-	LogMessage(sFoo);
+	LogMessageVerbose(sFoo);
 
 	if (pType1Rec->FindItem(TYPE1_CNT, 1, 2, sData) == IW_SUCCESS)
 	{
 		int nCount = (int)_tcstol(sData, NULL, 10);
 
 		sFoo.Format(IDS_LOGTRANSDEBUGCONTENTS1, nCount);
-		LogMessage(sFoo);
+		LogMessageVerbose(sFoo);
 
 		for (int i=2; i<=nCount+1; i++)
 		{
 			if (pType1Rec->FindItem(TYPE1_CNT, i, 1, sData1) != IW_SUCCESS)
 			{
 				sFoo = IDS_LOGTRANSDEBUGERROR;
-				LogMessage(sFoo);
+				LogMessageVerbose(sFoo);
 				continue;
 			}
 			if (pType1Rec->FindItem(TYPE1_CNT, i, 2, sData2) != IW_SUCCESS)
 			{
 				sFoo = IDS_LOGTRANSDEBUGERROR;
-				LogMessage(sFoo);
+				LogMessageVerbose(sFoo);
 				continue;
 			}
 
 			sFoo.Format(IDS_LOGTRANSDEBUGCONTENTS2, i, sData1, sData2);
-			LogMessage(sFoo);
+			LogMessageVerbose(sFoo);
 		}
 	}
 
@@ -475,10 +453,10 @@ void CIWTransaction::DebugOutRecords(CStdString sContext)
 	{
 		pRec = m_RecordAry.at(i);
 		sFoo.Format(IDS_LOGTRANSDEBUGRECORD, i, pRec->GetRecordType());
-		LogMessage(sFoo);
+		LogMessageVerbose(sFoo);
 	}
 	sFoo = IDS_LOGTRANSDEBUGEND;
-	LogMessage(sFoo);
+	LogMessageVerbose(sFoo);
 #endif
 }
 
@@ -747,7 +725,7 @@ int CIWTransaction::RemoveItem(int RecordType, int RecordIndex, int Field, int S
 {
 	int nRet = IW_SUCCESS;
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSREMOVEITEM, RecordType, RecordIndex, Field, Subfield, Item);
@@ -830,7 +808,7 @@ int CIWTransaction::GetImage(int RecordType,int RecordIndex, CStdString& sStorag
 	if (pRecord)
 		nRet = pRecord->GetImage(sStorageFormat, pLength, ppData);
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSGETIMAGE, RecordType, RecordIndex, nRet);
@@ -879,7 +857,7 @@ int CIWTransaction::SetImage(int RecordType, int RecordIndex, CStdString sInputF
 	if (pRecord)
 		nRet = pRecord->SetImage(sInputFormat, RecordIndex, nLength, pData, sStorageFormat, Compression);
 
-	if (g_bLogToFile)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGTRANSSETIMAGE, RecordType, RecordIndex, (sInputFormat ? sInputFormat : ""), nRet);
@@ -1013,85 +991,81 @@ done:
 	return nRet;
 }
 
-int CIWTransaction::SetRecordLengths()
+void CIWTransaction::AdjustRecordLengths()
+// Adjust internal fields pertaining to record lengths
 {
 	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
-	int nRet = IW_SUCCESS;
 
-	for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
 		if (pRec)
 		{
-			pRec->GetRecordLen();
+			pRec->AdjustRecordLength();
 		}
 	}
-
-	return nRet;
 }
 
-int CIWTransaction::GetRecordLengths()
+int CIWTransaction::GetLength()
+// Return length of Transaction file, based on sum of individual record lengths
 {
 	size_t nSize = m_RecordAry.size();
 	CNISTRecord *pRec = 0;
-	int nRet = IW_SUCCESS;
 	int nRecordLengths = 0;
+	int nRecordLength = 0;
 
-	for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+	for (unsigned int i = 0; i < nSize; i++)
 	{
 		pRec = m_RecordAry.at(i);
 
 		if (pRec)
 		{
-			nRecordLengths += pRec->GetRecordLen();
+			nRecordLength = pRec->GetLength();
+			nRecordLengths += nRecordLength;
+
+			if (IsLoggingVerbose())
+			{
+				CStdString sLogMessage;
+				sLogMessage.Format(_T("GetLength for record %d returns %d"), i, nRecordLength);
+				LogMessageVerbose(sLogMessage);
+			}
 		}
 	}
 
-	return nRecordLengths; 
+	return nRecordLengths;
 }
 
 int CIWTransaction::Write(CStdStringPath sPath)
 {
-	size_t nSize = m_RecordAry.size();
-	CNISTRecord *pRec = 0;
-	int nRet = IW_SUCCESS;
-	FILE *f = NULL;
+	int		nRet = IW_SUCCESS;
+	FILE	*f = NULL;
+	BYTE*	pBuffer = NULL;
+	int		cbSize = 0;
 
-	SetRecordLengths();
+	nRet = WriteMem(&pBuffer, &cbSize);
 
-	f = _tfopenpath(sPath, _TPATH("wb"));
-	if (f != NULL)
+	if (nRet == IW_SUCCESS)
 	{
-		for (unsigned int i = 0; i < nSize && nRet == IW_SUCCESS; i++)
+		f = _tfopenpath(sPath, _TPATH("wb"));
+		if (f != NULL)
 		{
-			pRec = m_RecordAry.at(i);
-
-			if (pRec)
-			{
-				if (CNISTRecord::IsBinaryType(pRec->GetRecordType()))
-				{
-					nRet = pRec->WriteBinary(f);
-				}
-				else
-				{
-					nRet = pRec->Write(f);
-				}
-			}
+			fwrite(pBuffer, 1, cbSize, f);
+			fclose(f);
+		}
+		else
+		{
+			nRet = IW_ERR_OPENING_FILE_FOR_WRITING;
 		}
 	}
-	else
-		nRet = IW_ERR_OPENING_FILE_FOR_WRITING;
 
-	if (nRet != IW_SUCCESS)
+	if (IsLogging())
 	{
 		CStdString sLogMessage;
-		sLogMessage.Format(IDS_LOGTRANSWRITEBINARY, sPath, nRet);
+		sLogMessage.Format(IDS_LOGTRANSWRITE, sPath, nRet);
 		LogMessage(sLogMessage);
 	}
-
-	if (f != NULL) fclose(f);
 
 	return nRet;
 }
@@ -1103,9 +1077,9 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 	CNISTRecord *pRec = 0;
 	int nRet = IW_SUCCESS;
 
-	SetRecordLengths();
-	int nRecordLengths = GetRecordLengths();
-	*ppBuffer = new BYTE[nRecordLengths];
+	AdjustRecordLengths();
+	int nTransactionLength = GetLength();
+	*ppBuffer = new BYTE[nTransactionLength];
 
 	if (ppBuffer != NULL)
 	{
@@ -1117,11 +1091,25 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 			{
 				if (CNISTRecord::IsBinaryType(pRec->GetRecordType()))
 				{
-					nRet = pRec->WriteBinary( ppBuffer, &nCurrentSize);
+					nRet = pRec->WriteBinary(*ppBuffer, &nCurrentSize);
+
+					if (IsLoggingVerbose())
+					{
+						CStdString sLogMessage;
+						sLogMessage.Format(_T("[B]Current size is %d"), nCurrentSize);
+						LogMessageVerbose(sLogMessage);
+					}
 				}
 				else
 				{
-					nRet = pRec->Write((TCHAR **)ppBuffer, &nCurrentSize);
+					nRet = pRec->Write(*ppBuffer, &nCurrentSize);
+
+					if (IsLoggingVerbose())
+					{
+						CStdString sLogMessage;
+						sLogMessage.Format(_T("[T]Current size is %d"), nCurrentSize);
+						LogMessageVerbose(sLogMessage);
+					}
 				}
 			}
 		}
@@ -1134,12 +1122,19 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 	if (nRet != IW_SUCCESS)
 	{
 		CStdString sLogMessage;
-		sLogMessage.Format(IDS_LOGTRANSWRITEMEM, nRet);
+		sLogMessage.Format(IDS_LOGTRANSWRITEMEMFAILED, nRet);
 		LogMessage(sLogMessage);
 	}
 	else
 	{
-		*pSize = nRecordLengths;
+		*pSize = nTransactionLength;
+	}
+
+	if (IsLogging())
+	{
+		CStdString sLogMessage;
+		sLogMessage.Format(IDS_LOGTRANSWRITEMEM, nRet);
+		LogMessage(sLogMessage);
 	}
 
 	return nRet;
@@ -1148,47 +1143,7 @@ int CIWTransaction::WriteMem(BYTE** ppBuffer, int *pSize)
 
 int CIWTransaction::WriteXML(CStdStringPath sPath, bool bValidate)
 {
-	int				nRet = IW_SUCCESS;
-	FILE			*f;
-	BYTE*			pXML;
-	long			lLengthXML;
-	CStdString		sErr;
-
-	FreeErrors();
-
-	SetRecordLengths();
-
-	// Not yet supported
-	//
-	//nRet = GetXML(&pXML, bValidate, &lLengthXML, &pErr);
-	//
-
 	return IW_ERR_WRITING_FILE;
-
-	if (nRet != IW_SUCCESS)
-	{
-		AddError(sErr, 0);
-		return nRet;
-	}
-
-	f = _tfopenpath(sPath, _TPATH("wb"));
-	if (f != NULL)
-	{
-		fwrite(pXML, 1, lLengthXML, f);
-		fclose(f);
-		free(pXML);
-	}
-	else
-		nRet = IW_ERR_OPENING_FILE_FOR_WRITING;
-
-	if (nRet != IW_SUCCESS)
-	{
-		CStdString sLogMessage;
-		sLogMessage.Format(IDS_LOGTRANSWRITEXML, sPath, nRet);
-		LogMessage(sLogMessage);
-	}
-
-	return nRet;
 }
 
 int CIWTransaction::SetVerification(CIWVerification *pIWVer)
@@ -1348,8 +1303,8 @@ int CIWTransaction::Verify()
 
 	if (IsVerificationLoaded())
 	{
+		AdjustRecordLengths();
 		FreeErrors();
-		SetRecordLengths();
 		nRet = m_pVerification->VerifyTransaction(this);
 	}
 	else

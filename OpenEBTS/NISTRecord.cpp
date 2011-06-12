@@ -11,6 +11,7 @@ extern "C"
 CNISTRecord::CNISTRecord()
 {
 	m_nRecordType = -1;
+	m_nRecordLen = 0;
 	m_dNativeResolutionPPMM = 0.0;
 }
 
@@ -33,11 +34,11 @@ void CNISTRecord::InitializeNewRecord(int nRecordType)
 	CStdString	sData;
 	int nRet;
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGRECINITNEW, nRecordType);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	m_nRecordType = nRecordType;
@@ -110,11 +111,11 @@ int CNISTRecord::ReadLogicalRecordLen(BYTE* pTransactionData, int nRecordType, i
 		}
 	}
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGRECREADRECLEN, nRecordType, nRecordIndex, nRet);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	return nRet;
@@ -124,11 +125,11 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 {
 	int nRet = IW_SUCCESS;
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGRECREADREC, nRecordType);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	m_nRecordType = nRecordType;
@@ -318,11 +319,11 @@ int CNISTRecord::ReadBinaryRecord(BYTE* pTransactionData, int nRecordType)
 	int nRet = IW_SUCCESS;
 	BYTE bIDC;
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGRECREADRECBIN, nRecordType);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	m_nRecordType = nRecordType;
@@ -767,11 +768,11 @@ int CNISTRecord::SetItem(CStdString sData, int Field, int Subfield, int Item)
 	int nRet = IW_SUCCESS;
 	CNISTField *pField = GetNISTField(Field);
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGRECSETITEM, Field, Subfield, Item, sData);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
 	if (pField)
@@ -1269,7 +1270,8 @@ int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, int nLength
 			pField->m_nImageLen = nLengthOut;
 			// For binary records we also set the total record length, since we know it
 			nLengthOut += sizeof(FINGERPRINT_HEADER);
-			pField->m_nRecordLen = nLengthOut;
+
+			m_nRecordLen = nLengthOut;
 
 			// ditch pDataOut, since we reallocated the whole thing
 			delete [] pDataOut;
@@ -1282,7 +1284,8 @@ int CNISTRecord::SetImage(CStdString sInputFormat, int nRecordIndex, int nLength
 			pField->m_nImageLen = nLengthOut;
 			// For binary records we also set the total record length, since we know it
 			nLengthOut += sizeof(SIGNATURE_HEADER);
-			pField->m_nRecordLen = nLengthOut;
+
+			m_nRecordLen = nLengthOut;
 
 			// ditch pDataOut, since we reallocated the whole thing
 			delete [] pDataOut;
@@ -1459,7 +1462,7 @@ int CNISTRecord::GetInfoFromImage(BYTE *pImage, int cbLength, CStdString sFmt, O
 Exit:
 	if (fibmp != NULL) FreeImage_Unload(fibmp);
 
-	if (szErr[0] != '\0' && g_bLogToFile)
+	if (szErr[0] != '\0' && IsLogging())
 	{
 		CStdString sMsg;
 		sMsg.Format(_T("[CNISTRecord::GetInfoFromImage] FreeImage_LoadImageFromMem returns: %s"), szErr);
@@ -1692,13 +1695,21 @@ bool CNISTRecord::IsBinaryType(int nRecordType)
 		return false;	
 }
 
-int CNISTRecord::GetRecordLen()
+void CNISTRecord::AdjustRecordLength()
+// Adjust internal record length (T[X]_LEN) and prepare record for serialization.
+// Sets m_nRecordLen.
 {
 	size_t nFields = m_FieldList.size();
 	CNISTField *pField;
 	int nLen = 0;
 	int nImagePos = 0;
 	bool bImage = false;
+
+	if (CNISTRecord::IsBinaryType(m_nRecordType))
+	{
+		// Binary types already have their m_nRecordLen set
+		return;
+	}
 
 	// get length of all fields except for .01 field
 	for (unsigned int i = 0; i < nFields; i++)
@@ -1723,42 +1734,63 @@ int CNISTRecord::GetRecordLen()
 		m_FieldList.push_back(pField);
 	}
 			
-	nLen++; // for record seperator
-
-	// now add .01 field len minus the len string
-	if (m_nRecordType == 1)
-		nLen += 5; // for "1.01:"
-	else
-		nLen += 6; // for "1.001:"
-
+	// now add .01 field
+	char szFieldLabel[20];
 	char szLen[30];
+
+	sprintf(szFieldLabel, FMT_FIELD_LABEL, m_nRecordType, 1);
+
+	nLen += (int)strlen(szFieldLabel);
+	nLen++; // for record seperator
 
 	sprintf(szLen, "%d", nLen); // get the length of the len field
 	nLen += (int)strlen(szLen);
+	// Put real total length in the string
+	sprintf(szLen, "%d", nLen); // get the length of the len field
 
 	pField = GetNISTField(REC_TAG_LEN);
 
 	if (pField)
 	{
-		pField->m_nRecordLen = nLen; // set len field for writting
 		pField->SetSubField(1, 1, szLen);
 	}
 
-	if (g_bLogToFile)
+	if (IsLoggingVerbose())
 	{
 		CStdString sLogMessage;
 		sLogMessage.Format(IDS_LOGRECGETRECLEN, m_nRecordType, nLen);
-		LogMessage(sLogMessage);
+		LogMessageVerbose(sLogMessage);
 	}
 
-	return nLen;
+	m_nRecordLen = nLen;
 }
 
-int CNISTRecord::Write(FILE *pFile)
+int CNISTRecord::GetLength()
+{
+	return m_nRecordLen;
+}
+
+int CNISTRecord::WriteBinary(BYTE *pBuffer, int *poffset)
+{
+	if (CNISTRecord::IsBinaryType(m_nRecordType))
+	{
+		CNISTField* pField = GetNISTField(GetDATField(m_nRecordType));
+		if(pField)
+		{
+			memcpy(pBuffer + *poffset, pField->m_pImageData, m_nRecordLen);
+			*poffset = *poffset + m_nRecordLen;
+		}
+	}
+
+	return IW_SUCCESS;
+}
+
+int CNISTRecord::Write(BYTE *pBuffer, int *poffset)
 {
 	size_t nFields = m_FieldList.size();
 	CNISTField *pField;
 	int nRet = IW_SUCCESS;
+	int offsetStart;
 
 	for (unsigned int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
 	{
@@ -1766,66 +1798,18 @@ int CNISTRecord::Write(FILE *pFile)
 
 		if (pField)
 		{
-			pField->m_bWriteRecordSeperator = false;
-			if (i+1 == nFields) 
-				pField->m_bWriteRecordSeperator = true;
+			offsetStart = *poffset;
 
-			nRet = pField->Write(pFile);
+			nRet = pField->Write(pBuffer, poffset, i == nFields - 1);
+
+			if (IsLoggingVerbose())
+			{
+				CStdString sLogMessage;
+				sLogMessage.Format(_T("CNISTRecord::Write (mem): Wrote %d bytes for field %d"), *poffset -  offsetStart, i);
+				LogMessageVerbose(sLogMessage);
+			}
 		}
 	}
 
 	return nRet;
 }
-
-int CNISTRecord::WriteBinary(FILE *pFile)
-{
-	if (CNISTRecord::IsBinaryType(m_nRecordType))
-	{
-		CNISTField* pField = GetNISTField(GetDATField(m_nRecordType));
-		if(pField)
-		{
-			fwrite(pField->m_pImageData, 1, pField->m_nRecordLen, pFile);
-		}
-	}
-
-	return IW_SUCCESS;
-}
-
-int CNISTRecord::WriteBinary(BYTE **ppData, int *poffset)
-{
-	if (CNISTRecord::IsBinaryType(m_nRecordType))
-	{
-		CNISTField* pField = GetNISTField(GetDATField(m_nRecordType));
-		if(pField)
-		{
-			memcpy(*ppData + *poffset, pField->m_pImageData, pField->m_nRecordLen);
-			*poffset = *poffset + pField->m_nRecordLen;
-		}
-	}
-
-	return IW_SUCCESS;
-}
-
-int CNISTRecord::Write(TCHAR **ppData, int *poffset)
-{
-	size_t nFields = m_FieldList.size();
-	CNISTField *pField;
-	int nRet = IW_SUCCESS;
-
-	for (unsigned int i = 0; i < nFields && nRet == IW_SUCCESS; i++)
-	{
-		pField = m_FieldList.at(i);
-
-		if (pField)
-		{
-			pField->m_bWriteRecordSeperator = false;
-			if (i+1 == nFields) 
-				pField->m_bWriteRecordSeperator = true;
-
-			nRet = pField->Write(ppData, poffset);
-		}
-	}
-
-	return nRet;
-}
-

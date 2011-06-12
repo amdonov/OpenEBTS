@@ -228,10 +228,13 @@
 		LogMessage(sException); \
 	}
 
-#define LF_OPENEBTS	_TPATH("OpenEBTS.log")
-
-extern bool g_bLogToFile;
-void LogMessage(CStdString& str);
+void LogMessageInit();
+bool IsLogging();
+bool IsLoggingVerbose();
+void LogMessage(CStdString& str, bool bVerbose = false);
+void LogMessageVerbose(CStdString& str);
+void LogMessage(const TCHAR* sz, bool bVerbose = false);
+void LogMessageVerbose(const TCHAR* sz);
 
 bool UTF8toUCS(const char *pIn, wchar_t **ppOut);
 bool UCStoUTF8(const wchar_t *wIn, char **ppOut, int *pnLength);

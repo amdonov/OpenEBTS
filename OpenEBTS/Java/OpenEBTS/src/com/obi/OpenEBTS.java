@@ -187,7 +187,6 @@ public class OpenEBTS
 
 		protected void finalize ()
 		{
-			if (_nVerification != 0) IWCloseVerification(_nVerification, _ret);
 			if (_nTransaction != 0) IWClose(_nTransaction, _ret);
 		}
 
@@ -313,6 +312,16 @@ public class OpenEBTS
 			if (_ret.nRet == 0)
 			{
 				IWSetVerification(_nTransaction, _nVerification, _ret);
+			}
+			return _ret.nRet;
+		}
+
+		public int associateVerificationFile(NISTVerification ver)
+		{
+			IWSetVerification(_nTransaction, ver._nVerification, _ret);
+			if (_ret.nRet == 0)
+			{
+				_nVerification = ver._nVerification;
 			}
 			return _ret.nRet;
 		}
@@ -951,7 +960,7 @@ public class OpenEBTS
 
 		public boolean getIsDataTypeSET()			// e.g., Set of multiple fields
 		{
-			return _fieldrules._sCharType == "SET";
+			return _fieldrules._sCharType.equals("SET");
 		}
 
 		public String getSpecialChars()			// e.g., ";-"
@@ -961,7 +970,7 @@ public class OpenEBTS
 
 		public boolean getIsDate()				// e.g., True for T2_DOB
 		{
-			return _fieldrules._sDateFormat != "";
+			return !_fieldrules._sDateFormat.equals("");
 		}
 
 		public String getDateFormat()			// e.g., "ZCCYYMMDD"

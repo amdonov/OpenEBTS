@@ -2,22 +2,82 @@
 #include "Common.h"
 #include "UTF8.h"
 
-#define MAX_LOGFILE_SIZE (long)500000
+// Allow for 10MB logfiles
+#define MAX_LOGFILE_SIZE (long)10240000
 
-bool g_bLogToFile = true;
+// Default logfile is empty, which means "don't log anything".
+// If the environment variable OPENEBTSLOGPATH is set, logging
+// will be turned on, and set to "normal" where only basic logging
+// is performed. Setting the environment variable OPENEBTSLOGVERBOSE=1
+// will log all the log messages.
+// In general normal logging will trace the entry of important functions
+// and error conditions, while verbose logging will also output detailed
+// information on the contents of files being processed.
 
-TCHARPATH g_LogFilePath[_MAX_PATH+1] = { '\0', };
+// Internally Log Level 0 == logging off, 1 == normal logging, 2 == verbose.
+int g_nLogLevel = 0;
+TCHARPATH g_LogFilePath[_MAX_PATH+1] = { '\0' };
 CStdString BuildDateTimeString();
-void InitializePath();
 
-void LogMessage(CStdString& str)
+
+void LogMessageInit()
+// Must be called before using LogMessage or LogMessageVerbose.
+// Note that we use TCHARPATH/_tgetenvpath for the non-path string szVerbose
+// because the circumstance is just like when dealing with a path: on *NIX
+// getenv is always a char* function whereas on Win it's wchar under UNICODE.
 {
-	if (!g_bLogToFile) return;
+	TCHARPATH *szLogFilePath = NULL;
+	TCHARPATH* szVerbose = NULL;
+
+	szLogFilePath = _tgetenvpath(_TPATH("OPENEBTSLOGPATH"));
+	if (szLogFilePath != NULL)
+	{
+		// The environment variable is set, copy the path of the file
+		_tcscpypath(g_LogFilePath, szLogFilePath);
+
+		// Turn logging on
+		g_nLogLevel = 1;
+
+		// See if logging is verbose
+		szVerbose = _tgetenvpath(_TPATH("OPENEBTSLOGVERBOSE"));
+		if (szVerbose != NULL)
+		{
+			// Check value: ie., OPENEBTSLOGVERBOSE=1 toggles on, butr
+			// OPENEBTSLOGVERBOSE=0 would toggle off.
+#ifdef WIN32
+			if (_tcstol(szVerbose, NULL, 10) > 0)
+#else
+			if (atol(szVerbose) > 0)
+#endif
+			{
+				g_nLogLevel = 2;
+			}
+		}
+	}
+	else
+	{
+		g_nLogLevel = 0;
+		g_LogFilePath[0] = '\0';
+	}
+}
+
+// These macros can be used to avoid additional log-setting-dependant
+// operations if we know logging is disabled.
+bool IsLogging()		{ return g_nLogLevel == 1; }
+bool IsLoggingVerbose()	{ return g_nLogLevel > 1; }
+
+void LogMessageVerbose(CStdString& str)
+{
+	LogMessage(str, true);
+}
+
+void LogMessage(CStdString& str, bool bVerbose/*=false*/)
+{
+	if (g_nLogLevel == 0) return;
+	if (bVerbose && g_nLogLevel != 2) return;
 
 	FILE* logFile;
 	CStdString csString = str;
-
-	InitializePath();
 
 	CStdStringPath csPath = g_LogFilePath;
 
@@ -85,78 +145,29 @@ void LogMessage(CStdString& str)
 	}
 }
 
-#ifdef WIN32
-
-void InitializePath()
+void LogMessageVerbose(const TCHAR* sz)
 {
-	TCHARPATH *szPath = NULL;
-
-	// Write the logfile to the temporary folder
-
-	if (g_LogFilePath[0] == '\0')
-	{
-		szPath = _ttempnam(_T("C:\\"), NULL);
-
-		if (szPath)
-		{
-			// In Win32 we must use splitpath()
-			TCHAR szDir[_MAX_DIR];
-			_tsplitpath(szPath, NULL, szDir, NULL, NULL);
-
-			_tcscpypath(g_LogFilePath, szDir);
-			_tcscatpath(g_LogFilePath, LF_OPENEBTS);
-
-			free(szPath);	// _ttempnam allocated szPath
-		}
-		else
-		{
-			g_LogFilePath[0] = '\0';
-		}
-	}
+	CStdString s(sz);
+	LogMessage(s);
 }
 
-#else
-
-// Under *nix we use tmpnam() and dirnam() which make things easy
-
-void InitializePath()
+void LogMessage(const TCHAR* sz, bool bVerbose/*=false*/)
 {
-	TCHARPATH *szPath;
-
-	// Write the logfile to the temporary folder
-
-	if (g_LogFilePath[0] == '\0')
-	{
-		szPath = tmpnam(NULL);
-
-		if (szPath)
-		{
-			_tcscpypath(g_LogFilePath, dirname(szPath));
-			_tcscatpath(g_LogFilePath, _TPATH("/"));
-			_tcscatpath(g_LogFilePath, LF_OPENEBTS);
-		}
-		else
-		{
-			g_LogFilePath[0] = '\0';
-		}
-	}
+	CStdString s(sz);
+	LogMessage(s, bVerbose);
 }
-
-#endif
 
 CStdString BuildDateTimeString()
 {
-	struct tm *when;
-	time_t now;
+	time_t		timeNow;
+	struct tm	*tmNow;
+	char		szTime[80];
 
-	time(&now);
-	when = localtime(&now);
+	time(&timeNow);
+	tmNow = localtime(&timeNow);
 
-	char *szTime;
-	szTime = asctime(when);
-
-	if (szTime[strlen(szTime)-1] == '\n')
-		szTime[strlen(szTime)-1] = '\0';
+	// Convert to, for example, "2011.04.17|14:02:14"
+	strftime(szTime, 80, "%Y.%m.%d|%H:%M:%S", tmNow);
 
 	return CStdString(szTime);
 }

@@ -3,6 +3,10 @@
 
 #include "Common.h"
 
+#define FMT_FIELD_LABEL		"%d.%03d:"
+#define FMT_FIELD_LABEL_LEN "%d.%03d:%d"
+
+
 typedef enum { fmtUNK, fmtRAW, fmtBMP, fmtJPG, fmtWSQ, fmtJP2, fmtFX4, fmtPNG, fmtCBEFF } OpenEBTSImageFormat;
 
 // A combination of all the possible properties any EBTS image record type
@@ -59,9 +63,6 @@ public:
 	int m_nField; // 1.01within the record
 	std::vector<CSubFieldItem*> m_SubFieldAry; // field data, subfields, etc
 
-	int m_nRecordLen; // set at write time
-	bool m_bWriteRecordSeperator;
-
 	BYTE* m_pImageData;
 
 	int m_nImageLen;
@@ -83,8 +84,7 @@ public:
 	int GetNumItems(int nSubfield, int* pnCount);
 
 	int GetWriteLen();
-	int Write(FILE *pFile);
-    int Write(TCHAR **ppData, int *poffset);
+    int Write(BYTE *pBuffer, int *poffset, bool bRecordSeparator);
 
 	static CStdString ImageExtFromImageFormat(OpenEBTSImageFormat fmt);
 	static OpenEBTSImageFormat ImageFormatFromImageExt(CStdString sFormat);

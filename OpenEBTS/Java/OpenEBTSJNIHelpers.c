@@ -94,7 +94,7 @@ jstring JNINewString(JNIEnv *env, const TCHAR *sz)
 
 #ifdef UNICODE
 
-	int 	nLen = _tcslen(sz);
+	int 	nLen = (int)_tcslen(sz);
 
 #ifdef WIN32
 	// UNICODE/WIN32: NewString takes 16-bit wide chars so we're good to go

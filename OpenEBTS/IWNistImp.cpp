@@ -1042,7 +1042,7 @@ OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, in
 	FreeImage_ConvertInMemory(FIF_JPEG, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[JPGtoBMP] Error: %s"), szErr);
@@ -1071,7 +1071,7 @@ OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, int cbIn, int nCompression, BYT
 	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_JPEG, nCompression, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[BMPtoJPG] Error: %s"), szErr);
@@ -1100,7 +1100,7 @@ OPENEBTS_API int WINAPI JP2toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, in
 	FreeImage_ConvertInMemory(FIF_JP2, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[JP2toBMP] Error: %s"), szErr);
@@ -1129,7 +1129,7 @@ OPENEBTS_API int WINAPI BMPtoJP2(BYTE* pImageIn, int cbIn, float fRate, BYTE **p
 	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_JP2, (int)fRate, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[BMPtoJP2] Error: %s"), szErr);
@@ -1158,7 +1158,7 @@ OPENEBTS_API int WINAPI BMPtoPNG(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, in
 	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_PNG, 0, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[BMPtoPNG] Error: %s"), szErr);
@@ -1187,7 +1187,7 @@ OPENEBTS_API int WINAPI PNGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, in
 	FreeImage_ConvertInMemory(FIF_PNG, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[PNGtoBMP] Error: %s"), szErr);
@@ -1216,7 +1216,7 @@ OPENEBTS_API int WINAPI BMPtoFX4(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, in
 	FreeImage_ConvertInMemory(FIF_BMP, pImageIn, cbIn, FIF_TIFF, TIFF_CCITTFAX4, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[BMPtoFX4] Error: %s"), szErr);
@@ -1245,7 +1245,7 @@ OPENEBTS_API int WINAPI FX4toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, in
 	FreeImage_ConvertInMemory(FIF_TIFF, pImageIn, cbIn, FIF_BMP, 0, ppImageOut, pcbOut);
 	if (FreeImageError(szErr))
 	{
-		if (g_bLogToFile)
+		if (IsLogging())
 		{
 			CStdString sMsg;
 			sMsg.Format(_T("[FX4toBMP] Error: %s"), szErr);

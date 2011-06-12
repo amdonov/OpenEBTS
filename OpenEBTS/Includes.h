@@ -15,6 +15,7 @@ using namespace std;
 #include "StringResources.h"	// User-visible string table
 #include "FreeImage.h"
 #include "FreeImageHelpers.h"
+#include "Common.h"
 
 #ifdef WIN32
 #include <mbstring.h>

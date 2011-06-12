@@ -69,10 +69,8 @@ public:
 	int GetImageInfo(CStdString& spStorageFormat, int *pnLength, int *pnHLL, int *pnVLL, int *pnBitsPerPixel);
 	int GetImageResolution(double *pfPPM);
 
-	int Write(FILE *pFile);
-	int WriteBinary(FILE *pFile);
-	int WriteBinary( BYTE **ppBuffer, int *pnCurrentSize);
-	int Write(TCHAR **ppBuffer, int *pnCurrentSize);
+	int WriteBinary(BYTE *pBuffer, int *pnCurrentSize);
+	int Write(BYTE *pBuffer, int *pnCurrentSize);
 
 
 	static float CompressionToRate(float fCompression);
@@ -83,7 +81,8 @@ public:
 	static bool IsBinaryFingerType(int nRecordType);
 	static bool IsBinaryType(int nRecordType);
 
-	int GetRecordLen();
+	void AdjustRecordLength();
+	int GetLength();
 };
 
 #endif // _IW_NISTRECORD_H

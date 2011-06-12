@@ -12,12 +12,16 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 	{
 		case DLL_PROCESS_ATTACH:
 		case DLL_THREAD_ATTACH:
+			LogMessageInit(); // general logging to file
+			LogMessage(IDS_OPENEBTSLOADED);
+
 			FreeImage_Initialise();
 			FreeImage_SetOutputMessage(FreeImageErrorHandler);
 			break;
 		case DLL_THREAD_DETACH:
 		case DLL_PROCESS_DETACH:
 			FreeImage_DeInitialise();
+			LogMessage(IDS_OPENEBTSUNLOADING);
 			break;
     }
 
@@ -28,6 +32,9 @@ BOOL APIENTRY DllMain( HANDLE hModule,
 
 void __attribute ((constructor)) init_function()
 {
+	LogMessageInit(); // general logging to file
+	LogMessage(IDS_OPENEBTSLOADED);
+
 	FreeImage_Initialise();
 	// Specify error trap function to FreeImage
 	FreeImage_SetOutputMessage(FreeImageErrorHandler);
@@ -36,6 +43,7 @@ void __attribute ((constructor)) init_function()
 void __attribute ((destructor)) fini_function()
 {
 	FreeImage_DeInitialise();
+	LogMessage(IDS_OPENEBTSUNLOADING);
 }
 
 #endif

@@ -111,7 +111,7 @@ bool CRuleObj::SetData(CStdString sFilePath, CStdString& sTransactionList, CStdS
 #endif // _DEBUG
 
 done:
-	if (!sErr.IsEmpty() && g_bLogToFile)
+	if (!sErr.IsEmpty() && IsLogging())
 	{
 		CStdString sMsg;
 		sMsg.Format(IDS_LOGRULESETDATA, sErr);
@@ -123,11 +123,14 @@ done:
 
 void CRuleObj::DumpObject()
 {
+#ifdef _DEBUG
+	if (!IsLoggingVerbose()) return;
+
 	CStdString sMsg;
 
 	sMsg.Format(IDS_LOGRULEDUMPOBJ1, m_sMNU, m_sLocation, m_sCharType, m_nMinFieldSize, m_nMaxFieldSize, m_nMinOccurrences, m_nMaxOccurrences,
 				m_sDescription, m_sSpecialChars, m_sDateFormat, GetMMap());
-	LogMessage(sMsg);
+	LogMessageVerbose(sMsg);
 
 	UINT							nKey;
 	CStdString						sTemp, sMNU;
@@ -146,7 +149,8 @@ void CRuleObj::DumpObject()
 	}
 
 	sMsg.Format(IDS_LOGRULEDUMPOBJ2, m_sMNU, sTemp);
-	LogMessage(sMsg);
+	LogMessageVerbose(sMsg);
+#endif
 }
 
 CStdString CRuleObj::GetTransactionListString()
@@ -1093,11 +1097,11 @@ bool CRuleObj::SetTransactions(CStdString& sTransactionList)
 					}
 					else
 					{
-						if (g_bLogToFile)
+						if (IsLoggingVerbose())
 						{
 							CStdString sMsg;
 							sMsg.Format(IDS_LOGRULESETTRANS, sMNU);
-							LogMessage(sMsg);
+							LogMessageVerbose(sMsg);
 						}
 						bRet = false;
 					}

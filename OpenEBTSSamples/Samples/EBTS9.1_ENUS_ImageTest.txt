@@ -234,7 +234,8 @@ FIELDS
 
 [M]
 	1.004	T1_TOT	A		3-4		1		desc="Type of Transaction"
-		mmap="CAR:Criminal Tenprint Submission (Answer Required)|\
+		mmap="TEST:Image Test to allow multiple Type-13 images only|\
+			CAR:Criminal Tenprint Submission (Answer Required)|\
 			CNA:Criminal Tenprint Submission (No Answer Necessary)|\
 			CPNU:Criminal Fingerprint Processing Non-Urgent|\
 			DOCE:Department Order Channeling Electronic|\
@@ -3080,7 +3081,8 @@ TPFS M, TPIS]
 			JPEGL:Lossless Compression|\
 			JP2:JPEG 2000 ISO/IEC 15444-1 (Lossy)|\
 			JP2L:JPEG 2000 ISO/IEC 15444-1 (Lossless)|\
-			PNG:Portable Network Graphics"
+			PNG:Portable Network Graphics|\
+			FAX:Facsimile ANSI/EIA 538-1988"
 		long_desc="This mandatory ASCII field shall specify the algorithm used to compress the transmitted \
 			grayscale images. An entry of 'NONE' in this field indicates that the data contained in this record \
 			is uncompressed. For those images that are to be losslessly compressed, this field shall contain \

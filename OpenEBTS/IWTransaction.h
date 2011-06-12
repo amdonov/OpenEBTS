@@ -36,8 +36,8 @@ private:
 	int Type1UpdateIDC(CNISTRecord *pRecord, int nIDC);
 	int Type1DeleteRecordIDC(CNISTRecord *pRecord, int nIDC);
 	void DebugOutRecords(CStdString sContext);
-	int SetRecordLengths();
-	int GetRecordLengths();
+	void AdjustRecordLengths();
+	int GetLength();
 
 public:
 	CIWTransaction();
