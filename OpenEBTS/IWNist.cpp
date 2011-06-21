@@ -11,14 +11,13 @@ BOOL APIENTRY DllMain( HANDLE hModule,
     switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
-		case DLL_THREAD_ATTACH:
 			LogMessageInit(); // general logging to file
 			LogMessage(IDS_OPENEBTSLOADED);
 
 			FreeImage_Initialise();
 			FreeImage_SetOutputMessage(FreeImageErrorHandler);
 			break;
-		case DLL_THREAD_DETACH:
+
 		case DLL_PROCESS_DETACH:
 			FreeImage_DeInitialise();
 			LogMessage(IDS_OPENEBTSUNLOADING);
