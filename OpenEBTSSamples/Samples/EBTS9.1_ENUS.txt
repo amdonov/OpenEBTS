@@ -1,4 +1,4 @@
-##############################################################
+﻿##############################################################
 #                                                            #
 #          ______ ____ _______ _____      ___   __           #
 #         |  ____|  _ \__   __/ ____|    / _ \ /_ |          #
@@ -1963,7 +1963,7 @@ TPFS M, TPIS]
 ######################################################################
 
 
-[O]
+[M]
 	4.01...0	T4_LEN	B4	2-8		1		desc="Logical Record Length"
 	long_desc="This mandatory four-byte binary field shall occupy bytes one through four of each record type. It \
 			shall contain the length of the logical record specifying the total number of bytes, including every \
@@ -2820,7 +2820,7 @@ TPFS M, TPIS]
 
 [O]
 	10.042:	T10_SMD					AN		15-50	1-9		desc="SMT Descriptors"
-		supportedif("T10_IMT")="SCAR|MARK|TATTOO"
+		supportedif("T10_IMT")="SCAR|MARK|TATTOO";
 	10.042..1	T10_SMD_SRC			A		3-8		1		desc="SMT Source"
 		mmap="SCAR:Healed scar tissue as result of accident or medical procedure|\
 			MARK:Pattern resulting from needle or track marks|\
