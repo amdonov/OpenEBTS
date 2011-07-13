@@ -91,6 +91,7 @@ public:
 							int* pField, int* pSubfield, int* pItem, const TCHAR** ppDesc, const TCHAR** ppLongDesc, const TCHAR** ppCharType,
 							const TCHAR** ppSpecialChars, const TCHAR** ppDateFormat, const TCHAR** ppAdvancedRule, int* pSizeMin, int* pSizeMax,
 							int* pOccMin, int* pOccMax, int* pOffset, bool* pAutomaticallySet, bool* pMandatory);
+	int GetLocationIndex(const TCHAR* TransactionType, const TCHAR* pMnemonic, const TCHAR** ppLocationIndex);
 	int GetValueList(const TCHAR* TransactionType, const TCHAR* Mnemonic, bool *Mandatory,
 					 int DataArraySize, const TCHAR** DataArray, const TCHAR** DescArray, int *Entries);
 

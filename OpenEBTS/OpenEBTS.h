@@ -208,6 +208,13 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(
 	int* pbMandatory						// True if field is mandatory, false if optional
 );
 
+OPENEBTS_API int WINAPI IWGetLocationIndex(
+	CIWVerification* pIWVer,				// Verification pointer
+	const TCHAR* szTransactionType,			// Type of transaction
+	const TCHAR* szMnemonic,				// Field identifier
+	const TCHAR** pszLocationIndex			// Location Index (returned)
+);
+
 OPENEBTS_API int WINAPI IWGetValueList(
 	CIWVerification* pIWVer,				// Verification Pointer
 	const TCHAR* szTransactionType,			// Type of transaction

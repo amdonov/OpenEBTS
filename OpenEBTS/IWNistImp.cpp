@@ -663,6 +663,24 @@ OPENEBTS_API int WINAPI IWGetRuleRestrictions(CIWVerification* pIWVer, const TCH
 	return nRet;
 }
 
+OPENEBTS_API int WINAPI IWGetLocationIndex(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic,
+											const TCHAR** pszLocationIndex)
+{
+	int nRet = IW_ERR_VERIFICATION_NOT_LOADED;
+
+	if (pIWVer && pIWVer->IsLoaded())
+	{
+		IWS_BEGIN_EXCEPTION_METHOD("IWGetLocationIndex")
+		IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+		nRet = pIWVer->GetLocationIndex(szTransactionType, szMnemonic, pszLocationIndex);
+
+		IWS_END_CATCHEXCEPTION_BLOCK()
+	}
+
+	return nRet;
+}
+
 OPENEBTS_API int WINAPI IWGetValueList(CIWVerification* pIWVer, const TCHAR* szTransactionType, const TCHAR* szMnemonic, int *pbMandatory,
 									   int nDataArraySize, const TCHAR** rgszDataArray, const TCHAR** rgszDescArray, int *pnEntries)
 {

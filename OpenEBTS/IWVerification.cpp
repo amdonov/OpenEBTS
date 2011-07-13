@@ -2678,6 +2678,33 @@ int CIWVerification::GetRuleRestrictions(const TCHAR* TransactionType, const TCH
 				*pAutomaticallySet = bAuto;
 
 				nRet = IW_SUCCESS;
+				break;
+			}
+		}
+	}
+
+	return nRet;
+}
+
+int CIWVerification::GetLocationIndex(const TCHAR* TransactionType, const TCHAR* pMnemonic, const TCHAR** ppLocationIndex)
+{
+	int			nRet = IW_ERR_MNEMONIC_NOT_FOUND;
+	CRuleObj	*pRule;
+	CStdString	sTOT(TransactionType);
+
+	if (ppLocationIndex == NULL) return IW_ERR_NULL_POINTER;
+
+	for (int i = 0; i < (int)m_rulesAry.size(); i++)
+	{
+		pRule = &m_rulesAry.at(i);
+
+		if (pRule->GetMNU().CompareNoCase(pMnemonic) == 0)
+		{
+			if (pRule->IsMandatory(sTOT) || pRule->IsOptional(sTOT))
+			{
+				*ppLocationIndex = CreateNewStringSlot(pRule->GetLocation());
+				nRet = IW_SUCCESS;
+				break;
 			}
 		}
 	}
