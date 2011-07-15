@@ -394,9 +394,12 @@ int CNISTRecord::GetFingerprintInfo(int nRecordType, BYTE* pTransactionData)
 	pField->SetSubField(1, 1, sFieldData);
 	AddField(pField);
 
-	pField = new CNISTField(nRecordType, 4);	// Finger position
-	sFieldData.Format(_T("%d"), GetDecimalValue((BYTE*)pFPrintHdr->bFGP, 1));
-	pField->SetSubField(1, 1, sFieldData);
+	pField = new CNISTField(nRecordType, 4);	// Finger position - 6 guesses allowed
+	for (int i=0;i<6;i++)
+	{
+		sFieldData.Format(_T("%d"), GetDecimalValue(((BYTE*)pFPrintHdr->bFGP)+i, 1));
+		pField->SetSubField((i+1), 1, sFieldData);
+	}
 	AddField(pField);
 
 	pField = new CNISTField(nRecordType, 5);	// Scanning resolution
