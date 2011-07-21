@@ -222,10 +222,10 @@ bool CRuleObj::SetOptionalSpecialChars(CStdString& sSpecialChars)
 
 bool CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 // Do a brief format verification. For now we support the "Z" prefix and the abbreviations "CCYY" (or "YYYY"),
-// "MM" and "DD" and the time formats "HH", "MM", and "SS".
+// "MM" and "DD" and the time formats "hh", "mm", and "ss".
 {
 	TCHAR		c;
-	CStdString	sAllowed = _T("CYMDHMS");
+	CStdString	sAllowed = _T("CYMDhms");
 	int			iLen = sDateFormat.GetLength();
 
 	for (int i = 0; i < iLen; i++)
