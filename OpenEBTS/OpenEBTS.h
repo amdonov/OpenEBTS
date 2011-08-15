@@ -388,7 +388,16 @@ OPENEBTS_API int WINAPI IWExportImage(
 	int nRecordType,						// Record type
 	int nRecordIndex,						// Record index
 	const TCHARPATH* szPath,				// Path name to file
-	const TCHAR* szOutputFormat				// Three character extension for input image format
+	const TCHAR* szOutputFormat				// Three character extension for output image format
+);
+
+OPENEBTS_API int WINAPI IWExportImageMem(
+	CIWTransaction* pIWTrans,				// Transaction pointer
+	int nRecordType,						// Record type
+	int nRecordIndex,						// Record index
+	BYTE** ppBuffer,						// Pointer to image buffer pointer
+	int *pSize,								// Size of buffer
+	const TCHAR* szOutputFormat				// Three character extension for outut image format
 );
 
 OPENEBTS_API int WINAPI IWGetImageInfo(

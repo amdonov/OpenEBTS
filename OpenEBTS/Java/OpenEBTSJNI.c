@@ -407,7 +407,7 @@ JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWSetImageFromFile
  * Method:    IWGetImageToFile
  * Signature: (IIILjava/lang/String;LNISTFile/NISTImageFormat;LNISTReturn;)V
  */
-JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWGetImageToFile
+JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWGetImageAsToFile
   (JNIEnv *env, jobject obj, jint nTransaction, jint nRecordType, jint nRecordIndex, jstring jsPath, jint nFmt, jobject joRet)
 {
 	RETVAL
@@ -420,6 +420,32 @@ JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWGetImageToFile
 
 	JNIReleaseStringPath(env, jsPath, szPath);
 	PACKAGERETVAL
+}
+
+/*
+ * Class:     com_obi_OpenEBTS
+ * Method:    IWGetImageAs
+ * Signature: (IIIILcom/obi/OpenEBTS/NISTReturn;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_com_obi_OpenEBTS_IWGetImageAs
+  (JNIEnv *env, jobject obj, jint nTransaction, jint nRecordType, jint nRecordIndex, jint nFmt, jobject joRet)
+{
+	RETVAL
+	CIWTransaction	*pTra = (CIWTransaction*)nTransaction;
+	jbyteArray		jbaImage = NULL;
+	int				cbImage = 0;
+	jbyte			*pImage = NULL;
+
+	ret = IWExportImageMem(pTra, nRecordType, nRecordIndex, &pImage, &cbImage, ToFormatString(nFmt));
+
+	if (ret == IW_SUCCESS && cbImage > 0)
+	{
+		jbaImage = (*env)->NewByteArray(env, cbImage);
+		(*env)->SetByteArrayRegion(env, jbaImage, 0, cbImage, pImage);
+	}
+
+	PACKAGERETVAL
+	return jbaImage;
 }
 
 /*

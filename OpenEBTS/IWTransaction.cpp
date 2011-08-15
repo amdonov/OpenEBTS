@@ -936,60 +936,248 @@ int CIWTransaction::ExportImage(int nRecordType, int nRecordIndex, CStdStringPat
 // but eventually we could easily support all format combinations using the existing
 // XXXtoYYY functions.
 {
-	int			nRet = IW_ERR_RECORD_NOT_FOUND;
-	CStdString  sFmt;
-	const BYTE	*pData;
-	int			nLength;
-	int			w;
-	int			h;
-	int			bpp;
-	int			nLengthNew;
-	double		dPPMM;	// pixels per millimeter
-	int			DPI;
-	BYTE		*pNew = NULL;
-	FILE		*f;
+	int		nRet = IW_ERR_RECORD_NOT_FOUND;
+	BYTE	*pData = NULL;
+	int		nLength;
+	FILE	*f;
 
-	CNISTRecord *pRecord = GetRecord(nRecordType, nRecordIndex);
-	if (!pRecord) goto done;
-
-	nRet = pRecord->GetImageInfo(sFmt, &nLength, &w, &h, (int*)&bpp);
+	nRet = ExportImageMem(nRecordType, nRecordIndex, &pData, &nLength, sOutputFormat);
 	if (nRet != IW_SUCCESS) goto done;
 
-	if (sFmt == _T("raw") && sOutputFormat == _T("bmp"))
+	f = _tfopenpath(sPath, _TPATH("wb"));
+	if (f != NULL)
 	{
-		nRet = pRecord->GetImage(sFmt, &nLength, &pData);
-		if (nRet != IW_SUCCESS) goto done;
-
-		nRet = pRecord->GetImageResolution(&dPPMM);
-		if (nRet != IW_SUCCESS) goto done;
-		DPI = (int)(dPPMM * 25.4);
-
-		nRet = RAWtoBMP(w, h, DPI, bpp, (BYTE*)pData, &pNew, &nLengthNew);
-
-		if (nRet != IW_SUCCESS) goto done;
-
-		f = _tfopenpath(sPath, _TPATH("wb"));
-		if (f != NULL)
-		{
-			fwrite(pNew, 1, nLengthNew, f);
-			fclose(f);
-			nRet = IW_SUCCESS;
-		}
-		else
-		{
-			nRet = IW_ERR_OPENING_FILE_FOR_WRITING;
-		}
+		fwrite(pData, 1, nLength, f);
+		fclose(f);
+		nRet = IW_SUCCESS;
 	}
 	else
+	{
+		nRet = IW_ERR_OPENING_FILE_FOR_WRITING;
+	}
+
+done:
+	if (pData != NULL) delete [] pData;
+
+	return nRet;
+}
+
+int CIWTransaction::ExportImageMem(int nRecordType, int nRecordIndex, BYTE** ppBuffer, int *pSize, CStdString sOutputFormat)
+// We support all format combinations using the existing XXXtoYYY functions. In the general case,
+// this will be a two step process: convet to BMP, then from BMP to the desired format.
+// Note that we don't perform any bit depth conversions, so in the case we can't do a simple format conversion
+// due to clashing bit depths we simply return IW_ERR_UNSUPPORTED_BIT_DEPTH.
+{
+	int			nRet = IW_ERR_RECORD_NOT_FOUND;
+	CStdString  sInputFormat;
+	BYTE		*pData;
+	int			nLength;
+	int			w = 0;
+	int			h = 0;
+	int			bpp = 0;
+	double		dPPMM = 0;	// pixels per millimeter
+	int			DPI = 0;
+	BYTE		*pBMP = NULL;
+	BYTE		*pNew = NULL;
+	int			nLengthBMP;
+	int			nLengthNew;
+
+	// Basic check on requested output format
+	if (sOutputFormat != _T("raw") && sOutputFormat != _T("bmp") && sOutputFormat != _T("wsq") &&
+		sOutputFormat != _T("jpg") && sOutputFormat != _T("jp2") && sOutputFormat != _T("fx4") &&
+		sOutputFormat != _T("png"))
 	{
 		nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
 	}
 
+	CNISTRecord *pRecord = GetRecord(nRecordType, nRecordIndex);
+	if (!pRecord) goto done;
+
+	// Get image format (and image dimensions that we need to if the input format is RAW)
+	nRet = pRecord->GetImageInfo(sInputFormat, &nLength, &w, &h, (int*)&bpp);
+	if (nRet != IW_SUCCESS) goto done;
+
+	// Basic check on input and output bit depths. Note that only RAW, BMP and PNG can be
+	// saved in 1, 8, and 24 bits per pixel, whereas WSQ supports only 8 bits per pixel,
+	// FX4 only 1 bit per pixel, and JPG and JP2 8 and 24 bits per pixel.
+	if (sOutputFormat == _T("wsq"))
+	{
+		if (bpp != 8) return IW_ERR_UNSUPPORTED_BIT_DEPTH;
+	}
+	else if (sOutputFormat == _T("fx4"))
+	{
+		if (bpp != 1) return IW_ERR_UNSUPPORTED_BIT_DEPTH;
+	}
+	else if (sOutputFormat == _T("jpg") || sOutputFormat == _T("jp2"))
+	{
+		if (bpp != 8 && bpp != 24) return IW_ERR_UNSUPPORTED_BIT_DEPTH;
+	}
+
+	// Fetch image blob into pData/nLength and format into sInputFormat
+	nRet = pRecord->GetImage(sInputFormat, &nLength, (const BYTE**)&pData);
+	if (nRet != IW_SUCCESS) goto done;
+
+	// If input and output formats are the same we just copy the blob and we're done
+	if (sInputFormat == sOutputFormat)
+	{
+		*pSize = nLength;
+		*ppBuffer = new BYTE[nLength];
+
+		memcpy(*ppBuffer, pData, nLength);
+		nRet = IW_SUCCESS;
+		goto done;
+	}
+
+	// First step, convert to BMP, if it isn't already BMP
+	if (sInputFormat != _T("bmp"))
+	{
+		// Special case, is input is RAW we have to get some specifics...
+		if (sInputFormat == _T("raw"))
+		{
+			// Get image resolution that we need to convert from the RAW image format
+			nRet = pRecord->GetImageResolution(&dPPMM);
+			if (nRet != IW_SUCCESS) goto done;
+			DPI = (int)(dPPMM * 25.4);
+		}
+
+		// Convert from sInputFormat to BMP
+		nRet = XYZtoBMP(pData, nLength, &pBMP, &nLengthBMP, w, h, DPI, bpp, sInputFormat);
+		if (nRet != IW_SUCCESS) goto done;
+
+		// Now set the image vars as if we had a BMP all along, for simplicity
+		sInputFormat = _T("bmp");
+		pData = pBMP;
+		nLength = nLengthBMP;
+
+		// Note: pBMP (== pData) still needs to be freed at this point
+	}
+
+	// Second step, convert the BMP to its final format, unless it too is BMP
+	if (sOutputFormat == _T("bmp"))
+	{
+		// We're done, and we make sure to set pBMP to NULL so it won't get freed,
+		// since it will soon belong to the caller (via *ppBuffer).
+		pBMP = NULL;	// (the caller owns it now)
+
+		nRet = IW_SUCCESS;
+	}
+	else
+	{
+		// Convert from BMP to sOutputFormat
+		nRet = BMPtoXYZ(pData, nLength, &pNew, &nLengthNew, sOutputFormat);
+		if (nRet != IW_SUCCESS) goto done;
+
+		// Now set the image vars again (pData) to sOutputFormat
+		pData = pNew;
+		nLength = nLengthNew;
+		pNew = NULL;	// don't free it, it will soon belong to the caller
+
+		nRet = IW_SUCCESS;
+	}
+
+	if (nRet == IW_SUCCESS)
+	{
+		// Success
+		*ppBuffer = pData;
+		*pSize = nLength;
+	}
+
 done:
+	if (pBMP != NULL) delete [] pBMP;
 	if (pNew != NULL) delete [] pNew;
 
 	return nRet;
 }
+
+int CIWTransaction::BMPtoXYZ(BYTE *pIn, int cbIn, BYTE **ppOut, int *pcbOut, CStdString sOutputFormat)
+// Since BMP is a stepping stone format when using the conversion functions, we often need to convert
+// to and from this format.
+{
+	int nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
+
+	if (sOutputFormat == _T("raw"))
+	{
+		int w, h, d;
+
+		nRet = BMPtoRAW(pIn, cbIn, ppOut, pcbOut, &w, &h, &d);
+	}
+	else if (sOutputFormat == _T("wsq"))
+	{
+		nRet = BMPtoWSQ(pIn, cbIn, 0.75, ppOut, pcbOut);
+	}
+	else if (sOutputFormat == _T("jpg"))
+	{
+		nRet = BMPtoJPG(pIn, cbIn, 15, ppOut, pcbOut);
+	}
+	else if (sOutputFormat == _T("jp2"))
+	{
+		nRet = BMPtoJP2(pIn, cbIn, 15.0, ppOut, pcbOut);
+	}
+	else if (sOutputFormat == _T("fx4"))
+	{
+		nRet = BMPtoFX4(pIn, cbIn, ppOut, pcbOut);
+	}
+	else if (sOutputFormat == _T("png"))
+	{
+		nRet = BMPtoPNG(pIn, cbIn, ppOut, pcbOut);
+	}
+
+	return nRet;
+}
+
+int CIWTransaction::XYZtoBMP(BYTE *pIn, int cbIn, BYTE **ppOut, int *pcbOut, int wRAW, int hRAW, int DPIRAW, int bppRAW, CStdString sInputFormat)
+// Since BMP is a stepping stone format when using the conversion functions, we often need to convert
+// to and from this format.
+// The params wRAW, hRAW, DPIRAW, bppRAW only need to be specified iff the input format is RAW
+{
+	int nRet = IW_ERR_UNSUPPORTED_IMAGE_FORMAT;
+
+	if (sInputFormat == _T("raw"))
+	{
+		nRet = RAWtoBMP(wRAW, hRAW, DPIRAW, bppRAW, pIn, ppOut, pcbOut);
+	}
+	else if (sInputFormat == _T("wsq"))
+	{
+		nRet = WSQtoBMP(pIn, cbIn, ppOut, pcbOut);
+	}
+	else if (sInputFormat == _T("jpg"))
+	{
+		nRet = JPGtoBMP(pIn, cbIn, ppOut, pcbOut);
+	}
+	else if (sInputFormat == _T("jp2"))
+	{
+		nRet = JP2toBMP(pIn, cbIn, ppOut, pcbOut);
+	}
+	else if (sInputFormat == _T("fx4"))
+	{
+		nRet = FX4toBMP(pIn, cbIn, ppOut, pcbOut);
+	}
+	else if (sInputFormat == _T("png"))
+	{
+		nRet = PNGtoBMP(pIn, cbIn, ppOut, pcbOut);
+	}
+
+	return nRet;
+}
+
+/*
+OPENEBTS_API int WINAPI BMPtoRAW(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut, int *pWidth, int *pHeight, int *pDPI);
+OPENEBTS_API int WINAPI RAWtoBMP(int width, int height, int DPI, int depth, BYTE* pImageIn, BYTE** ppImageOut, int *pcbOut);
+
+OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, int cbIn, float fRate, BYTE** ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI WSQtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
+
+OPENEBTS_API int WINAPI BMPtoJPG(BYTE* pImageIn, int cbIn, int nCompression, BYTE **ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI JPGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
+
+OPENEBTS_API int WINAPI BMPtoJP2(BYTE* pImageIn, int cbIn, float fRate, BYTE **ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI JP2toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
+
+OPENEBTS_API int WINAPI BMPtoFX4(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI FX4toBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
+
+OPENEBTS_API int WINAPI PNGtoBMP(BYTE* pImageIn, int cbIn, BYTE **ppImageOut, int *pcbOut);
+OPENEBTS_API int WINAPI BMPtoPNG(BYTE* pImageIn, int cbIn, BYTE** ppImageOut, int *pcbOut);*/
 
 void CIWTransaction::AdjustRecordLengths()
 // Adjust internal fields pertaining to record lengths

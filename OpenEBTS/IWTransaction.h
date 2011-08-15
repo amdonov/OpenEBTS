@@ -143,7 +143,10 @@ public:
 	int SetImage(int RecordType, int RecordIndex, CStdString sInputFormat, int nLength, BYTE *pData, CStdString sStorageFormat, float Compression);
 	int	ImportImage(int RecordType, int RecordIndex, CStdStringPath sPath, CStdString sStorageFormat, float Compression, CStdString sInputFormat);
 	int ExportImage(int RecordType, int RecordIndex, CStdStringPath sPath, CStdString sOutputFormat);
+	int ExportImageMem(int RecordType, int RecordIndex, BYTE** ppBuffer, int *pSize, CStdString sOutputFormat);
 	int GetImageInfo(int RecordType, int RecordIndex, CStdString& sStorageFormat, int *pnLength, int *pnHLL, int *pnVLL, int *pnBitsPerPixel);
+	int BMPtoXYZ(BYTE *pIn, int cbIn, BYTE **ppOut, int *pcbOut, CStdString sOutputFormat);
+	int XYZtoBMP(BYTE *pIn, int cbIn, BYTE **ppOut, int *pcbOut, int wRAW, int hRAW, int DPIRAW, int bppRAW, CStdString sInputFormat);
 };
 
 #endif // _IWTRANSACTION_H_

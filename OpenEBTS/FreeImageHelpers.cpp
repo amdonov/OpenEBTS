@@ -112,7 +112,7 @@ bool FreeImage_ConvertInMemory(FREE_IMAGE_FORMAT fifIn, BYTE* pImageIn, int cbSi
 	bRet = true;
 
 Exit:
-	if (fibmp == NULL) FreeImage_Unload(fibmp);
+	if (fibmp != NULL) FreeImage_Unload(fibmp);
 
 	// Reset global error so that caller can get at it by interrogating FreeImageError()
 	if (szErr[0] != '\0') SetFreeImageError(szErr);

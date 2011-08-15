@@ -396,49 +396,49 @@ const TCHAR* ToFormatString(int fmt)
 {
 	switch (fmt)
 	{
-		case imageFormatRAW:	return _T("RAW"); break;
-		case imageFormatBMP:	return _T("BMP"); break;
-		case imageFormatJPG:	return _T("JPG"); break;
-		case imageFormatWSQ:	return _T("WSQ"); break;
-		case imageFormatJP2:	return _T("JP2"); break;
-		case imageFormatFX4:	return _T("FX4"); break;
-		case imageFormatCBEFF:	return _T("CBEFF"); break;
-		case imageFormatPNG:	return _T("PNG"); break;
+		case imageFormatRAW:	return _T("raw"); break;
+		case imageFormatBMP:	return _T("bmp"); break;
+		case imageFormatJPG:	return _T("jpg"); break;
+		case imageFormatWSQ:	return _T("wsq"); break;
+		case imageFormatJP2:	return _T("jp2"); break;
+		case imageFormatFX4:	return _T("fx4"); break;
+		case imageFormatCBEFF:	return _T("cbeff"); break;
+		case imageFormatPNG:	return _T("png"); break;
 		default:				return _T("?"); break;	// shouldn't happen
 	}
 }
 
 int FromFormatString(const TCHAR* szFmt)
 {
-	if (_tcscmp(szFmt, _T("RAW")) == 0)
+	if (_tcscmp(szFmt, _T("raw")) == 0)
 	{
 		return imageFormatRAW;
 	}
-	else if (_tcscmp(szFmt, _T("BMP")) == 0)
+	else if (_tcscmp(szFmt, _T("bmp")) == 0)
 	{
 		return imageFormatBMP;
 	}
-	else if (_tcscmp(szFmt, _T("JPG")) == 0)
+	else if (_tcscmp(szFmt, _T("jpg")) == 0)
 	{
 		return imageFormatJPG;
 	}
-	else if (_tcscmp(szFmt, _T("WSQ")) == 0)
+	else if (_tcscmp(szFmt, _T("wsq")) == 0)
 	{
 		return imageFormatWSQ;
 	}
-	else if (_tcscmp(szFmt, _T("JP2")) == 0)
+	else if (_tcscmp(szFmt, _T("jp2")) == 0)
 	{
 		return imageFormatJP2;
 	}
-	else if (_tcscmp(szFmt, _T("FX4")) == 0)
+	else if (_tcscmp(szFmt, _T("fx4")) == 0)
 	{
 		return imageFormatFX4;
 	}
-	else if (_tcscmp(szFmt, _T("CBEFF")) == 0)
+	else if (_tcscmp(szFmt, _T("cbeff")) == 0)
 	{
 		return imageFormatCBEFF;
 	}
-	else if (_tcscmp(szFmt, _T("PNG")) == 0)
+	else if (_tcscmp(szFmt, _T("png")) == 0)
 	{
 		return imageFormatFX4;
 	}

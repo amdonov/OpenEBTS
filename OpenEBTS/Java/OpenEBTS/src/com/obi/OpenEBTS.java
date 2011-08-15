@@ -48,6 +48,7 @@ public class OpenEBTS
 	public static final int IW_ERR_WSQ_DECOMPRESS =                     18;
 	public static final int IW_ERR_IMAGE_CONVERSION =                   19;
 	public static final int IW_ERR_HEADER_ITEM =                        20;
+	public static final int IW_ERR_UNSUPPORTED_BIT_DEPTH =              21;
 	public static final int IW_WARN_TRANSACTION_FAILED_VERIFICATION = 1000;	 
 	public static final int IW_WARN_INVALID_FIELD_NUM =               1001;
 	public static final int IW_WARN_REQ_FIELD_MISSING =               1002;
@@ -136,8 +137,9 @@ public class OpenEBTS
 	public native int IWGetImageDepth(int nTransaction, int nRecordType, int nRecordIndex, NISTReturn ret);
 	public native void IWSetImageFromFile(int nTransaction, int nRecordType, int nRecordIndex, String sPath,
 			int nfmtIn, int nfmtOut, int nCompression, NISTReturn ret);
-	public native void IWGetImageToFile(int nTransaction, int nRecordType, int nRecordIndex, String sPath,
-			int nFmt, NISTReturn ret);
+	public native byte[] IWGetImageAs(int nTransaction, int nRecordType, int nRecordIndex, int nFmtOut, NISTReturn ret);
+	public native void IWGetImageAsToFile(int nTransaction, int nRecordType, int nRecordIndex, String sPath, int nFmtOut,
+			NISTReturn ret);
 	public native int IWReadVerification(String sPath, StringBuffer sParseErrorOut, NISTReturn ret); 
 	public native void IWCloseVerification(int nVerification, NISTReturn ret);
 	public native void IWSetVerification(int nTransaction, int nVerification, NISTReturn ret);
@@ -164,6 +166,7 @@ public class OpenEBTS
 	private native NISTFieldRules IWGetRuleRestrictions(int nVerification, String sTOT, String sMNU, NISTReturn ret); 
 	private native NISTValueList IWGetValueList(int nVerification, String sTOT, String sMNU, NISTReturn _ret);
 
+	
 	//
 	// NISTFile is the topmost class in OpenEBTS representing
 	// a NIST transaction file.
@@ -269,6 +272,17 @@ public class OpenEBTS
 			return IWGetImage(_nTransaction, nRecordType, nRecordIndex, _ret);
 		}
 
+		public byte[] getImageAs(int nRecordType, int nRecordIndex, int nFmtOut)
+		{
+			return IWGetImageAs(_nTransaction, nRecordType, nRecordIndex, nFmtOut, _ret);
+		}
+
+		public int getImageAsToFile(int nRecordType, int nRecordIndex, int nFmtOut, String sPath)
+		{
+			IWGetImageAsToFile(_nTransaction, nRecordType, nRecordIndex, sPath, nFmtOut, _ret);
+			return _ret.nRet;
+		}
+
 		public int getImageFormat(int nRecordType, int nRecordIndex)
 		{
 			return IWGetImageFormat(_nTransaction, nRecordType, nRecordIndex, _ret);
@@ -293,12 +307,6 @@ public class OpenEBTS
 									int nFmtIn, int nFmtOut, int nCompression)
 		{
 			IWSetImageFromFile(_nTransaction, nRecordType, nRecordIndex, sPath, nFmtIn, nFmtOut, nCompression, _ret);
-			return _ret.nRet;
-		}
-
-		public int getImageToFile(int nRecordType, int nRecordIndex, String sPath, int nFmt)
-		{
-			IWGetImageToFile(_nTransaction, nRecordType, nRecordIndex, sPath, nFmt, _ret);
 			return _ret.nRet;
 		}
 

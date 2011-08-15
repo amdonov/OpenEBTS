@@ -420,13 +420,13 @@ FIELDS
 
 [O]
 	1.014:	T1_GMT	AN		15		1		desc="Greenwich Mean Time"
-		date="YYYYMMDDHHMMSSZ"
+		date="YYYYMMDDhhmmssZ"
 		long_desc="This optional field provides a mechanism for expressing the date and time in terms of universal \
 			Greenwich Mean Time (GMT) units. If used, the GMT field contains the universal date that will be \
 			in addition to the local date contained in Field 1.005 (DAT). Use of the GMT field eliminates local \
 			time inconsistencies encountered when a transaction and its response are transmitted between \
 			two places separated by several time zones. The GMT provides a universal date and 24-hour \
-			clock time independent of time zones. It is represented as 'YYYYMMDDHHMMSSZ', a 15 \
+			clock time independent of time zones. It is represented as 'YYYYMMDDhhmmssZ', a 15 \
 			character string that is the concatenation of the date with the GMT and concludes with a 'Z'. The \
 			'YYYY' characters shall represent the year of the transaction, the 'MM' characters shall be the \
 			tens and units values of the month, and the 'DD' characters shall be the tens and units values of \

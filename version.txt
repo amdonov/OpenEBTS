@@ -3,6 +3,13 @@ OpenEBTS Version History
 ========================
 
 
+Version 2.0.0.6, August 15th 2011
+---------------------------------
+
+* Image exporting functions now support all formats. Added IWExportImageMem.
+* Added Java functions NISTFile.getImageAs and NISTFile.getImageAsToFile.
+
+
 Version 2.0.0.5, June 12th 2011
 -------------------------------
 

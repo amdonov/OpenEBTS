@@ -67,6 +67,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libcurld.lib ws2_32.lib wldap32.lib FreeImage.lib nbiswsq.lib"
+				OutputFile="$(OutDir)\$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="./../libs/FreeImage;./../libs/NBISWSQ/Debug;./../libs/cURL"
 				GenerateDebugInformation="true"
@@ -93,7 +94,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				Description="copying..."
+				CommandLine="copy $(TargetPath) c:\Bin\OpenEBTS.dll"
 			/>
 		</Configuration>
 		<Configuration
@@ -248,7 +250,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine=""
+				Description="copying..."
+				CommandLine="copy $(TargetPath) c:\Bin\OpenEBTS.dll"
 			/>
 		</Configuration>
 		<Configuration

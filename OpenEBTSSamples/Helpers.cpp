@@ -428,7 +428,7 @@ bool WriteBLOBToFile(const TCHARPATH *szFilename, BYTE* pBlob, long lBlobLen)
 		}
 		else
 		{
-			_tprintf(_T("Failed to read write \"%s\"\n"), szFilename);
+			_tprintf(_T("Failed to write \"%s\"\n"), szFilename);
 		}
 	}
 	else

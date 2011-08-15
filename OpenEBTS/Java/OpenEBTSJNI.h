@@ -65,6 +65,8 @@ extern "C" {
 #define com_obi_OpenEBTS_IW_ERR_IMAGE_CONVERSION 19L
 #undef com_obi_OpenEBTS_IW_ERR_HEADER_ITEM
 #define com_obi_OpenEBTS_IW_ERR_HEADER_ITEM 20L
+#undef com_obi_OpenEBTS_IW_ERR_UNSUPPORTED_BIT_DEPTH
+#define com_obi_OpenEBTS_IW_ERR_UNSUPPORTED_BIT_DEPTH 21L
 #undef com_obi_OpenEBTS_IW_WARN_TRANSACTION_FAILED_VERIFICATION
 #define com_obi_OpenEBTS_IW_WARN_TRANSACTION_FAILED_VERIFICATION 1000L
 #undef com_obi_OpenEBTS_IW_WARN_INVALID_FIELD_NUM
@@ -249,10 +251,18 @@ JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWSetImageFromFile
 
 /*
  * Class:     com_obi_OpenEBTS
- * Method:    IWGetImageToFile
+ * Method:    IWGetImageAs
+ * Signature: (IIIILcom/obi/OpenEBTS/NISTReturn;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_com_obi_OpenEBTS_IWGetImageAs
+  (JNIEnv *, jobject, jint, jint, jint, jint, jobject);
+
+/*
+ * Class:     com_obi_OpenEBTS
+ * Method:    IWGetImageAsToFile
  * Signature: (IIILjava/lang/String;ILcom/obi/OpenEBTS/NISTReturn;)V
  */
-JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWGetImageToFile
+JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWGetImageAsToFile
   (JNIEnv *, jobject, jint, jint, jint, jstring, jint, jobject);
 
 /*

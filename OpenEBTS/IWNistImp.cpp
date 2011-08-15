@@ -773,6 +773,22 @@ OPENEBTS_API int WINAPI IWExportImage(CIWTransaction* pIWTrans, int nRecordType,
 	return nRet;	
 }
 
+OPENEBTS_API int WINAPI IWExportImageMem(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
+										 BYTE** ppBuffer, int *pSize, const TCHAR* szOutputFormat)
+{
+	int nRet = IW_ERR_TRANSACTION_NOT_LOADED;
+
+	IWS_BEGIN_EXCEPTION_METHOD("IWExportImageMem")
+	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	if (pIWTrans && pIWTrans->IsTransactionLoaded())
+		nRet = pIWTrans->ExportImageMem(nRecordType, nRecordIndex, ppBuffer, pSize, szOutputFormat);
+
+	IWS_END_CATCHEXCEPTION_BLOCK()
+
+	return nRet;	
+}
+
 OPENEBTS_API int WINAPI IWGetImageInfo(CIWTransaction* pIWTrans, int nRecordType, int nRecordIndex,
 									   const TCHAR** pszStorageFormat, int* pnLength, int* pnHLL, int* pnVLL, int* pnBitsPerPixel)
 {
