@@ -94,8 +94,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copying..."
-				CommandLine="copy $(TargetPath) c:\Bin\OpenEBTS.dll"
 			/>
 		</Configuration>
 		<Configuration
@@ -250,8 +248,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				Description="copying..."
-				CommandLine="copy $(TargetPath) c:\Bin\OpenEBTS.dll"
 			/>
 		</Configuration>
 		<Configuration
