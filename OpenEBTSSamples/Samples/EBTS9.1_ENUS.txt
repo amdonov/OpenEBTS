@@ -13,8 +13,15 @@
 #                         May 25, 2010                       #
 #                                                            #
 ##############################################################
-#                Version 1.0, DJD, 2010/08/26                #
-#                     Original Document                      #
+# 1.0   DJD 2010.08.26 
+#         - Original Document
+# 1.1   MJF 2011.08.16 
+#         - add missing loc idx colon for fields: 
+#           T13_SPD, T13_PPC, T13_LQM, T14_AMP, T14_FQM, T15_PQM
+#         - add missing field def terminator for fields: 
+#           T4_FGP, T13_LQM_FGN, T15_PQM_PPC
+# 1.2   MJF 2011.08.17
+#         - correct long desc for T2_DOA (Mantis 3553)
 ##############################################################
 
 
@@ -66,7 +73,7 @@ TRANSACTIONS "CJIS Card Scanning Service Submissions"
   FUFC  "Federal Applicant CSS Submission (User Fee)"
   MAPC  "Miscellaneous Applicant Civil CSS Submission (No Charge)"
   NFFC  "Non-Federal Applicant CSS Submission (User Fee)"
-  NFDP  "Non-Federal Applicant CSS Submission (User Fee - Direct Payment)"
+  NFDP  "Non-Federal Applicant CSS Submission (User Fee – Direct Payment)"
         1:1 2:1 414:1-14 10:0-4 713:0-2 15:0-8;
 
 ################################################################################
@@ -168,7 +175,7 @@ TRANSACTIONS "Submission Responses"
         1:1 2:1;
   NAR   "Notification of Action Response"
         1:1 2:1;
-  SRL   "Search Result - Latent"
+  SRL   "Search Result – Latent"
         1:1 2:1 414:0-99;
   LPNR  "Latent Penetration Response"
   UULD  "Unsolicited Unsolved Latent Delete"
@@ -340,7 +347,7 @@ FIELDS
 [M]
 	1.008	T1_ORI	AN		9		1		desc="Originating Agency Identifier"
 		long_desc="This mandatory field shall contain the identifier \
-			of the administration or organization originating the transaction. The size and data content of 
+			of the administration or organization originating the transaction. The size and data content of \
 			this field shall be defined by the user and be in accordance with criteria specified by the \
 			receiving agency. For EBTS purposes, this field shall be a nine-byte alphanumeric field. The \
 			first two characters shall be a valid POB code, and the entire ORI shall validate to an NCIC- \
@@ -830,7 +837,7 @@ TPFS, TPIS, ULM]
 			AKA may contain a comma, hyphen, or blank as special characters. The format shall be the \
 			surname followed by a comma (,), followed by the given name(s) separated by a space. The \
 			following restrictions and exceptions to the general format apply: \
-			1. Minimum length is three bytes in the following sequence: alpha or ampersand, comma, alpha. 
+			1. Minimum length is three bytes in the following sequence: alpha or ampersand, comma, alpha. \
 			2. A comma must be followed by a minimum of one alpha character. \
 			3. A blank before or after comma is invalid. \
 			4. A hyphen in first and last position of any name segment is invalid. \
@@ -1164,12 +1171,10 @@ PRR O,
 CPD, PDR]
 	2.045	T2_DOA	N		8		1		desc="Date of Arrest"
 		date="CCYYMMDD"
-		long_desc="This field contains the date of birth. It is entered as an eight-digit \
-			number in the same format as specified in Section 1.1 of this appendix. If DOB is completely \
-			unknown, enter as 00000000. Partial DOBs are not allowed. DOB shall not exceed date of \
-			submission after time zone adjustment. When a submission contains an unknown DOB and is a \
-			non-ident retained, that submission will be rejected, as IAFIS will not allow a master record to be \
-			created with an unknown DOB.";
+		long_desc="This field contains the date of arrest. The date shall appear as an eight-digit number. \
+			DOA shall not exceed date of submission except when the submission originates from an international \
+			contributor located in a time zone earlier than the Eastern Time Zone. This date field shall contain \
+			the local date for the region submitting the request.";
 
 [O, CFS, CPR, ELR,
 PRR,
@@ -2032,7 +2037,7 @@ TPFS M, TPIS]
 			alternate finger positions in the remaining five bytes using the same format. \
 			If fewer than five finger position references are to be used, the unused bytes shall be filled with \
 			the binary equivalent of '255'. The code '0', for 'Unknown Finger', shall be used to reference \
-			every finger position from one through ten."
+			every finger position from one through ten.";
 
 	4.05...12	T4_ISR	B1	1		1		desc="Image Scanning Resolution"
 		mmap="0:Minimum Scanning Resolution|\
@@ -3118,7 +3123,7 @@ TPFS M, TPIS]
 			or tip.";
 
 [O]
-	13.014	T13_SPD				AN		5-6		1-9		desc="Search Position Descriptors"
+	13.014:	T13_SPD				AN		5-6		1-9		desc="Search Position Descriptors"
 		supportedif("T13_FGP")="19"
 		long_desc="This ASCII field shall be present if and only if the finger position code '19' appears in Field \
 			13.013. It is used to narrow the search of the latent image in this record against a database. \
@@ -3155,7 +3160,7 @@ TPFS M, TPIS]
 			MED:Medial";
 
 [O]
-	13.015	T13_PPC				AN		14-27	1-12	desc="Print Position Coordinates"
+	13.015:	T13_PPC				AN		14-27	1-12	desc="Print Position Coordinates"
 		supportedif("T13_FGP")="19"
 		long_desc="If finger position code '19' appears in field 13.013, this field contains offsets to the locations for \
 			the bounding box of the EJI, each of the full finger views, or segments within the EJI. When \
@@ -3210,7 +3215,7 @@ TPFS M, TPIS]
 			image data.";
 
 [O]
-	13.024	T13_LQM				N		7-14	1-4		desc="Latent Quality Metric"
+	13.024:	T13_LQM				N		7-14	1-4		desc="Latent Quality Metric"
 		long_desc="This optional ASCII field is used to specify one or more different metrics of latent image quality \
 			score data for the image stored in this record. The meaning attributed to this metric must be \
 			defined and interpreted by the producer of the scoring algorithm or by the person or system used \
@@ -3272,7 +3277,7 @@ TPFS M, TPIS]
 			33:Right Hypothenar|\
 			34:Left Interdigital|\
 			35:Left Thenar|\
-			36:Left Hypothenar"
+			36:Left Hypothenar";
 	13.024..2	T13_LQM_SCR		N		1-3		1		desc="Latent Quality Score";
 	13.024..3	T13_LQM_VEN		AN		4		1		desc="Latent Quality Vendor";
 	13.024..4	T13_LQM_VEN		N		1-5		1		desc="Latent Quality Product Code";
@@ -3522,7 +3527,7 @@ TPFS M, TPIS]
 # Note: this field is new in EBTS 9.1 - it was not present in EBTS 8.1.
 #
 [O]
-	14.018	T14_AMP				AN	4		1-4		desc="Amputated or Bandaged"
+	14.018:	T14_AMP				AN	4		1-4		desc="Amputated or Bandaged"
 		long_desc="This optional ASCII field shall specify if one or more \
 			fingers are amputated or bandaged. This field shall consist of one subfield for each amputated or \
 			missing finger. Each subfield shall contain two information items separated by the US separator. \
@@ -3626,7 +3631,7 @@ TPFS M, TPIS]
 #
 
 [O]
-	14.024	T14_FQM				N		7-14	1-x		desc="Fingerprint Quality Metric"
+	14.024:	T14_FQM				N		7-14	1-x		desc="Fingerprint Quality Metric"
 		long_desc="This ASCII field is used to specify one \
 			or more different metrics of fingerprint image quality score data for the image stored in this \
 			record. The meaning attributed to this metric must be defined and interpreted by the producer of \
@@ -3838,7 +3843,7 @@ TPFS M, TPIS]
 			palmprint image data.";
 
 [O]
-	15.024	T15_PQM				N		7-14	1-4		desc="Palmprint Quality Metric"
+	15.024:	T15_PQM				N		7-14	1-4		desc="Palmprint Quality Metric"
 		long_desc="This optional ASCII field is used to specify one or more different metrics of palm image quality \
 			score data for the image stored in this record. The meaning attributed to this metric must be \
 			defined and interpreted by the producer of the scoring algorithm or by the person or system used \
@@ -3884,7 +3889,7 @@ TPFS M, TPIS]
 			33:Right Hypothenar|\
 			34:Left Interdigital|\
 			35:Left Thenar|\
-			36:Left Hypothenar"
+			36:Left Hypothenar";
 	15.024..2	T15_PQM_SCR		N		1-3		1		desc="Palmprint Quality Score";
 	15.024..3	T15_PQM_VEN		AN		4		1		desc="Palmprint Quality Vendor";
 	15.024..4	T15_PQM_VEN		N		1-5		1		desc="Palmprint Quality Product Code";
