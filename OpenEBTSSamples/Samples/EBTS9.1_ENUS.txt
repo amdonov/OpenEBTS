@@ -2382,7 +2382,7 @@ TPFS M, TPIS]
 			MARK:Mark|\
 			TATTOO:Tattoo"
 		long_desc="This mandatory ASCII field is used to indicate the type of image contained in this record. It shall \
-			contain "FACE", "SCAR", "MARK", or "TATTOO" to indicate the appropriate image type.";
+			contain 'FACE', 'SCAR', 'MARK', or 'TATTOO' to indicate the appropriate image type.";
 
 [M]
 	10.004	T10_SRC	AN		9-35	1		desc="Source Agency / ORI"
@@ -2425,13 +2425,13 @@ TPFS M, TPIS]
 [M]
 	10.009	T10_HPS	N		1-4		1		desc="Horizontal Pixel Scale"
 		long_desc="This mandatory ASCII field shall specify the integer pixel density used in the horizontal direction \
-			of the transmitted image providing the SLC contains a "1" or a "2". Otherwise, it indicates the \
+			of the transmitted image providing the SLC contains a '1' or a '2'. Otherwise, it indicates the \
 			horizontal component of the pixel aspect ratio.";
 
 [M]
 	10.010	T10_VPS	N		1-4		1		desc="Vertical Pixel Scale"
 		long_desc="This mandatory ASCII field shall specify the integer pixel density used in the vertical direction of \
-			the transmitted image providing the SLC contains a "1" or a "2". Otherwise, it indicates the \
+			the transmitted image providing the SLC contains a '1' or a '2'. Otherwise, it indicates the \
 			vertical component of the pixel aspect ratio.";
 
 [M]
@@ -2443,7 +2443,7 @@ TPFS M, TPIS]
 			JP2L:JPEG 2000 ISO/IEC 15444-1 (Lossless)|\
 			PNG:Portable Network Graphics"
 		long_desc="This mandatory ASCII field shall contain an entry from Table 1 (other than WSQ) to specify the \
-			algorithm used for compressing the color or grayscale image. An entry of "NONE" in this field \
+			algorithm used for compressing the color or grayscale image. An entry of 'NONE' in this field \
 			indicates that the data contained in this record is uncompressed. The image shall be represented \
 			as an array of n rows by m columns by at least 8-bit pixels. Each pixel in a monochrome image \
 			shall be represented by eight or more bits. Color images shall be represented as a series of \
@@ -2521,8 +2521,8 @@ TPFS M, TPIS]
 			D:Determined 3D Pose"
 		long_desc="This optional field is to be used for the exchange of facial image data. When included, this field \
 			shall contain one ASCII character code selected from Table 19 to describe the pose of the \
-			subject. For the angled pose entry "A", field 10.021 shall contain the offset angle from the full \
-			face orientation. For the determined 3D pose entry "D", Field 10.025 shall contain a set of \
+			subject. For the angled pose entry 'A', field 10.021 shall contain the offset angle from the full \
+			face orientation. For the determined 3D pose entry 'D', Field 10.025 shall contain a set of \
 			determined 3D pose angles (i.e., Yaw, Pitch, and Roll angles) away from the full frontal face \
 			orientation. Note that the offset angle in Field 10.021 is opposite from the yaw angle in Field \
 			10.025 as indicated by a minus sign.";
@@ -2617,12 +2617,12 @@ TPFS M, TPIS]
 			angle contained in Field 10.021. Note that the Yaw angle of this field has the opposite sign of the \
 			offset angle contained in Field 10.021. Annex J contains, additional information, details, and \
 			examples of the subject pose angles.";
-	10.025..1	T10_SPA_YAW		NS		1-4		1		desc="Subject Pose Yaw"					sca = "-";
-	10.025..2	T10_SPA_PIT		NS		1-4		1		desc="Subject Pose Pitch"				sca = "-";
-	10.025..3	T10_SPA_ROL		NS		1-4		1		desc="Subject Pose Roll"				sca = "-";
-	10.025..4	T10_SPA_YAWU	NS		1-4		1		desc="Subject Pose Yaw Uncertainty"		sca = "-";
-	10.025..5	T10_SPA_PITU	NS		1-4		1		desc="Subject Pose Pitch Uncertainty"	sca = "-";
-	10.025..6	T10_SPA_ROLU	NS		1-4		1		desc="Subject Pose Roll Uncertainty"	sca = "-";
+	10.025..1	T10_SPA_YAW	NS	1-4	1	desc="Subject Pose Yaw"			sca="-";
+	10.025..2	T10_SPA_PIT	NS	1-4	1	desc="Subject Pose Pitch"		sca="-";
+	10.025..3	T10_SPA_ROL	NS	1-4	1	desc="Subject Pose Roll"		sca="-";
+	10.025..4	T10_SPA_YAWU	NS	1-4	1	desc="Subject Pose Yaw Uncertainty"	sca="-";
+	10.025..5	T10_SPA_PITU	NS	1-4	1	desc="Subject Pose Pitch Uncertainty"	sca="-";
+	10.025..6	T10_SPA_ROLU	NS	1-4	1	desc="Subject Pose Roll Uncertainty"	sca="-";
 
 [O]
 	10.026	T10_SXS	A		5-20	1-50	desc="Subject Facial Description"
@@ -2653,7 +2653,7 @@ TPFS M, TPIS]
 			image. This field may have one or more subfields each containing a single information item. \
 			Attributes associated with the facial image may be selected from Table 22 and entered in this \
 			field. For 'Physical Characteristic', enter a characteristic as listed in the Ninth(or current) Edition \
-			of the NCIC Code Manual, December, 2000. For the "Other Characteristic" enter unlisted or \
+			of the NCIC Code Manual, December, 2000. For the 'Other Characteristic' enter unlisted or \
 			miscellaneous attributes as unformatted text used to describe the attribute.";
 
 [O]
@@ -2695,7 +2695,7 @@ TPFS M, TPIS]
 		long_desc="This optional ASCII field shall be used for the exchange of facial image data. This field is \
 			mandatory if the SAP entry (Field 10.013) is '40' or greater. When present, it shall contain an \
 			entry form Table 24 that describes the hair color of the subject as seen in the photograph. For \
-			unusual or unnatural colors not listed in the table, or the "real" color cannot be ascertained, the \
+			unusual or unnatural colors not listed in the table, or the 'real' color cannot be ascertained, the \
 			hair color should be labeled as 'XXX'.";
 
 [O]
@@ -2956,7 +2956,7 @@ TPFS M, TPIS]
 	10.999	T10_DAT	B1		1-x		1		desc="Image data"
 		long_desc="This mandatory field shall contain all of the grayscale or color image data from a face, scar, mark, \
 			tattoo, or other image. It shall always be assigned field number 999 and must be the last physical \
-			field in the record. The field number designation "10.999:" is followed by the image data in a \
+			field in the record. The field number designation '10.999:' is followed by the image data in a \
 			binary representation.";
 
 
@@ -3382,7 +3382,7 @@ TPFS M, TPIS]
 [M]
 	14.010	T14_VPS	N		1-4		1		desc="Vertical Pixel Scale"
 		long_desc="This mandatory ASCII field shall specify the integer pixel density used in the vertical direction of \
-			the transmitted image providing the SLC contains a "1" or a "2". Otherwise, it indicates the \
+			the transmitted image providing the SLC contains a '1' or a '2'. Otherwise, it indicates the \
 			vertical component of the pixel aspect ratio.";
 
 [M]
