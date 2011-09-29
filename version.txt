@@ -2,6 +2,10 @@
 OpenEBTS Version History
 ========================
 
+Version 2.0.0.7, September 29th 2011
+------------------------------------
+
+* properly detect nregex and regex rules. Correct problem where nregex rules were returned as regex.
 
 Version 2.0.0.6, August 15th 2011
 ---------------------------------
