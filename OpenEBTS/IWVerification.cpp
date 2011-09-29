@@ -506,18 +506,18 @@ CStdString CIWVerification::GetOptionalAdvancedRule(TCHAR **ppRule)
 	if (!sRule.IsEmpty()) goto done;
 
 	// regex and nregex follow the '[tag]=' syntaz
-	sRule = ExtractTagValue(ppRule, _T("regex"));
-	if (!sRule.IsEmpty())
-	{
-		// tack on tag name again
-		sRule = _T("regex=\"") + sRule + _T("\"");
-		goto done;
-	}
 	sRule = ExtractTagValue(ppRule, _T("nregex"));
 	if (!sRule.IsEmpty())
 	{
 		// tack on tag name again
 		sRule = _T("nregex=\"") + sRule + _T("\"");
+		goto done;
+	}
+	sRule = ExtractTagValue(ppRule, _T("regex"));
+	if (!sRule.IsEmpty())
+	{
+		// tack on tag name again
+		sRule = _T("regex=\"") + sRule + _T("\"");
 		goto done;
 	}
 
