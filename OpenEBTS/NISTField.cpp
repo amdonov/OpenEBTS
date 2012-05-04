@@ -175,10 +175,9 @@ int CNISTField::RemoveSubField(int nSubField)
 	std::vector<WORD> wSubFieldIndex;
 	WORD wLastIndexDeleted;
 	WORD index;
-	unsigned int i;
 
 	// Form a list of all Item indexes in the SubField array to remove
-	for (i = 0; i < nCount; i++)
+	for (size_t i = 0; i < nCount; i++)
 	{
 		pItem = m_SubFieldAry.at(i);
 
@@ -193,7 +192,7 @@ int CNISTField::RemoveSubField(int nSubField)
 	{
 		// First delete the items to delete, but backwards (!) to keep the indexes
 		// in wSubFieldIndex pertinent.
-		for (i = (int)wSubFieldIndex.size()-1; i >= 0; i--)
+		for (int i = (int)wSubFieldIndex.size()-1; i >= 0; i--)
 		{
 			index = wSubFieldIndex.at(i);
 			pItem = m_SubFieldAry.at(index);
@@ -204,7 +203,7 @@ int CNISTField::RemoveSubField(int nSubField)
 		// This is to maintain the necessary sequential numbering scheme.
 		wLastIndexDeleted = wSubFieldIndex.at(0);
 		nCount = m_SubFieldAry.size();	// re-adjust count
-		for (i = wLastIndexDeleted; i < nCount; i++)
+		for (size_t i = wLastIndexDeleted; i < nCount; i++)
 		{
 			pItem = m_SubFieldAry.at(i);
 			pItem->m_nSubField--;
