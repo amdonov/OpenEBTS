@@ -982,6 +982,9 @@ int CIWTransaction::ExportImageMem(int nRecordType, int nRecordIndex, BYTE** ppB
 	int			nLengthBMP;
 	int			nLengthNew;
 
+	// Make sure character case doesn't prevent doing the job.
+	sOutputFormat.ToLower();
+
 	// Basic check on requested output format
 	if (sOutputFormat != _T("raw") && sOutputFormat != _T("bmp") && sOutputFormat != _T("wsq") &&
 		sOutputFormat != _T("jpg") && sOutputFormat != _T("jp2") && sOutputFormat != _T("fx4") &&
