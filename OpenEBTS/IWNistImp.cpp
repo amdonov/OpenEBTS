@@ -1298,7 +1298,7 @@ Exit:
 }
 
 OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, int cbIn, float fRate, BYTE** ppImageOut, int *pcbOut)
-// Input assumed to be 8 bpp
+// Input must be 8 bpp, otherwise IW_ERR_UNSUPPORTED_BIT_DEPTH is returned
 {
 	int 	ret = IW_ERR_WSQ_COMPRESS;
 	BYTE	*pRAW = NULL;
@@ -1312,6 +1312,19 @@ OPENEBTS_API int WINAPI BMPtoWSQ(BYTE* pImageIn, int cbIn, float fRate, BYTE** p
 
 	IWS_BEGIN_EXCEPTION_METHOD("BMPtoWSQ")
 	IWS_BEGIN_CATCHEXCEPTION_BLOCK()
+
+	// First ensure bitdepth of BMP is 8
+	// Support both file BMPs and DIBs
+	BITMAPFILEHEADER	*pbfh;
+	BITMAPINFOHEADER	*pbih;
+	pbfh = (BITMAPFILEHEADER*)pImageIn;
+	if (pbfh->bfType == 0x4d42)	 //"BM"
+	{
+		pbih = (BITMAPINFOHEADER*)(pImageIn + sizeof(BITMAPFILEHEADER));
+	} else {
+		pbih = (BITMAPINFOHEADER*)pImageIn;
+	}
+	if (pbih->biBitCount != 8) return IW_ERR_UNSUPPORTED_BIT_DEPTH;
 
 	ret = BMPtoRAW(pImageIn, cbIn, &pRAW, &cbSizeRAW, &width, &height, &DPI);
 	if (ret != IW_SUCCESS) goto Exit;
