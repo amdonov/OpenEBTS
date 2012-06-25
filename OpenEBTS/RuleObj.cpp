@@ -243,12 +243,15 @@ bool CRuleObj::SetOptionalDateFormat(CStdString& sDateFormat)
 		}
 	}
 
+	// We must be lenient as CCYY and MMDDYY are also valid date descriptors.
 	if (!sDateFormat.IsEmpty())
 	{
-		// Make sure we have a year, month and day, otherwise the date can't be valid
-		if (sDateFormat.Find(_T("YYYY")) == -1 && sDateFormat.Find(_T("CCYY")) == -1) return false;
-		if (sDateFormat.Find(_T("MM")) == -1) return false;
-		if (sDateFormat.Find(_T("DD")) == -1) return false;
+		// Make sure we have at leat YY, this at least is mandatory
+		if (sDateFormat.Find(_T("YY")) == -1) return false;
+		// Then either CC or both MM and DD
+		if ((sDateFormat.Find(_T("MM")) == -1 || sDateFormat.Find(_T("DD")) == -1) &&
+			sDateFormat.Find(_T("CC")) == -1)
+			return false;
 	}
 
 	m_sDateFormat = sDateFormat;

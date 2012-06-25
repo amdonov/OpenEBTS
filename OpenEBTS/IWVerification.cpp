@@ -280,6 +280,7 @@ TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 	CStdString sRet;
 	int ch;
 	bool bInQuote = false;
+	bool bBackslashActive = false;
 
 	if (!pTemp)
 	{
@@ -292,8 +293,22 @@ TCHAR *CIWVerification::GetRule(TCHAR **ppFile)
 		while (*pTemp)
 		{
 			ch = *pTemp;
-			
-			if (ch == '"')
+
+			if (bBackslashActive)
+			{
+				// we take this char no matter what it is
+				// and set bBackslashActive back to false
+				bBackslashActive = false;
+			}
+			else if (ch == '\\')
+			{
+				if (bInQuote)
+				{
+					// next char to be literal
+					bBackslashActive = true;
+				}
+			}
+			else if (ch == '"')
 			{
 				if (!bInQuote)
 					bInQuote = true;

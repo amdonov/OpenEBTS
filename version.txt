@@ -2,10 +2,26 @@
 OpenEBTS Version History
 ========================
 
+
+Version 2.0.0.9, June 25th 2012
+-------------------------------
+
+* More leniency when validating verification file date format codes to allow wider scope (e.g., "CCYY")
+* Allow double-quotes within double-quotes in verification file (when preceded by a backslash)
+* BMPtoWSQ now returns IW_ERR_UNSUPPORTED_BIT_DEPTH when input is not 8bpp
+
+
+Version 2.0.0.8, May 4th 2012
+-----------------------------
+
+* Minor bugfix: RemoveSubField() for-loop now more efficent
+
+
 Version 2.0.0.7, September 29th 2011
 ------------------------------------
 
-* properly detect nregex and regex rules. Correct problem where nregex rules were returned as regex.
+* Properly detect nregex and regex rules. Correct problem where nregex rules were returned as regex.
+
 
 Version 2.0.0.6, August 15th 2011
 ---------------------------------
