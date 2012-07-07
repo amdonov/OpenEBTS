@@ -44,7 +44,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "ImageWare Systems, Inc"
-            VALUE "FileDescription", "OpenEBTS Release x86"
+            VALUE "FileDescription", OPENEBTS_CONFIG_PLATFORM
             VALUE "FileVersion", "2, 0, 0, 9"
             VALUE "InternalName", "OpenEBTS"
             VALUE "OriginalFilename", "OpenEBTS.dll"
