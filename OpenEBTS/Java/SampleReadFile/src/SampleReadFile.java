@@ -1,5 +1,7 @@
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import com.obi.OpenEBTS;
 
@@ -50,8 +52,16 @@ public class SampleReadFile
 			return;
 		}
 
-		ret = nist.readFromFile(sPathTransaction);
-		if (showError(ret, "readFromFile")) return;
+		byte[] baBuffer = ReadByteArrayFromFile(sPathTransaction);
+
+		for (int i=0; i < 1000000; i++)
+		{
+			ret = nist.readFromMem(baBuffer);
+			if (showError(ret, "readFromMem")) return;
+	
+			baBuffer = nist.writeToMem();
+			if (showError(ret, "writeToMem")) return;
+		}
 
 		// Enumerate all the textual data in NIST file by navigating to the records,
 		// the field, the subfields and finally the items.
@@ -87,6 +97,36 @@ public class SampleReadFile
 
 			_out.flush();
 		}
+	}
+
+	private static byte[] ReadByteArrayFromFile(String sFile)
+	// Populates and returns byte array from file. Returns null on failure.
+	{
+		File file = new File(sFile);
+		byte[] ba = null;
+
+		try
+		{
+			//	create FileInputStream object
+			FileInputStream stream = new FileInputStream(file);
+			ba = new byte[(int)file.length()];
+
+			stream.read(ba);
+		}
+		catch(FileNotFoundException e)
+		{
+			Out_println("Exception encountered while attempting to read " + sFile);
+			Out_println("File not found:" + e);
+			ba = null;
+		}
+		catch(IOException ioe)
+		{
+			Out_println("Exception encountered while attempting to read " + sFile);
+			Out_println(ioe.toString());
+			ba = null;
+		}
+
+		return ba;
 	}
 
 	private static void OutputItem(OpenEBTS.NISTItem item)

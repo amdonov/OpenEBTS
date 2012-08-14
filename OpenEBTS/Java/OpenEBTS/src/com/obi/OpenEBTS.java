@@ -119,6 +119,8 @@ public class OpenEBTS
 	public native int IWNew(String sTOT, NISTReturn ret);
 	public native int IWReadFromFile(String sPath, int nVerification, NISTReturn ret);
 	public native void IWWriteToFile(int nTransaction, String sPath, NISTFileFormat fmt, NISTReturn ret);
+	public native int IWReadFromMem(byte[] buffer, int nVerification, NISTReturn ret);
+	public native byte[] IWWriteToMem(int nTransaction, NISTReturn ret);	
 	public native void IWClose(int nTransaction, NISTReturn ret);
 	public native int IWAddRecord(int nTransaction, int nRecordType, NISTReturn ret); 
 	public native void IWDeleteRecord(int nTransaction, int nRecordType, int nRecordIndex, NISTReturn ret);
@@ -223,6 +225,18 @@ public class OpenEBTS
 		public int writeToFile(String sPath)
 		{
 			return writeToFile(sPath, NISTFileFormat.fileFormatBinary);
+		}
+
+		public int readFromMem(byte[] transaction)
+		{
+			_nTransaction =  IWReadFromMem(transaction, _nVerification, _ret);
+			return _ret.nRet;
+			
+		}
+
+		public byte[] writeToMem()
+		{
+			return IWWriteToMem(_nTransaction, _ret);
 		}
 
 		// Content Editing, Records

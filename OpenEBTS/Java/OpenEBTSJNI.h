@@ -139,6 +139,22 @@ JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWWriteToFile
 
 /*
  * Class:     com_obi_OpenEBTS
+ * Method:    IWReadFromMem
+ * Signature: ([BILcom/obi/OpenEBTS/NISTReturn;)I
+ */
+JNIEXPORT jint JNICALL Java_com_obi_OpenEBTS_IWReadFromMem
+  (JNIEnv *, jobject, jbyteArray, jint, jobject);
+
+/*
+ * Class:     com_obi_OpenEBTS
+ * Method:    IWWriteToMem
+ * Signature: (ILcom/obi/OpenEBTS/NISTReturn;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_com_obi_OpenEBTS_IWWriteToMem
+  (JNIEnv *, jobject, jint, jobject);
+
+/*
+ * Class:     com_obi_OpenEBTS
  * Method:    IWClose
  * Signature: (ILcom/obi/OpenEBTS/NISTReturn;)V
  */

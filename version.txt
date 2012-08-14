@@ -3,6 +3,12 @@ OpenEBTS Version History
 ========================
 
 
+Version 2.0.0.10, August 14th 2012
+----------------------------------
+
+* Added readFromMem and writeToMem to Java class NISTFile
+
+
 Version 2.0.0.9, June 25th 2012
 -------------------------------
 

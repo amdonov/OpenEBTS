@@ -88,7 +88,72 @@ JNIEXPORT void JNICALL Java_com_obi_OpenEBTS_IWWriteToFile
 
 	JNIReleaseStringPath(env, jsPath, szPath);
 	PACKAGERETVAL
-} 
+}
+
+/*
+ * Class:     com_obi_OpenEBTS
+ * Method:    IWReadFromMem
+ * Signature: ([BILcom/obi/OpenEBTS/NISTReturn;)I
+ */
+JNIEXPORT jint JNICALL Java_com_obi_OpenEBTS_IWReadFromMem
+  (JNIEnv *env, jobject obj, jbyteArray jbaBuffer, jint nVerification, jobject joRet)
+{
+	RETVAL
+	CIWVerification	*pVer = (CIWVerification*)nVerification;
+	CIWTransaction	*pTra = NULL;
+	jint			nTransaction = 0;
+	jboolean		jzIsCopy = 0;
+	int				cbBuffer = 0;
+	jbyte			*pBuffer = NULL;
+
+	cbBuffer = (*env)->GetArrayLength(env, jbaBuffer);
+	if (cbBuffer == 0) goto done;
+
+	// Get Java byte array as pointer to bytes
+	pBuffer = (*env)->GetByteArrayElements(env, jbaBuffer, &jzIsCopy);
+	if (pBuffer == NULL) goto done;
+
+	ret = IWReadMem(pBuffer, cbBuffer, pVer, &pTra);
+
+	if (ret == IW_SUCCESS)
+	{
+		nTransaction = (jint)pTra;
+	}
+
+done:
+	if (jzIsCopy) (*env)->ReleaseByteArrayElements(env, jbaBuffer, pBuffer, 0);
+
+	PACKAGERETVAL
+
+	return nTransaction;
+}
+
+/*
+ * Class:     com_obi_OpenEBTS
+ * Method:    IWWriteToMem
+ * Signature: (ILcom/obi/OpenEBTS/NISTFileFormat;Lcom/obi/OpenEBTS/NISTReturn;)[B
+ */
+JNIEXPORT jbyteArray JNICALL Java_com_obi_OpenEBTS_IWWriteToMem
+  (JNIEnv *env, jobject obj, jint nTransaction, jobject joRet)
+{
+	RETVAL
+	CIWTransaction	*pTra = (CIWTransaction*)nTransaction;
+	int				cbBuffer = 0;
+	unsigned char	*pBuffer = NULL;
+	jbyteArray		jbaBuffer = NULL;
+
+	ret = IWWriteMem(pTra, &pBuffer, &cbBuffer);
+
+	if (ret == IW_SUCCESS && cbBuffer > 0)
+	{
+		jbaBuffer = (*env)->NewByteArray(env, cbBuffer);
+		(*env)->SetByteArrayRegion(env, jbaBuffer, 0, cbBuffer, pBuffer);
+		IWMemFree(&pBuffer);
+	}
+
+	PACKAGERETVAL
+	return jbaBuffer;
+}
 
 /*
  * Class:     OpenEBTS
