@@ -86,23 +86,27 @@ int CNISTRecord::ReadLogicalRecordLen(BYTE* pTransactionData, int nRecordType, i
 	char szTemp[120];
 	char *pTemp;
 	int nRet = 0;
+	char* pCurPos = 0;
+	char* pString = 0;
+	char* pEndString = 0;
+	int nCurPos = 0;
 
 	// grab the first few bytes, the len field is always first and should be in here
 	memcpy(szTemp, pTransactionData, sizeof(szTemp));
 
-	pTemp = IWStrTok(szTemp, CHAR_PERIOD);
+	pTemp = IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, szTemp, CHAR_PERIOD);
 
 	if (pTemp)
 	{
 		if (atoi(pTemp) == nRecordType)
 		{
-			pTemp = IWStrTok(NULL, CHAR_COLON);
+			pTemp = IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, NULL, CHAR_COLON);
 
 			if (pTemp)
 			{
 				if (atoi(pTemp) == REC_TAG_LEN)
 				{
-					pTemp = IWStrTok(NULL, CHAR_GS);
+					pTemp = IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, NULL, CHAR_GS);
 
 					if (pTemp)
 						nRet = atoi(pTemp);
@@ -149,10 +153,14 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 			CNISTField	*pField;
 			BYTE		*pTemp;
 			bool		bEndofRecord = false;
+			char* pCurPos = 0;
+			char* pString = 0;
+			char* pEndString = 0;
+			int nCurPos = 0;
 
 			memcpy(pRecord, pTransactionData, m_nRecordLen * sizeof(BYTE));
 
-			pTemp = (BYTE*)IWStrTok((char*)pRecord, CHAR_PERIOD);
+			pTemp = (BYTE*)IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, (char*)pRecord, CHAR_PERIOD);
 	
 			while (pTemp && !bEndofRecord)
 			{
@@ -160,7 +168,7 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 
 				if (nField == nRecordType) // make sure we're in sync
 				{
-					pTemp = (BYTE*)IWStrTok(NULL, CHAR_COLON, &bEndofRecord); // get the field
+					pTemp = (BYTE*)IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, NULL, CHAR_COLON, &bEndofRecord); // get the field
 
 					if (pTemp)
 					{
@@ -171,14 +179,14 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 							// take advantage of the fact that I know
 							// the pointer is sitting at the beginning of the image bytes
 							m_bGetImage = true;
-							pFieldData = (BYTE*)IWStrTok(NULL, CHAR_GS, &bEndofRecord); // get the field	data	
+							pFieldData = (BYTE*)IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, NULL, CHAR_GS, &bEndofRecord); // get the field	data	
 							m_bGetImage = false;
 							// Explicitly set bEndofRecord because we know that DAT fields are
 							// always the last fields
 							bEndofRecord = true;
 						}
 						else
-							pFieldData = (BYTE*)IWStrTok(NULL, CHAR_GS, &bEndofRecord); // get the field	data	
+							pFieldData = (BYTE*)IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, NULL, CHAR_GS, &bEndofRecord); // get the field	data	
 						
 						pField = new CNISTField;
 						pField->m_nRecordType = nRecordType;
@@ -235,7 +243,7 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 				// get next field
 				if (!bEndofRecord)
 				{
-					pTemp = (BYTE*)IWStrTok(NULL, CHAR_PERIOD, &bEndofRecord);
+					pTemp = (BYTE*)IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, NULL, CHAR_PERIOD, &bEndofRecord);
 				}
 			}
 			delete [] pRecord;
@@ -248,15 +256,15 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 }
 
 /*********************************************************/
-/* IWStrTok is NOT thread safe!                          */
+/* IWStrTok is NOW thread safe! :-)                      */
 /*********************************************************/
 
-char* CNISTRecord::IWStrTok(char *pInStr, char cDelim, bool *pbEndofRecord)
+char* CNISTRecord::IWStrTok(char** ppCurPos, char** ppString, char** ppEndString, int* pnCurPos, char *pInStr, char cDelim, bool *pbEndofRecord)
 {
-	static char *pCurPos = 0;
-	static char *pString = 0;
-	static char *pEndString = 0;
-	static int nCurPos = 0;
+	char *pCurPos = *ppCurPos;
+	char *pString = *ppString;
+	char *pEndString = *ppEndString;
+	int nCurPos = *pnCurPos;
 	char *pTemp;
 	char *pRet = 0;
 

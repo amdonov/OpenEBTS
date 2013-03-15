@@ -17,7 +17,7 @@ protected:
 
 	bool m_bGetImage;
 
-	char* IWStrTok(char* pInStr, char cDelim, bool *pbEndofRecord = NULL);
+	char* IWStrTok(char** ppCurPos, char** ppString, char** ppEndString, int* pnCurPos, char* pInStr, char cDelim, bool *pbEndofRecord = NULL);
 	CNISTField *GetNISTField(int nField);
 
 	void AddField(CNISTField *pField);
