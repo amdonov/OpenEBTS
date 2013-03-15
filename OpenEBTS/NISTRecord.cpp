@@ -230,7 +230,7 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 									return IW_ERR_READING_FILE;	// Error decoding UTF-8
 								}
 								sFieldData = wNew;
-								delete wNew;
+								delete[] wNew;
 #else
 								sFieldData = (char*)pFieldData;
 #endif
@@ -638,7 +638,7 @@ int CNISTRecord::AddSubItems(CNISTField *pNISTField, char *szFieldData)
 						}
 
 						pSubItem->m_sData = wNew;
-						delete wNew;
+						delete[] wNew;
 #else
 						pSubItem->m_sData = pTempSubItem;
 #endif
