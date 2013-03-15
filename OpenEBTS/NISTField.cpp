@@ -133,7 +133,7 @@ CNISTField::~CNISTField()
 	if (m_pImageData)
 	{
 		m_nImageLen = 0;
-		delete m_pImageData;
+		delete[] m_pImageData;
 		m_pImageData = 0;
 	}
 }
@@ -261,7 +261,7 @@ int CNISTField::SetImageData(unsigned char *pImage, int nImageLen)
 	if (m_pImageData)
 	{
 		m_nImageLen = 0;
-		delete m_pImageData;
+		delete[] m_pImageData;
 		m_pImageData = 0;
 	}
 
