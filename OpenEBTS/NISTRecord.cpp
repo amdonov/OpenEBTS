@@ -94,6 +94,9 @@ int CNISTRecord::ReadLogicalRecordLen(BYTE* pTransactionData, int nRecordType, i
 	// grab the first few bytes, the len field is always first and should be in here
 	memcpy(szTemp, pTransactionData, sizeof(szTemp));
 
+	// NULL termiate the array because IWStrTok calls strlen
+	szTemp[119] = NULL;
+
 	pTemp = IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, szTemp, CHAR_PERIOD);
 
 	if (pTemp)
@@ -143,7 +146,7 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 
 	if (m_nRecordLen > 0)
 	{
-		BYTE* pRecord = new BYTE[m_nRecordLen];
+		BYTE* pRecord = new BYTE[m_nRecordLen + 1];
 
 		if (pRecord)
 		{
@@ -159,6 +162,8 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 			int nCurPos = 0;
 
 			memcpy(pRecord, pTransactionData, m_nRecordLen * sizeof(BYTE));
+			// NULL terminate the array before passing to IWStrTok
+			pRecord[m_nRecordLen] = NULL;
 
 			pTemp = (BYTE*)IWStrTok(&pCurPos, &pString, &pEndString, &nCurPos, (char*)pRecord, CHAR_PERIOD);
 	
