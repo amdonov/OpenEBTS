@@ -19,7 +19,7 @@ public:
 		for (unsigned int i = 0; i < nSize; i++)
 		{
 			sz = m_rgszStrings.at(i);
-			if (sz) delete sz;
+			if (sz) delete[] sz;
 		}
 		m_rgszStrings.clear();
 	}
