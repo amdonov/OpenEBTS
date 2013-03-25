@@ -1,5 +1,5 @@
 Name:   OpenEBTS     
-Version: 2.0.1       
+Version: 2.0.2       
 Release:        1%{?dist}
 Summary:      The OpenEBTS library simplifies the programmtic reading, writing, and editing of EBTS files.
 
@@ -44,6 +44,9 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Mar 25 2013 Aaron Donovan <amdonov@gmail.com> 2.0.2-1
+- Corrected oversimplification of pointer usage (amdonov@gmail.com)
+
 * Tue Mar 19 2013 Aaron Donovan <amdonov@gmail.com> 2.0.1-1
 - new package built with tito
 
