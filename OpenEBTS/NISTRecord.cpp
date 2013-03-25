@@ -266,40 +266,36 @@ int CNISTRecord::ReadRecord(BYTE* pTransactionData, int nRecordType)
 
 char* CNISTRecord::IWStrTok(char** ppCurPos, char** ppString, char** ppEndString, int* pnCurPos, char *pInStr, char cDelim, bool *pbEndofRecord)
 {
-	char *pCurPos = *ppCurPos;
-	char *pString = *ppString;
-	char *pEndString = *ppEndString;
-	int nCurPos = *pnCurPos;
 	char *pTemp;
 	char *pRet = 0;
 
 	if (m_bGetImage)
-		return pCurPos; 
+		return *ppCurPos; 
 
 	if (pInStr)
 	{
-		pCurPos = pString = pInStr;
-		nCurPos = 0;
+		*ppCurPos = *ppString = pInStr;
+		*pnCurPos = 0;
 		size_t nLen = strlen(pInStr);
-		pEndString = pString+nLen;
+		*ppEndString = (*ppString)+nLen;
 	}
 	
-	while (pCurPos <= pEndString)
+	while (*ppCurPos <= *ppEndString)
 	{
-		if (*pCurPos == cDelim || *pCurPos == CHAR_FS)
+		if (**ppCurPos == cDelim || **ppCurPos == CHAR_FS)
 		{
-			if (*pCurPos == CHAR_FS && pbEndofRecord)
+			if (**ppCurPos == CHAR_FS && pbEndofRecord)
 				*pbEndofRecord = true;
 
-			if (pCurPos > pString)
+			if (*ppCurPos > *ppString)
 			{
-				pTemp = pCurPos-1;
+				pTemp = (*ppCurPos)-1;
 				
-				*pCurPos = '\0'; // break the string at the delimiter
-				pCurPos++; // move off null
+				**ppCurPos = '\0'; // break the string at the delimiter
+				(*ppCurPos)++; // move off null
 				
 				// move to begin of previous field
-				while (pTemp > pString && *pTemp != '\0')
+				while (pTemp > *ppString && *pTemp != '\0')
 					pTemp--;
 
 				// move off null
@@ -310,14 +306,14 @@ char* CNISTRecord::IWStrTok(char** ppCurPos, char** ppString, char** ppEndString
 			}
 			else
 			{
-				*pCurPos = '\0'; // return empty string
-				pRet = pCurPos;
+				**ppCurPos = '\0'; // return empty string
+				pRet = *ppCurPos;
 			}
 
 			break;
 		}
 		else
-			pCurPos++;
+			(*ppCurPos)++;
 	}
 	
 	return pRet;
